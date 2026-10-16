@@ -11,3 +11,4 @@ papers
 Example_cases
 # rendered HTML versions of the documents (GitHub shows the .md versions)
 docs/**/*.html
+Targeted_synthetic_control

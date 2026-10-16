@@ -33,19 +33,21 @@ source("simulations/diagnostics_toy_cases.R")     # toy_panel(), run_toy_case(),
 
 The justification for synthetic control is a **factor model** for each unit’s untreated outcome:
 
-$$
+``` math
+
 Y_{it}(0) = \alpha_i + \delta_t + \lambda_{i1} f_{1t} + \lambda_{i2} f_{2t} + \varepsilon_{it}.
-$$
+```
 
-- The **factors** $f_{kt}$ are common shocks or trends that every unit experiences, changing over time: a business cycle, energy prices, a long-run shift in an industry.
-- The **loadings** $\lambda_{ik}$ are each unit’s sensitivity to those factors, fixed over time. An oil-producing state has a high loading on an “energy” factor; a service-based state a low one.
-- $\alpha_i$ is a permanent level difference and $\delta_t$ a shock common to all units equally.
+- The **factors** $`f_{kt}`$ are common shocks or trends that every unit experiences, changing over time: a business cycle, energy prices, a long-run shift in an industry.
+- The **loadings** $`\lambda_{ik}`$ are each unit’s sensitivity to those factors, fixed over time. An oil-producing state has a high loading on an “energy” factor; a service-based state a low one.
+- $`\alpha_i`$ is a permanent level difference and $`\delta_t`$ a shock common to all units equally.
 
-The demeaned synthetic control (an intercept plus non-negative donor weights that sum to one) absorbs $\alpha_i$ through the intercept and $\delta_t$ through the sum-to-one constraint. What the weights must reproduce is the **factor part**: the treated unit’s counterfactual tracks it only if
+The demeaned synthetic control (an intercept plus non-negative donor weights that sum to one) absorbs $`\alpha_i`$ through the intercept and $`\delta_t`$ through the sum-to-one constraint. What the weights must reproduce is the **factor part**: the treated unit’s counterfactual tracks it only if
 
-$$
+``` math
+
 \lambda_T \approx \sum_j w_j \lambda_j ,
-$$
+```
 
 that is, if the treated unit’s loadings can be written as a weighted average of the donors’ loadings.
 
@@ -62,21 +64,23 @@ that is, if the treated unit’s loadings can be written as a weighted average o
 
 A weighted average with non-negative weights summing to one can only reach the region the donors span: the **convex hull** of their loadings. If the treated unit’s loadings lie inside it, some mix of donors matches the treated unit’s exposure exactly. If they lie outside, a **loading mismatch** remains:
 
-$$
+``` math
+
 \delta = \lambda_T - \sum_j w_j \lambda_j \ne 0 ,
-$$
+```
 
 and the counterfactual carries an error of about
 
-$$
-\text{error}_t \approx \delta \times \big(f_t - \bar f_{\text{pre}}\big),
-$$
+``` math
 
-where the intercept absorbs the pre-treatment average $\bar f_{\text{pre}}$. “Extreme” therefore refers to the treated unit’s **exposure to common factors**, not its level, which the intercept handles.
+\text{error}_t \approx \delta \times \big(f_t - \bar f_{\text{pre}}\big),
+```
+
+where the intercept absorbs the pre-treatment average $`\bar f_{\text{pre}}`$. “Extreme” therefore refers to the treated unit’s **exposure to common factors**, not its level, which the intercept handles.
 
 How serious the error is depends on the factors:
 
-|  | Inside the hull ($\delta \approx 0$) | Outside the hull ($\delta \ne 0$) |
+|  | Inside the hull ($`\delta \approx 0`$) | Outside the hull ($`\delta \ne 0`$) |
 |----|----|----|
 | **Stationary factors** | no problem | error of similar size before and after treatment, so it **shows in the pre-treatment fit** and RMSPE-scaled intervals widen to cover it |
 | **Trending factors** | no problem | error **grows after treatment**, beyond anything visible beforehand, and the placebos (mostly inside the hull) never experience it: **the dangerous case** |
@@ -89,7 +93,7 @@ How serious the error is depends on the factors:
 |----|----|----|
 | **Fit rank** | the treated unit’s pre-treatment RMSPE relative to its level, against the placebos’ | fewer than 10% of placebos fit worse |
 | **Hull distance** | the distance of the treated unit’s **estimated** loadings (interactive fixed effects via `fect`, untreated cells only) from the donors’ convex hull, against each donor’s distance from the other donors’ hull | fewer than 10% of donors lie further out |
-| **Implied drift** | the post-treatment error implied by the loading mismatch, $\hat\delta \times (\hat f_t - \bar{\hat f}_{\text{pre}})$, as % of the level | reported, not flagged |
+| **Implied drift** | the post-treatment error implied by the loading mismatch, $`\hat\delta \times (\hat f_t - \bar{\hat f}_{\text{pre}})`$, as % of the level | reported, not flagged |
 | **Persistence** | the first-order autocorrelation of each estimated factor | trending if above 0.95 |
 
 The **assessment** combines them:

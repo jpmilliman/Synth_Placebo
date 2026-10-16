@@ -12,6 +12,7 @@ format:
     number-sections: true
   gfm:
     wrap: none
+    variant: +tex_math_gfm
 execute:
   eval: false
 ---

@@ -16,7 +16,7 @@ There is **no bootstrap**. The method produces two kinds of interval, which answ
 - a **pointwise interval** for the effect in a period chosen in advance (by default the last post-treatment period), for both the per-period and the cumulative effect, with a matching p-value. It answers: *was there an effect in this period?*
 - a **simultaneous band** that covers the whole post-treatment path at once, with a p-value for the whole period. It answers: *was there an effect at any point, when, and what did the effect path look like?*
 
-Both come with matching **prediction intervals** for the treated unit’s untreated outcome.
+Both come with matching **prediction intervals** for the treated unit’s counterfactual outcome: the range in which its outcome would plausibly have fallen without the treatment.
 
 The method is implemented in `dsc_placebo()` in `synthetic_control_functions/synthetic_control_functions_claude.R`, and runs in a few seconds. It grew out of a project testing whether the maximum entropy bootstrap could provide inference for synthetic control (see the companion document on the fixed-weight bootstrap). An ablation study found that once intervals are calibrated against placebos, **the bootstrap adds little**: the same construction with no bootstrap was valid and at least as powerful in almost every setting tested.
 
@@ -39,12 +39,13 @@ The standard solution is a **placebo test**: pretend each donor was treated, est
 
 # The estimator: the demeaned synthetic control
 
-The counterfactual is estimated with a **demeaned synthetic control**. For the treated unit’s outcome $y_t$ and donor outcomes $x_{jt}$, the pre-treatment fit chooses an intercept $b_0$ and weights $w_j$ to solve
+The counterfactual is estimated with a **demeaned synthetic control**. For the treated unit’s outcome $`y_t`$ and donor outcomes $`x_{jt}`$, the pre-treatment fit chooses an intercept $`b_0`$ and weights $`w_j`$ to solve
 
-$$
+``` math
+
 \min_{b_0,\, w} \sum_{t \in \text{pre}} \Big( y_t - b_0 - \sum_j w_j x_{jt} \Big)^2
 \quad \text{subject to} \quad w_j \ge 0,\ \ \sum_j w_j = 1 .
-$$
+```
 
 - The **intercept** absorbs permanent level differences, so the treated unit does not have to lie within the range of its donors’ levels.
 - The **weights are non-negative and sum to one**, so the synthetic control follows its donors’ full movements over time.
@@ -59,69 +60,74 @@ Fit the demeaned synthetic control for the treated unit, using all donors. Then 
 
 ## Step 2: standardize each gap by its unit’s pre-treatment fit
 
-For every unit $u$ (the treated unit and each placebo), compute the root mean squared prediction error of its synthetic control over the pre-treatment period,
+For every unit $`u`$ (the treated unit and each placebo), compute the root mean squared prediction error of its synthetic control over the pre-treatment period,
 
-$$
+``` math
+
 s_u = \text{RMSPE}_u = \sqrt{\frac{1}{T_0} \sum_{t \in \text{pre}} \text{gap}_{u,t}^2 } ,
-$$
+```
 
 and divide each post-treatment gap by it:
 
-$$
+``` math
+
 k_{u,t} = \frac{|\text{gap}_{u,t}|}{s_u} .
-$$
+```
 
-$k_{u,t}$ says how many “typical pre-treatment misses” the gap amounts to. For example, $k = 6$ means the unit’s post-treatment gap is six times as large as its synthetic control’s typical miss before treatment. A unit that was fitted closely before treatment has a small $s_u$, so even a modest gap afterwards stands out; a unit that was fitted poorly has a large $s_u$, and only a large gap will.
+$`k_{u,t}`$ says how many “typical pre-treatment misses” the gap amounts to. For example, $`k = 6`$ means the unit’s post-treatment gap is six times as large as its synthetic control’s typical miss before treatment. A unit that was fitted closely before treatment has a small $`s_u`$, so even a modest gap afterwards stands out; a unit that was fitted poorly has a large $`s_u`$, and only a large gap will.
 
-For the **cumulative** effect, the cumulative gap through $t$ is divided by the same $s_u$: $k^c_{u,t} = |\text{cumulative gap}_{u,t}| / s_u$.
+For the **cumulative** effect, the cumulative gap through $`t`$ is divided by the same $`s_u`$: $`k^c_{u,t} = |\text{cumulative gap}_{u,t}| / s_u`$.
 
 This is the logic of the familiar post/pre RMSPE ratio of Abadie, Diamond and Hainmueller, applied period by period so that it can produce intervals as well as a test.
 
-**A guard against perfect pre-treatment fits.** With a short pre-treatment period and many donors, the demeaned synthetic control can reproduce some units exactly before treatment, because there are more donor weights than pre-treatment periods to fit. Such a unit’s $s_u$ is essentially zero, so its standardized gaps, and with them the thresholds, become near-infinite. In the Texas prison panel of Cunningham (2021) (8 pre-treatment years, 49 donors), four placebo states had $s_u \approx 0$, and the 95% interval for Texas ran to about \$\$9 billion. `dsc_placebo()` therefore floors every unit’s pre-treatment RMSPE at a fraction of the median across all units (the treated unit and every placebo):
+**A guard against perfect pre-treatment fits.** With a short pre-treatment period and many donors, the demeaned synthetic control can reproduce some units exactly before treatment, because there are more donor weights than pre-treatment periods to fit. Such a unit’s $`s_u`$ is essentially zero, so its standardized gaps, and with them the thresholds, become near-infinite. In the Texas prison panel of Cunningham (2021) (8 pre-treatment years, 49 donors), four placebo states had $`s_u \approx 0`$, and the 95% interval for Texas ran to about \$\$9 billion. `dsc_placebo()` therefore floors every unit’s pre-treatment RMSPE at a fraction of the median across all units (the treated unit and every placebo):
 
-$$
-s_u \leftarrow \max\big(s_u,\ c \times \text{median}_v\, s_v\big), \qquad c = \texttt{rmspe\_floor} = 0.25 \text{ by default}.
-$$
+``` math
+
+s_u \leftarrow \max\big(s_u,\ c \times \text{median}_v\, s_v\big), \qquad c = \mathtt{rmspe\_floor} = 0.25 \text{ by default}.
+```
 
 The same rule applies to every unit, so the treated unit stays exchangeable with the placebos. With adequate pre-periods the floor rarely binds (it changes nothing for Kansas or West Germany); `$rmspe_guard` reports the floor and any units it was applied to, and `rmspe_floor = 0` switches it off (see *Short pre-periods and the guard* for its validation).
 
-**Why standardize by the pre-treatment fit?** If the treated unit is hard for the donors to reproduce (it is more extreme than any of them, or exposed to a trend they do not share), its synthetic control will usually fit badly **before** treatment as well as drifting afterwards. Its $s_T$ is then large, and its intervals widen automatically. The other scales cannot do this: a percentage or a dollar threshold set by the donors is the same for every treated unit, however hard it is to fit. That is why the RMSPE scale stayed largely valid in the simulations where the others failed (see *What the simulations showed*).
+**Why standardize by the pre-treatment fit?** If the treated unit is hard for the donors to reproduce (it is more extreme than any of them, or exposed to a trend they do not share), its synthetic control will usually fit badly **before** treatment as well as drifting afterwards. Its $`s_T`$ is then large, and its intervals widen automatically. The other scales cannot do this: a percentage or a dollar threshold set by the donors is the same for every treated unit, however hard it is to fit. That is why the RMSPE scale stayed largely valid in the simulations where the others failed (see *What the simulations showed*).
 
 ## Step 3: calibrate
 
-The donors’ standardized gaps $k_{p,t}$ show how large an *untreated* unit’s gap can get, relative to its own pre-treatment fit. Calibration asks: **how large does a standardized gap have to be before it is unusual compared with these untreated units?**
+The donors’ standardized gaps $`k_{p,t}`$ show how large an *untreated* unit’s gap can get, relative to its own pre-treatment fit. Calibration asks: **how large does a standardized gap have to be before it is unusual compared with these untreated units?**
 
-**The rank rule.** If the treated unit had not been treated, its $k_{T,t}$ would be just one more draw from the same distribution as the donors’. Together with the $N$ donors there would be $N + 1$ values, and the treated unit’s value would be equally likely to fall anywhere in their ranking. With
+**The rank rule.** If the treated unit had not been treated, its $`k_{T,t}`$ would be just one more draw from the same distribution as the donors’. Together with the $`N`$ donors there would be $`N + 1`$ values, and the treated unit’s value would be equally likely to fall anywhere in their ranking. With
 
-$$
+``` math
+
 m = \lfloor \alpha (N + 1) \rfloor, \qquad
 k^*_t = \text{the } m\text{-th largest of } \{ k_{p,t} : p = 1, \dots, N \},
-$$
+```
 
-the chance that an untreated unit’s $k_t$ exceeds $k^*_t$ is at most $\alpha$. That makes the test exact under exchangeability.
+the chance that an untreated unit’s $`k_t`$ exceeds $`k^*_t`$ is at most $`\alpha`$. That makes the test exact under exchangeability.
 
 **How the rank depends on the number of donors:**
 
-| Donors $N$ | $m$ at 95% | $m$ at 90% | Smallest possible p-value |
+| Donors $`N`$ | $`m`$ at 95% | $`m`$ at 90% | Smallest possible p-value |
 |----|----|----|----|
 | 49 (Kansas) | 2 (2nd largest) | 5 (5th largest) | 0.020 |
 | 37 (California) | 1 (largest) | 3 (3rd largest) | 0.026 |
-| 18 or fewer | 0 (interval infinite) | 1 (largest) | $\ge$ 0.053 |
+| 18 or fewer | 0 (interval infinite) | 1 (largest) | $`\ge`$ 0.053 |
 
-**Example: Kansas, 2016 Q1** (the last post-treatment quarter; 49 donors; 95%, so $m = 2$)
+**Example: Kansas, 2016 Q1** (the last post-treatment quarter; 49 donors; 95%, so $`m = 2`$)
 
-Kansas’s synthetic control misses by \$295 on average before treatment ($s_T = 295$; the median donor’s is \$375). In 2016 Q1 its gap is $-1{,}891$, so
+Kansas’s synthetic control misses by \$295 on average before treatment ($`s_T = 295`$; the median donor’s is \$375). In 2016 Q1 its gap is $`-1{,}891`$, so
 
-$$
+``` math
+
 k_{T} = \frac{1{,}891}{295} = 6.41 .
-$$
+```
 
 The donors’ standardized gaps in the same quarter:
 
-| Rank | Unit | Standardized gap $k$ |  |
+| Rank | Unit | Standardized gap $`k`$ |  |
 |----|----|----|----|
 | 1 | California | 13.69 |  |
-| **2** | **Alabama** | **8.77** | **$k^*$ (the 2nd largest donor value)** |
+| **2** | **Alabama** | **8.77** | **$`k^*`$ (the 2nd largest donor value)** |
 | 3 | Iowa | 8.77 |  |
 | 4 | Montana | 8.73 |  |
 | 5 | Tennessee | 8.67 |  |
@@ -132,20 +138,80 @@ The donors’ standardized gaps in the same quarter:
 Reading the table:
 
 - Kansas’s 2016 Q1 gap is about six and a half times its typical pre-treatment miss. That is more than twice the median donor (2.96), but nine donors drift at least as far relative to their own pre-treatment fit.
-- The threshold is $k^* = 8.77$: an effect would need to exceed about 8.8 pre-treatment RMSPEs ($8.77 \times 295 \approx$ \$2,590) in this quarter to be significant at 95%.
-- 9 donors have $k \ge 6.41$, so $p = (1 + 9) / 50 = 0.20$.
+- The threshold is $`k^* = 8.77`$: an effect would need to exceed about 8.8 pre-treatment RMSPEs ($`8.77 \times 295 \approx`$ \$2,590) in this quarter to be significant at 95%.
+- 9 donors have $`k \ge 6.41`$, so $`p = (1 + 9) / 50 = 0.20`$.
 
 ## Step 4: the pointwise interval, p-value, and prediction interval
 
-For the pre-specified test period $t$:
+For the pre-specified test period $`t`$:
 
-$$
+``` math
+
 \text{effect interval: } \ \text{gap}_{T,t} \pm k^*_t \times s_T,
 \qquad
 p_t = \frac{1 + \#\{ p : k_{p,t} \ge k_{T,t} \}}{N + 1}.
-$$
+```
 
-For Kansas in 2016 Q1: $-1{,}891 \pm 8.77 \times 295 = -1{,}891 \pm 2{,}588$, or $-4{,}480$ to $697$. The interval excludes zero exactly when $p_t \le \alpha$. The **prediction interval** is the same interval centred on the synthetic control: $\text{synthetic}_{T,t} \pm k^*_t \times s_T$. The cumulative effect is handled the same way, with the donors’ cumulative standardized gaps $k^c_{p,t}$ and the same $s_T$.
+For Kansas in 2016 Q1: $`-1{,}891 \pm 8.77 \times 295 = -1{,}891 \pm 2{,}588`$, or $`-4{,}480`$ to $`697`$. The interval excludes zero exactly when $`p_t \le \alpha`$. The same threshold also gives a **prediction interval** for the treated unit’s counterfactual outcome (Step 5). The cumulative effect is handled the same way, with the donors’ cumulative standardized gaps $`k^c_{p,t}`$ and the same $`s_T`$.
+
+## Step 5: the prediction interval for the treated unit’s counterfactual outcome
+
+After treatment, the treated unit has two potential outcomes: $`Y_{T,t}(1)`$, the outcome **with** treatment, which is what we observe, and $`Y_{T,t}(0)`$, the outcome it would have had **without** treatment, which is never observed. The synthetic control is an estimate of $`Y_{T,t}(0)`$. The **prediction interval** is an interval for $`Y_{T,t}(0)`$: the range in which the treated unit’s counterfactual outcome would plausibly have fallen. If the observed outcome lies outside that range, that is evidence of an effect.
+
+The construction uses the same threshold as the effect interval:
+
+``` math
+
+\text{synthetic}_{T,t} = \text{observed}_{T,t} - \text{gap}_{T,t},
+\qquad
+\text{prediction interval: } \ \text{synthetic}_{T,t} \pm k^*_t \times s_T .
+```
+
+**Example: Kansas in 2016 Q1, step by step.**
+
+1.  **The counterfactual estimate.** Synthetic Kansas is \$53,109: the estimate of what Kansas’s GDP per capita would have been without the tax cuts. Observed Kansas is \$51,218, so the gap is $`-\$1{,}891`$.
+
+2.  **The treated unit’s pre-treatment fit.** Before 2012 Q2, synthetic Kansas missed actual Kansas by $`s_T = \$295`$ (root mean squared). This is the unit in which Kansas’s interval is measured.
+
+3.  **How far untreated states drift.** Each of the 49 donor states is analysed as if it had been treated in 2012 Q2, and its 2016 Q1 gap is divided by its own pre-treatment RMSPE. The largest values are:
+
+    | Placebo state | 2016 Q1 gap | Its pre-treatment RMSPE | Standardized gap \|gap\| / RMSPE |
+    |----|----|----|----|
+    | California | +6,155 | 449 | 13.69 |
+    | Alabama | -1,183 | 135 | **8.77** |
+    | Iowa | +2,799 | 319 | 8.77 |
+    | Montana | -2,613 | 299 | 8.73 |
+    | Tennessee | +2,843 | 328 | 8.67 |
+
+    These states were not treated, so their gaps are pure noise and drift: four years out, an untreated state’s synthetic control can miss by 9 to 14 of its own pre-treatment RMSPEs by chance alone.
+
+4.  **The threshold.** At 95% with $`N = 49`$, $`m = \lfloor 0.05 \times 50 \rfloor = 2`$, so $`k^*_t`$ is the second-largest value, **8.77** (Alabama). The RMSPE floor does not bind for any state here.
+
+5.  **Convert it to dollars with Kansas’s own fit.** $`8.77 \times \$295 = \$2{,}588`$.
+
+6.  **Centre it on the counterfactual.** $`\$53{,}109 \pm \$2{,}588`$ gives a 95% prediction interval of **\$50,521 to \$55,697** for what Kansas’s GDP per capita would have been without the tax cuts (`pred_low_pw`, `pred_high_pw`).
+
+7.  **Compare the observed outcome.** Observed Kansas, \$51,218, lies **inside** the interval, so for this quarter alone the data are consistent with no effect.
+
+**The connection to the effect interval.** The effect is the observed outcome minus the counterfactual, so subtracting the prediction interval from the observed outcome gives the effect interval:
+
+``` math
+
+\$51{,}218 - \$55{,}697 = -\$4{,}480, \qquad \$51{,}218 - \$50{,}521 = +\$697,
+```
+
+which is exactly the effect interval from Step 4 (`eff_low_pw`, `eff_high_pw`). The two are the same inference on two scales: the prediction interval asks whether the observed outcome is a plausible untreated outcome, and the effect interval asks whether zero is a plausible effect. So the observed outcome falls outside the prediction interval exactly when the effect interval excludes zero, which happens exactly when $`p_t \le \alpha`$. For Kansas, the standardized gap is $`1{,}891 / 295 = 6.41`$, nine placebos are at least that large, and $`p_t = (1 + 9)/50 = 0.20`$.
+
+**What the 95% means.** If the treated unit is exchangeable with the placebos, its counterfactual outcome lands inside the interval with probability at least $`1 - m/(N + 1)`$, here $`1 - 2/50 = 0.96`$. Because each placebo’s gap includes that state’s own period-to-period shocks, the interval covers the treated unit’s *realised* counterfactual, including its own idiosyncratic noise, and not only the estimation error of the synthetic control. It is symmetric because the calibration ranks absolute standardized gaps, so the same threshold applies above and below.
+
+**The other versions.**
+
+- **Simultaneous prediction band:** $`\text{synthetic}_{T,t} \pm \lambda\, \tilde{q}_t \times s_T`$, with $`\lambda`$ and $`\tilde{q}_t`$ from the simultaneous band (below). It covers the whole counterfactual path at once with the same probability. For Kansas in 2016 Q1, $`\lambda \tilde{q}_t = 17.72`$, giving $`\$53{,}109 \pm \$5{,}227`$, or \$47,882 to \$58,336 (`pred_low_sim`, `pred_high_sim`).
+- **Cumulative:** the cumulative synthetic control through $`t`$, plus or minus the cumulative threshold times the same $`s_T`$ (`cum_pred_low_pw`, `cum_pred_high_pw`, and the `_sim` versions).
+- **Other scales:** on the relative scale the half-width is $`k^*_t \times \text{synthetic}_{T,t}`$; on the raw scale it is $`k^*_t`$ itself.
+- **Covariate adjustment:** the synthetic value already includes the adjustment, so the interval is on the original outcome scale.
+
+The prediction columns are `NA` before treatment. They are what `plot_prediction()` and `plot_full_path()` shade.
 
 ## In one sentence
 
@@ -153,19 +219,19 @@ Every unit’s post-treatment gap is measured in units of its own pre-treatment 
 
 ## Reading the result as a fit-based benchmark
 
-A common way to judge a synthetic control estimate is to ask whether the post-treatment gap is large compared with how well the synthetic control fitted before treatment. Sensitivity analyses from the difference-in-differences literature ask how large a departure from the identifying assumption would be needed to explain the estimate: bounded-variation assumptions (Manski and Pepper 2018), or bounds that scale the largest pre-treatment deviation by a factor $M$ (Rambachan and Roth 2023). The earlier `synth_lasso_boot()` reported bounds of the second kind for a synthetic control: the effect $\pm M \times$ the largest pre-treatment miss. On the RMSPE scale, `dsc_placebo()` answers the same question, but with a benchmark taken from the data rather than chosen by the analyst. Three columns of `$effects` do this:
+A common way to judge a synthetic control estimate is to ask whether the post-treatment gap is large compared with how well the synthetic control fitted before treatment. Sensitivity analyses from the difference-in-differences literature ask how large a departure from the identifying assumption would be needed to explain the estimate: bounded-variation assumptions (Manski and Pepper 2018), or bounds that scale the largest pre-treatment deviation by a factor $`M`$ (Rambachan and Roth 2023). The earlier `synth_lasso_boot()` reported bounds of the second kind for a synthetic control: the effect $`\pm M \times`$ the largest pre-treatment miss. On the RMSPE scale, `dsc_placebo()` answers the same question, but with a benchmark taken from the data rather than chosen by the analyst. Three columns of `$effects` do this:
 
-- `std_effect` is the treated unit’s gap measured in its own pre-treatment RMSPEs, $\text{gap}_{T,t} / s_T$;
-- `factor_pointwise` is the threshold: how many of their own pre-treatment RMSPEs the untreated units’ synthetic controls miss by in the same period (the $m$-th largest; `factor_simultaneous` is the corresponding threshold for the simultaneous band);
+- `std_effect` is the treated unit’s gap measured in its own pre-treatment RMSPEs, $`\text{gap}_{T,t} / s_T`$;
+- `factor_pointwise` is the threshold: how many of their own pre-treatment RMSPEs the untreated units’ synthetic controls miss by in the same period (the $`m`$-th largest; `factor_simultaneous` is the corresponding threshold for the simultaneous band);
 - `threshold_ratio_pw` is the absolute value of `std_effect` divided by `factor_pointwise`; `threshold_ratio_sim` divides by `factor_simultaneous` instead, and `cum_threshold_ratio_pw` and `cum_threshold_ratio_sim` do the same for the cumulative effect.
 
-A ratio above 1 means the gap is larger, relative to the pre-treatment fit, than the untreated units’ gaps get by chance; it is above 1 exactly when the corresponding interval excludes zero. Its size says by how much: a ratio of 1.3 means the effect would still be significant if untreated drift were 30% larger than the most extreme placebo values used for calibration. It is the calibrated counterpart of the breakdown value $M$ of a sensitivity bound.
+A ratio above 1 means the gap is larger, relative to the pre-treatment fit, than the untreated units’ gaps get by chance; it is above 1 exactly when the corresponding interval excludes zero. Its size says by how much: a ratio of 1.3 means the effect would still be significant if untreated drift were 30% larger than the most extreme placebo values used for calibration. It is the calibrated counterpart of the breakdown value $`M`$ of a sensitivity bound.
 
 For Kansas, the gap in 2016 Q1 is 6.41 pre-treatment RMSPEs against a threshold of 8.77, a ratio of 0.73: untreated states drift further than this by chance. The cumulative effect has a ratio of 1.05, just past the threshold (hence p = 0.04), and the simultaneous band’s largest ratio is 1.17, in 2012 Q3, the first quarter it flags.
 
-The difference from an uncalibrated bound is the benchmark. Kansas’s largest pre-treatment miss is 5.15 pre-treatment RMSPEs, so a bound with $M = 1$ would treat about 5 RMSPEs as the most that fit error can explain. The placebos show that untreated synthetic controls drift by up to 8.8 RMSPEs by 2016 Q1, and by less early on: the threshold grows with time since treatment, while a bound stays flat. Pre-treatment misses also understate post-treatment error by construction, because the weights are chosen to make them small. The threshold ratio avoids both problems, because the benchmark is what happened to untreated units fitted the same way.
+The difference from an uncalibrated bound is the benchmark. Kansas’s largest pre-treatment miss is 5.15 pre-treatment RMSPEs, so a bound with $`M = 1`$ would treat about 5 RMSPEs as the most that fit error can explain. The placebos show that untreated synthetic controls drift by up to 8.8 RMSPEs by 2016 Q1, and by less early on: the threshold grows with time since treatment, while a bound stays flat. Pre-treatment misses also understate post-treatment error by construction, because the weights are chosen to make them small. The threshold ratio avoids both problems, because the benchmark is what happened to untreated units fitted the same way.
 
-Two cautions. With few donors the threshold is set by one or two placebos (with $m = 1$, the single most extreme one), so the ratio is coarse. And the pointwise ratio is a valid test only for the period chosen in advance; for statements about the whole path, use `threshold_ratio_sim`. On the relative and raw scales the same columns compare percentage or raw gaps, so the reading “times the pre-treatment fit” applies only to the RMSPE scale.
+Two cautions. With few donors the threshold is set by one or two placebos (with $`m = 1`$, the single most extreme one), so the ratio is coarse. And the pointwise ratio is a valid test only for the period chosen in advance; for statements about the whole path, use `threshold_ratio_sim`. On the relative and raw scales the same columns compare percentage or raw gaps, so the reading “times the pre-treatment fit” applies only to the RMSPE scale.
 
 # Why the interval is “pointwise”
 
@@ -183,49 +249,102 @@ A **simultaneous band** is built so that, with 95% confidence, it contains the t
 
 ## How it is built
 
-The ingredients are the same standardized gaps $k_{u,t}$ for the treated unit and every placebo.
+The simultaneous band is built from the same pieces as the pointwise interval and its prediction interval (Step 5): the same standardized gaps $`k_{u,t}`$ for the treated unit and every placebo, the same centre (the gap for the effect band, synthetic Kansas for the prediction band), and the same conversion to the outcome’s scale with the treated unit’s $`s_T`$. **Only the multiplier changes**: $`k^*_t`$, chosen period by period, is replaced by $`\lambda \tilde{q}_t`$, chosen for the whole path:
 
-**Step A: a smooth time profile.** In each period, take the **median** standardized gap across donors, and smooth it over time (loess on the log scale, span 0.75):
+``` math
 
-$$
+\text{pointwise: } \ \text{synthetic}_{T,t} \pm k^*_t \times s_T,
+\qquad
+\text{simultaneous: } \ \text{synthetic}_{T,t} \pm \lambda\, \tilde{q}_t \times s_T .
+```
+
+**Step A: a smooth time profile.** In each period, take the **median** standardized gap across donors, and smooth it over time (local linear loess on the log scale, span 0.75, explained below):
+
+``` math
+
 q_t = \text{median}_p \; k_{p,t}, \qquad \tilde{q}_t = \text{smoothed } q_t .
-$$
+```
 
-$\tilde{q}_t$ describes how large a *typical* untreated unit’s gap is in each period, in pre-treatment RMSPEs. It usually grows with time since treatment, as synthetic controls drift. The median keeps a single unusual donor from shaping the profile, and smoothing removes period-to-period noise. For Kansas, $\tilde{q}_t$ rises from 1.29 in 2012 Q2 to 3.02 in 2016 Q1: a typical untreated state’s synthetic control misses by about one pre-treatment RMSPE just after treatment, and by about three after four years.
+$`\tilde{q}_t`$ describes how large a *typical* untreated unit’s gap is in each period, in pre-treatment RMSPEs. It usually grows with time since treatment, as synthetic controls drift. The median keeps a single unusual donor from shaping the profile, and smoothing removes period-to-period noise. For Kansas, $`\tilde{q}_t`$ rises from 1.29 in 2012 Q2 to 3.02 in 2016 Q1: a typical untreated state’s synthetic control misses by about one pre-treatment RMSPE just after treatment, and by about three after four years.
+
+**How the smoothing works.** The raw medians $`q_t`$ are bumpy, because which placebos happen to have a good or bad quarter changes from quarter to quarter, while the underlying drift is smooth. `dsc_placebo()` smooths them with a local linear loess regression on the log scale:
+
+``` math
+
+\log \tilde{q}_t = \text{loess}\big(\log q_t \sim t;\ \text{span} = 0.75,\ \text{degree} = 1\big).
+```
+
+For each period $`t_0`$, loess fits its own weighted straight line through the log medians and reads off its value at $`t_0`$:
+
+1.  **Neighbourhood.** `span = 0.75` uses the nearest 75% of the post-treatment periods (12 of Kansas’s 16 quarters).
+2.  **Weights.** Each neighbour gets the tricube weight $`\big(1 - (d/h)^3\big)^3`$, where $`d`$ is its distance from $`t_0`$ and $`h`$ the distance to the farthest neighbour, so nearby periods count most.
+3.  **Fit.** A weighted least-squares line (`degree = 1`); its value at $`t_0`$, exponentiated, is $`\tilde{q}_{t_0}`$.
+
+For Kansas in 2016 Q1 ($`t_0 = 16`$), the neighbourhood is quarters 5 to 16, with weights rising from 0 (quarter 5) through 0.41 (quarter 9) to 1 (quarters 15 and 16). The weighted line has a slope of 0.052 per quarter on the log scale, so the typical miss grows by about 5% a quarter, and its value at quarter 16 gives $`\tilde{q}_{16} = 3.02`$. Repeating this for every quarter gives:
+
+| Quarter | 2012 Q2 | 2012 Q3 | 2012 Q4 | 2013 Q1 | 2013 Q2 | 2013 Q3 | 2015 Q2 | 2015 Q3 | 2015 Q4 | 2016 Q1 |
+|----|----|----|----|----|----|----|----|----|----|----|
+| Raw median $`q_t`$ | 1.25 | 1.32 | 1.66 | 1.56 | 1.45 | 1.64 | 2.32 | 3.03 | 2.84 | 2.96 |
+| Smoothed $`\tilde{q}_t`$ | 1.29 | 1.36 | 1.44 | 1.53 | 1.62 | 1.72 | 2.59 | 2.73 | 2.87 | 3.02 |
+
+The choices: the **log scale** because the drift grows roughly multiplicatively, and because exponentiating back keeps $`\tilde{q}_t`$ positive; a **local line** rather than a local quadratic because it does not bend sharply at the ends of the series, where the usual test period sits; and **span 0.75** to average out quarter-to-quarter noise while still following a profile that speeds up or slows down. The span is the `span` argument and should be fixed in advance.
+
+Smoothing affects only the band’s **shape**, not its validity: $`\lambda`$ (Step C) is calibrated on the placebos’ scores *after* dividing by $`\tilde{q}_t`$, and the same profile is applied to every placebo and to the treated unit, so the coverage guarantee holds for any profile. A poor profile costs width instead: an unsmoothed dip in one quarter would make every placebo’s ratio spike there and push $`\lambda`$, and so the band, up for the whole path.
 
 **Step B: score each donor on its worst period.**
 
-$$
+``` math
+
 R_p = \max_t \frac{k_{p,t}}{\tilde{q}_t}
-$$
+```
 
 is how many “typical misses” the donor’s most extreme period reaches.
 
-**Step C: one multiplier for the whole path.** The multiplier $\lambda$ is the $m$-th largest donor score, and the band in every period is
+**Step C: one multiplier for the whole path.** The multiplier $`\lambda`$ is the $`m`$-th largest donor score, and the band in every period is
 
-$$
+``` math
+
 \text{gap}_{T,t} \pm \lambda\, \tilde{q}_t \times s_T .
-$$
+```
 
-The prediction band is the same, centred on the synthetic control. The cumulative effect gets its own band, built the same way from the cumulative standardized gaps.
+The matching prediction band for the counterfactual path is $`\text{synthetic}_{T,t} \pm \lambda\, \tilde{q}_t \times s_T`$ (see Step 5). The cumulative effect gets its own band, built the same way from the cumulative standardized gaps.
 
-**The test.** The treated unit’s score is $R_T = \max_t k_{T,t} / \tilde{q}_t$, with simultaneous p-value
+**The test.** The treated unit’s score is $`R_T = \max_t k_{T,t} / \tilde{q}_t`$, with simultaneous p-value
 
-$$
+``` math
+
 p_{\text{sim}} = \frac{1 + \#\{p : R_p \ge R_T\}}{N + 1}.
-$$
+```
 
-If $R_T > \lambda$, the band excludes zero in at least one period. The function reports the p-value and **which periods** the band flags.
+If $`R_T > \lambda`$, the band excludes zero in at least one period. The function reports the p-value and **which periods** the band flags.
 
-**Example: Kansas, per-quarter effect.** The largest donor scores are South Dakota (6.07), North Dakota (5.86) and Maryland (5.66). With $m = 2$, $\lambda = 5.86$. The band’s half-width is $5.86 \times \tilde{q}_t \times 295$, which grows from about \$2,230 in 2012 Q2 to \$5,230 in 2016 Q1. Kansas’s own score is $R_T = 6.86$, higher than every donor’s, so $p_{\text{sim}} = 1/50 = 0.02$, and the band excludes zero in the quarters where Kansas’s gap is largest relative to $\tilde{q}_t$ (2012 Q3, 2012 Q4 and 2013 Q3).
+**Example: Kansas, per-quarter effect.** The pointwise multiplier $`k^*_t`$ is chosen separately in each quarter, so that only 2 of the 49 placebos exceed it *in that quarter*; over 16 quarters, different placebos exceed it in different quarters, so the chance that a path leaves the pointwise band somewhere is much larger than 4%. The simultaneous band calibrates on each placebo’s whole path instead:
+
+- **Step A.** The typical miss $`\tilde{q}_t`$ rises from 1.29 in 2012 Q2 to 1.72 in 2013 Q3 and 3.02 in 2016 Q1.
+- **Step B.** The largest donor scores are South Dakota (6.07), North Dakota (5.86) and Maryland (5.66).
+- **Step C.** With $`m = 2`$, $`\lambda = 5.86`$ (North Dakota). Only South Dakota and North Dakota leave their own band in *any* quarter, so if Kansas is exchangeable with the placebos, the chance its counterfactual path leaves the band anywhere is at most $`2/50 = 4\%`$.
+- **Step D.** As for the pointwise interval, the multiplier is converted to dollars with Kansas’s $`s_T = \$295`$ and centred on synthetic Kansas:
+
+| Quarter | Pointwise $`k^*_t`$ | Simultaneous $`\lambda \tilde{q}_t`$ | Simultaneous half-width | Kansas’s $`\lvert \text{gap} \rvert / s_T`$ | Outside the simultaneous band? |
+|----|----|----|----|----|----|
+| 2012 Q2 | 5.72 | 7.56 | \$2,230 | 5.14 | no |
+| 2012 Q3 | 7.80 | 8.00 | \$2,359 | 9.36 | **yes** |
+| 2012 Q4 | 8.17 | 8.46 | \$2,497 | 9.09 | **yes** |
+| 2013 Q3 | 7.69 | 10.08 | \$2,973 | 11.51 | **yes** |
+| 2014 Q1 | 8.37 | 11.34 | \$3,345 | 11.03 | no |
+| 2016 Q1 | 8.77 | 17.72 | \$5,227 | 6.41 | no |
+
+In 2016 Q1, for example, the simultaneous prediction band is $`\$53{,}109 \pm \$5{,}227`$, or \$47,882 to \$58,336, against $`\$53{,}109 \pm \$2{,}588`$ for the pointwise interval. Observed Kansas leaves the band in 2012 Q3, 2012 Q4 and 2013 Q3, the quarters the function flags. The test is the same comparison made once for the whole path: Kansas’s own score is $`R_T = 6.86`$ (reached in 2012 Q3), higher than every donor’s, so $`p_{\text{sim}} = 1/50 = 0.02`$; $`R_T > \lambda`$ is the same statement as “observed Kansas leaves the band somewhere”. Subtracting the band from the observed outcome gives the simultaneous effect band, just as in the pointwise case.
+
+The band is barely wider than the pointwise interval just after treatment but twice as wide by 2016, because its shape follows the *median* placebo’s drift, which grows by a factor of about 2.3 over the 16 quarters, while the pointwise thresholds follow the *extreme* placebos in each quarter, which grow less (from 5.7 to 8.8). That is the price of statements about the whole path; a single quarter chosen in advance, such as 2016 Q1, is better judged with the pointwise interval.
 
 ## How the pieces divide the work
 
 | Piece | Role |
 |----|----|
-| $s_T$ | the treated unit’s pre-treatment RMSPE: converts standardized gaps back to the outcome scale, and widens the intervals for a treated unit that is hard to fit |
-| $\tilde{q}_t$ | the time profile: how large typical untreated misses are in each period, in pre-treatment RMSPEs |
-| $\lambda$ | one multiplier, large enough that the whole path is covered for all but the $m$ most extreme donors |
+| $`s_T`$ | the treated unit’s pre-treatment RMSPE: converts standardized gaps back to the outcome scale, and widens the intervals for a treated unit that is hard to fit |
+| $`\tilde{q}_t`$ | the time profile: how large typical untreated misses are in each period, in pre-treatment RMSPEs |
+| $`\lambda`$ | one multiplier, large enough that the whole path is covered for all but the $`m`$ most extreme donors |
 
 ## Pointwise or simultaneous?
 
@@ -235,7 +354,7 @@ If $R_T > \lambda$, the band excludes zero in at least one period. The function 
 | Was there an effect at any point, and when? | simultaneous band |
 | What did the effect path look like, with honest uncertainty? | simultaneous band (pointwise as a guide for single periods) |
 
-The simultaneous band is usually wider than the pointwise interval at any single period, because it has to cover every period at once. (For Kansas in 2016 Q1 the two are \$5,230 and \$2,590 wide on each side.)
+The simultaneous band is usually wider than the pointwise interval at any single period, because it has to cover every period at once. (For Kansas in 2016 Q1 the two are \$5,227 and \$2,588 wide on each side.)
 
 # Worked example: Kansas
 
@@ -268,7 +387,7 @@ The synthetic Kansas is built mainly from South Carolina (0.26), Texas (0.23), W
 | Simultaneous: cumulative effect, whole post period |  | flags 2012 Q3 - 2014 Q2 | **0.02** |
 | Classic post/pre RMSPE ratio (whole period) | 8.25 |  | **0.04** |
 
-The effect in the final quarter alone is not significant, but the cumulative effect is (about $-4.4\%$ of synthetic Kansas’s cumulative GDP per capita), and both simultaneous tests find that Kansas fell below its synthetic control by more than untreated states typically do, mainly in 2012-2014. The diagnostics do not flag Kansas as beyond what the donors can reproduce. As the sensitivity analysis below shows, this conclusion depends on the scale, and the case study reports how it changes with other choices.
+The effect in the final quarter alone is not significant, but the cumulative effect is (about $`-4.4\%`$ of synthetic Kansas’s cumulative GDP per capita), and both simultaneous tests find that Kansas fell below its synthetic control by more than untreated states typically do, mainly in 2012-2014. The diagnostics do not flag Kansas as beyond what the donors can reproduce. As the sensitivity analysis below shows, this conclusion depends on the scale, and the case study reports how it changes with other choices.
 
 The figures below are drawn with the plotting functions in `synthetic_control_functions_claude.R` (`plot_full_path()`, `plot_post_effect()`, `plot_prediction()` and `added_effect()`), which work with any output of `dsc_placebo()` (or the older `dsc_symcal_boot()`). Each figure has its own code block (click to show).
 
@@ -326,8 +445,8 @@ plot_prediction(kansas_fit, "Kansas: observed vs synthetic Kansas (prediction in
 
 A few things to notice:
 
-- At 2016 Q1 the **pointwise interval is narrower** than the simultaneous band (half-width about 2,590 vs 5,230), because it only has to cover one quarter.
-- The **per-quarter band widens smoothly** over time (half-width from about 2,230 to 5,230), following how untreated synthetic controls drift relative to their own pre-treatment fit. Its width depends on how untreated units drift in general and on Kansas’s own pre-treatment fit, not on the volatility of Kansas’s particular donors.
+- At 2016 Q1 the **pointwise interval is narrower** than the simultaneous band (half-width about 2,588 vs 5,227), because it only has to cover one quarter.
+- The **per-quarter band widens smoothly** over time (half-width from about 2,230 to 5,227), following how untreated synthetic controls drift relative to their own pre-treatment fit. Its width depends on how untreated units drift in general and on Kansas’s own pre-treatment fit, not on the volatility of Kansas’s particular donors.
 - The **cumulative band widens in every quarter** (half-width from about 3,180 to 50,190), as errors accumulate.
 - The intervals are much **narrower than on the relative scale** (2016 Q1 pointwise half-width 2,590 vs 6,620), because Kansas’s synthetic control fits unusually closely before treatment: its RMSPE of \$295 is below the median donor’s \$375.
 
@@ -376,7 +495,7 @@ constructed_fit$test
 | Simultaneous: cumulative effect, whole post period |  | flags every quarter | 0.02 | **yes** |
 | Classic post/pre RMSPE ratio (whole period) | 25.15 |  | 0.02 | **yes** |
 
-The estimates shift exactly by the added effect: the 2016 Q1 estimate of $-7{,}013$ is Kansas’s real estimate ($-1{,}891$) plus the added reduction ($-5{,}122$). Because the treated unit’s pre-treatment data are unchanged, $s_T$ and the donors’ thresholds are the same as in the real analysis, so the intervals have the same widths and are simply shifted.
+The estimates shift exactly by the added effect: the 2016 Q1 estimate of $`-7{,}013`$ is Kansas’s real estimate ($`-1{,}891`$) plus the added reduction ($`-5{,}122`$). Because the treated unit’s pre-treatment data are unchanged, $`s_T`$ and the donors’ thresholds are the same as in the real analysis, so the intervals have the same widths and are simply shifted.
 
 ![Constructed example, 1990-2016. Observed Kansas (with the added 10% reduction) falls below the prediction bands after the tax cuts.](figures/placebo_constructed_full_path.png)
 
@@ -450,7 +569,7 @@ Cumulative coverage in the final period at 95% (factor model):
 | At the edge of the donors’ range | 91%         | 68%                   |
 | Outside the donors’ range        | 89%         | 37%                   |
 
-The relative and raw scales fail because their thresholds are set by the donors and do not depend on how hard the treated unit is to fit. On the RMSPE scale, a treated unit that the donors cannot reproduce also fits badly before treatment, so its $s_T$ and its intervals grow. The protection is not complete: with random-walk factors and long pre-treatment periods, even the RMSPE scale under-covered edge and outside units (56-82%), and the estimator itself was biased outside the donors’ range, which no inference method can fix. `$diagnostics` in `dsc_placebo()` is designed to flag those cases (see the diagnostics write-up).
+The relative and raw scales fail because their thresholds are set by the donors and do not depend on how hard the treated unit is to fit. On the RMSPE scale, a treated unit that the donors cannot reproduce also fits badly before treatment, so its $`s_T`$ and its intervals grow. The protection is not complete: with random-walk factors and long pre-treatment periods, even the RMSPE scale under-covered edge and outside units (56-82%), and the estimator itself was biased outside the donors’ range, which no inference method can fix. `$diagnostics` in `dsc_placebo()` is designed to flag those cases (see the diagnostics write-up).
 
 ## Short pre-periods and the guard
 
@@ -472,7 +591,7 @@ Without the guard, the RMSPE scale stayed nominally valid with short pre-periods
 
 ## Power by scale
 
-Power depends on the design. In the factor model, the RMSPE scale was the most powerful (exchangeable treated unit, cumulative effect of $-10\%$: 62% vs 45% for the relative scale). In the real panels, the relative scale was:
+Power depends on the design. In the factor model, the RMSPE scale was the most powerful (exchangeable treated unit, cumulative effect of $`-10\%`$: 62% vs 45% for the relative scale). In the real panels, the relative scale was:
 
 Simultaneous band (detected anywhere in the post period), 95%:
 
@@ -508,7 +627,7 @@ In the Kansas design the RMSPE scale gave up little power; in California, with o
 
 Whatever the scale, the function also reports the **classic post/pre RMSPE-ratio test** for the whole post-treatment period, as a conventional benchmark.
 
-**The relative scale.** Each gap is expressed as a share of the unit’s synthetic control, $r_{u,t} = \text{gap}_{u,t} / \text{synthetic}_{u,t}$ (cumulative: cumulative gap / cumulative synthetic), the thresholds are percentages, and they are converted back with the treated unit’s synthetic value: $\text{gap}_{T,t} \pm k^*_t \times \text{synthetic}_{T,t}$. This is close to the common practice of analysing logged outcomes. For Kansas in 2016 Q1, $r = -1{,}891 / 53{,}109 = -3.56\%$; the 2nd largest donor value is Hawaii’s 12.47% (North Dakota’s 29.23% is the largest, after the oil collapse); 18 donors have larger percentage gaps, so $p = 0.38$, and the interval is $-1{,}891 \pm 0.1247 \times 53{,}109$, or $-8{,}516$ to $4{,}733$. Its thresholds are the same for every treated unit, which is the source of both its power when the treated unit is typical and its failure when it is not.
+**The relative scale.** Each gap is expressed as a share of the unit’s synthetic control, $`r_{u,t} = \text{gap}_{u,t} / \text{synthetic}_{u,t}`$ (cumulative: cumulative gap / cumulative synthetic), the thresholds are percentages, and they are converted back with the treated unit’s synthetic value: $`\text{gap}_{T,t} \pm k^*_t \times \text{synthetic}_{T,t}`$. This is close to the common practice of analysing logged outcomes. For Kansas in 2016 Q1, $`r = -1{,}891 / 53{,}109 = -3.56\%`$; the 2nd largest donor value is Hawaii’s 12.47% (North Dakota’s 29.23% is the largest, after the oil collapse); 18 donors have larger percentage gaps, so $`p = 0.38`$, and the interval is $`-1{,}891 \pm 0.1247 \times 53{,}109`$, or $`-8{,}516`$ to $`4{,}733`$. Its thresholds are the same for every treated unit, which is the source of both its power when the treated unit is typical and its failure when it is not.
 
 **The scale must be chosen in advance.** Different scales can lead to different conclusions (as they do for Kansas), so choosing the scale after seeing the results would be a form of specification searching. Report the pre-specified scale as the main result, and the others (including the RMSPE ratio) as sensitivity checks.
 
@@ -529,10 +648,10 @@ Whatever the scale, the function also reports the **classic post/pre RMSPE-ratio
 
 - **Conclusions can depend on the scale.** For Kansas, the RMSPE scale and the classic RMSPE-ratio test find an effect, while the relative and raw scales do not. The scale has to be chosen before looking at results.
 - **Less powerful when the treated unit resembles the donors.** In the real-panel simulations the relative scale detected effects more often, by a wide margin in California.
-- **Short pre-periods need the guard.** With few pre-treatment periods and many donors, some units are fitted almost exactly before treatment; without the floor on $s_u$ (`rmspe_floor`), the intervals become effectively infinite. The guard keeps them usable and valid in the designs tested, but its value (0.25) is a tuning choice, and with very short pre-periods the intervals remain wide.
-- **Rewards a good pre-treatment fit.** A treated unit (or donor) that happens to fit very closely before treatment has a small $s_u$, so ordinary post-treatment drift can look large. This is intended, but it means the result leans on how well the pre-treatment fit predicts post-treatment drift. Placebos with a very close pre-treatment fit (California for Kansas in 2016 Q1, at 13.7 RMSPEs) set the thresholds.
+- **Short pre-periods need the guard.** With few pre-treatment periods and many donors, some units are fitted almost exactly before treatment; without the floor on $`s_u`$ (`rmspe_floor`), the intervals become effectively infinite. The guard keeps them usable and valid in the designs tested, but its value (0.25) is a tuning choice, and with very short pre-periods the intervals remain wide.
+- **Rewards a good pre-treatment fit.** A treated unit (or donor) that happens to fit very closely before treatment has a small $`s_u`$, so ordinary post-treatment drift can look large. This is intended, but it means the result leans on how well the pre-treatment fit predicts post-treatment drift. Placebos with a very close pre-treatment fit (California for Kansas in 2016 Q1, at 13.7 RMSPEs) set the thresholds.
 - **Not fully robust.** With trending (random-walk) factors and a treated unit at the edge of or outside the donors’ range, even the RMSPE scale under-covers, and the estimator is biased. Check `$diagnostics`.
-- **Dependence on the number of donors.** With $N$ donors the smallest possible p-value is $1/(N+1)$, and a 95% interval needs at least 19 donors; with fewer, the interval is infinite.
+- **Dependence on the number of donors.** With $`N`$ donors the smallest possible p-value is $`1/(N+1)`$, and a 95% interval needs at least 19 donors; with fewer, the interval is infinite.
 - **Dependence on extreme donors.** With about 40-50 donors, the 95% threshold is set by the most extreme one or two donors (California and Alabama for Kansas in 2016 Q1).
 - **Pointwise intervals are valid only at one pre-specified period.** Reading significance off several periods requires the simultaneous band, which is wider at any single period.
 - **The simultaneous band has a smoothing choice** (the loess span). This was insensitive in testing of the bootstrap version, but it is one more setting to justify.

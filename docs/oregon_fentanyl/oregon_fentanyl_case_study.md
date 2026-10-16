@@ -68,9 +68,9 @@ Every test finds a large increase: Oregon’s death rate in 2022 H2 was 56% abov
 
 `dsc_placebo(adjust_covariates = ...)` removes the part of the outcome that a time-varying covariate explains before fitting the synthetic control:
 
-1.  **Estimate the covariate’s effect** ($\gamma$) on **untreated cells only**: every donor in every period, plus Oregon before 2021. The default model is an interactive fixed-effects (IFE) model from the `fect` package (unit and time effects, latent factors chosen by cross-validation, and the covariate); `adjust_model = "twfe"` uses two-way fixed effects instead. Because fentanyl reached different states at different times, $\gamma$ is identified from the donors’ own fentanyl surges, without using Oregon’s post-treatment data.
-2.  **Adjust every unit’s outcome**: $\tilde{y}_{it} = y_{it} - \hat\gamma \times \text{fentanyl}_{it}$.
-3.  **Run the method on the adjusted outcomes**: the demeaned synthetic control and the placebo calibration, with every placebo re-estimating $\gamma$ without its own post-treatment period.
+1.  **Estimate the covariate’s effect** ($`\gamma`$) on **untreated cells only**: every donor in every period, plus Oregon before 2021. The default model is an interactive fixed-effects (IFE) model from the `fect` package (unit and time effects, latent factors chosen by cross-validation, and the covariate); `adjust_model = "twfe"` uses two-way fixed effects instead. Because fentanyl reached different states at different times, $`\gamma`$ is identified from the donors’ own fentanyl surges, without using Oregon’s post-treatment data.
+2.  **Adjust every unit’s outcome**: $`\tilde{y}_{it} = y_{it} - \hat\gamma \times \text{fentanyl}_{it}`$.
+3.  **Run the method on the adjusted outcomes**: the demeaned synthetic control and the placebo calibration, with every placebo re-estimating $`\gamma`$ without its own post-treatment period.
 
 The estimated effect is then Oregon’s death rate minus a counterfactual that **includes the deaths Oregon’s actual fentanyl share would have caused**. This relies on two assumptions: the fentanyl share is not itself affected by decriminalization, and its effect on deaths is roughly the same across states.
 
@@ -83,7 +83,7 @@ adjusted$adjustment$gamma   # deaths per 100k per percentage point of fentanyl s
 adjusted$test
 ```
 
-The IFE model (one factor) estimates $\hat\gamma = 0.120$: each additional percentage point of seized drugs containing fentanyl adds about 0.12 overdose deaths per 100,000 residents per half-year. Two-way fixed effects give 0.157 (clustered SE 0.029), and Zoorob et al.’s matrix-completion specification, re-estimated here, 0.152. By 2022 H2 Oregon’s fentanyl share was about 32 points higher than synthetic Oregon’s donors’, so the adjustment removes 3.8 (IFE) to 5.2 (TWFE) deaths per 100k from that half-year’s gap.
+The IFE model (one factor) estimates $`\hat\gamma = 0.120`$: each additional percentage point of seized drugs containing fentanyl adds about 0.12 overdose deaths per 100,000 residents per half-year. Two-way fixed effects give 0.157 (clustered SE 0.029), and Zoorob et al.’s matrix-completion specification, re-estimated here, 0.152. By 2022 H2 Oregon’s fentanyl share was about 32 points higher than synthetic Oregon’s donors’, so the adjustment removes 3.8 (IFE) to 5.2 (TWFE) deaths per 100k from that half-year’s gap.
 
 The weights barely change (Texas 0.34, Nebraska 0.28, California 0.19, Montana 0.13, Vermont 0.04), and the pre-treatment fit is the same (RMSPE 0.42). What changes is the counterfactual after 2021: adjusted synthetic Oregon rises from 12.0 to 15.6 deaths per 100k, instead of staying near 12.
 
@@ -112,14 +112,14 @@ Adjusting for fentanyl cuts the estimated effect by more than half (2022 H2: +6.
 | Unadjusted (RMSPE scale) | +6.64 | **0.02** | +16.71 | **0.02** | **0.02** / **0.02** |
 | Unadjusted, relative scale | +6.64 | **0.02** | +16.71 | **0.02** | 0.06 / 0.06 |
 | **Adjusted, IFE (default)** | **+2.85** | **0.22** | **+8.09** | **0.12** | **0.08 / 0.06** |
-| Adjusted, TWFE ($\hat\gamma$ = 0.157) | +1.46 | 0.44 | +4.77 | 0.50 | 0.12 / 0.10 |
+| Adjusted, TWFE ($`\hat\gamma`$ = 0.157) | +1.46 | 0.44 | +4.77 | 0.50 | 0.12 / 0.10 |
 | Adjusted, relative scale | +2.85 | 0.28 | +8.09 | 0.28 | 0.08 / 0.08 |
 | Adjusted, raw scale | +2.85 | 0.36 | +8.09 | 0.38 | 0.26 / 0.26 |
 | Adjusted, `estimator = "fect"` (placebo-calibrated) | +3.71 | 0.10 | +11.73 | 0.06 | 0.08 / 0.08 |
 | Zoorob et al. specification (fect matrix completion), no control | average +2.31 per half-year |  |  |  |  |
 | Zoorob et al. specification, with fentanyl control | average +0.32 per half-year |  |  |  |  |
 
-Every adjusted specification gives a smaller effect than the unadjusted one, and none is significant at 95%. The size of the remaining effect depends mainly on $\hat\gamma$: the TWFE estimate (0.157) removes more of the increase than the IFE estimate (0.120). The fect matrix-completion model of Zoorob et al., re-estimated here, shows the same pattern: its average effect falls from +2.3 to +0.3 deaths per 100k per half-year when the fentanyl share is controlled for (their published estimates, with their own settings, are 1.83 and -0.51). (Their matrix-completion counterfactual is different from a synthetic control, so its point estimates are not directly comparable with the demeaned synthetic control’s.)
+Every adjusted specification gives a smaller effect than the unadjusted one, and none is significant at 95%. The size of the remaining effect depends mainly on $`\hat\gamma`$: the TWFE estimate (0.157) removes more of the increase than the IFE estimate (0.120). The fect matrix-completion model of Zoorob et al., re-estimated here, shows the same pattern: its average effect falls from +2.3 to +0.3 deaths per 100k per half-year when the fentanyl share is controlled for (their published estimates, with their own settings, are 1.83 and -0.51). (Their matrix-completion counterfactual is different from a synthetic control, so its point estimates are not directly comparable with the demeaned synthetic control’s.)
 
 **Conclusion for Oregon.** With the fentanyl adjustment, the data are consistent with no effect of decriminalization on overdose deaths, and also with a moderate increase: the adjusted cumulative interval runs from -5.1 to +21.3 deaths per 100k over two years. The significant increase found without the adjustment is what the arrival of fentanyl alone would produce. The adjustment cannot rule out that some of the remaining gap is a real effect, and it rests on the assumption that decriminalization did not itself change the fentanyl share of seized drugs (for example, by changing which drugs police seized).
 
@@ -130,11 +130,11 @@ The Oregon results show that the adjustment changes the answer, but not that it 
 ## Design
 
 - **Fake treated units.** Oregon is removed, and each of the other 49 units (48 states and DC) in turn is treated as if it had adopted a policy in 2021 H1, with the remaining 48 as donors. These units adopted no policy, so their true effect is zero (or a known effect is added).
-- **An Oregon-like shock.** After 2021 H1, the fake treated unit’s fentanyl share is raised by Oregon’s actual increase since 2020 H2 (+5.0, +17.2, +33.4 and +39.7 points, capped at 100%), and its overdose death rate by $\gamma_{\text{true}} \times$ the added fentanyl share. This reproduces Oregon’s situation: a fentanyl surge that arrives with the treatment, in a unit whose synthetic control does not share it.
-- **Scenarios.** No shock; a shock with $\gamma_{\text{true}} = 0.155$, about the $\hat\gamma$ the adjustment estimates on this panel (the adjustment model is right); and a shock with $\gamma_{\text{true}} = 0.12$, so that $\gamma$ is over-estimated by about 0.035 (the adjustment over-corrects). True effects of 0 and $\pm 25\%$ of the unit’s recent death rate.
+- **An Oregon-like shock.** After 2021 H1, the fake treated unit’s fentanyl share is raised by Oregon’s actual increase since 2020 H2 (+5.0, +17.2, +33.4 and +39.7 points, capped at 100%), and its overdose death rate by $`\gamma_{\text{true}} \times`$ the added fentanyl share. This reproduces Oregon’s situation: a fentanyl surge that arrives with the treatment, in a unit whose synthetic control does not share it.
+- **Scenarios.** No shock; a shock with $`\gamma_{\text{true}} = 0.155`$, about the $`\hat\gamma`$ the adjustment estimates on this panel (the adjustment model is right); and a shock with $`\gamma_{\text{true}} = 0.12`$, so that $`\gamma`$ is over-estimated by about 0.035 (the adjustment over-corrects). True effects of 0 and $`\pm 25\%`$ of the unit’s recent death rate.
 - **Methods.** `dsc_placebo()` unadjusted and adjusted (IFE, the default; TWFE gave the same results, because cross-validation chose no factors for 48 of the 49 fake treated units, which reduces IFE to TWFE). RMSPE scale, 95%.
 
-Because the weights, $\hat\gamma$ and the interval widths all depend only on the pre-treatment data and the donors, the shock and the effect shift the fake treated unit’s gap by exactly $\gamma_{\text{true}} \times \text{added}$ (unadjusted) or $(\gamma_{\text{true}} - \hat\gamma) \times \text{added}$ (adjusted), plus the effect. Each unit is therefore fitted once on the real data, and every scenario is evaluated exactly from that fit.
+Because the weights, $`\hat\gamma`$ and the interval widths all depend only on the pre-treatment data and the donors, the shock and the effect shift the fake treated unit’s gap by exactly $`\gamma_{\text{true}} \times \text{added}`$ (unadjusted) or $`(\gamma_{\text{true}} - \hat\gamma) \times \text{added}`$ (adjusted), plus the effect. Each unit is therefore fitted once on the real data, and every scenario is evaluated exactly from that fit.
 
 ## Results
 
@@ -146,23 +146,23 @@ True effect zero (49 fake treated units, 95%):
 |----|----|----|----|----|----|----|
 | No shock | Unadjusted | -1.9% | 96% | 96% | 4% | 4% |
 | No shock | Adjusted | -1.8% | 96% | 96% | 4% | 4% |
-| Oregon-like shock, $\gamma$ correct | Unadjusted | **+26.3%** | **61%** | **61%** | **39%** | **39%** |
-| Oregon-like shock, $\gamma$ correct | Adjusted | -1.7% | 96% | 96% | 4% | 4% |
-| Oregon-like shock, $\gamma$ over-estimated | Unadjusted | **+19.9%** | **67%** | **65%** | **33%** | **35%** |
-| Oregon-like shock, $\gamma$ over-estimated | Adjusted | -8.1% | 100% | 96% | 0% | 4% |
+| Oregon-like shock, $`\gamma`$ correct | Unadjusted | **+26.3%** | **61%** | **61%** | **39%** | **39%** |
+| Oregon-like shock, $`\gamma`$ correct | Adjusted | -1.7% | 96% | 96% | 4% | 4% |
+| Oregon-like shock, $`\gamma`$ over-estimated | Unadjusted | **+19.9%** | **67%** | **65%** | **33%** | **35%** |
+| Oregon-like shock, $`\gamma`$ over-estimated | Adjusted | -8.1% | 100% | 96% | 0% | 4% |
 
 Bias is the average error in the cumulative effect over the four post-treatment half-years, as a percentage of the unit’s cumulative death rate at its 2020 level.
 
 - **Without a shock, the adjustment costs nothing in validity**: both methods are unbiased and keep 96% coverage and 4% false positives.
 - **With an Oregon-like shock, the unadjusted method fails badly.** It overstates the cumulative effect by about 20-26% of the unit’s death rate and finds an “effect” of a policy that does not exist in a third or more of the fake treated units. This is the failure behind the unadjusted Oregon result.
-- **The adjusted method stays valid**: 96% coverage and 4% false positives when $\gamma$ is estimated correctly, and still 96-100% coverage when $\gamma$ is over-estimated, although the estimate is then biased downwards (-8%).
+- **The adjusted method stays valid**: 96% coverage and 4% false positives when $`\gamma`$ is estimated correctly, and still 96-100% coverage when $`\gamma`$ is over-estimated, although the estimate is then biased downwards (-8%).
 
-Power to detect a real effect of $\pm 25\%$ (cumulative, last period, 95%):
+Power to detect a real effect of $`\pm 25\%`$ (cumulative, last period, 95%):
 
 | Scenario                            | Effect      | Unadjusted | Adjusted  |
 |-------------------------------------|-------------|------------|-----------|
 | No shock                            | -25% / +25% | 55% / 41%  | 29% / 27% |
-| Oregon-like shock, $\gamma$ correct | -25% / +25% | 8% / 80%   | 29% / 29% |
+| Oregon-like shock, $`\gamma`$ correct | -25% / +25% | 8% / 80%   | 29% / 29% |
 
 The adjustment’s price is power. Without a shock, the adjusted method detects a 25% effect about half as often as the unadjusted one: estimating and removing the covariate’s contribution adds noise to every unit’s gap. With a shock, the unadjusted method’s “power” is an artefact of its bias: it detects increases far more often (80%) and decreases far less often (8%), whatever the true effect. The adjusted method’s power is the same in both directions and does not depend on the shock.
 
@@ -170,14 +170,14 @@ Results for the 22 units whose fentanyl share was still below 15% in 2020 H2 (li
 
 ## What the validation does and does not show
 
-It shows that, on this panel and with a shock of Oregon’s size and timing, the adjustment removes the confounding when the shock acts through the covariate in the way the adjustment model assumes (a common linear effect), keeps the inference valid, and degrades gracefully when $\gamma$ is somewhat mis-estimated. It does not test a shock whose effect differs across states, a covariate that is itself affected by the treatment, or a confounder that is not measured. Those assumptions have to be argued on substantive grounds; for Oregon, the most important is whether decriminalization changed the composition of seized drugs.
+It shows that, on this panel and with a shock of Oregon’s size and timing, the adjustment removes the confounding when the shock acts through the covariate in the way the adjustment model assumes (a common linear effect), keeps the inference valid, and degrades gracefully when $`\gamma`$ is somewhat mis-estimated. It does not test a shock whose effect differs across states, a covariate that is itself affected by the treatment, or a confounder that is not measured. Those assumptions have to be argued on substantive grounds; for Oregon, the most important is whether decriminalization changed the composition of seized drugs.
 
 # Takeaways
 
 1.  **A good pre-treatment fit does not protect against a confounder that arrives with the treatment.** Oregon’s unadjusted synthetic control fits well, passes the diagnostics, and finds a highly significant effect that is mostly the arrival of fentanyl.
 2.  **Placebo inference cannot detect this either**: the placebos tell you that the treated unit’s gap is unusual, not why.
 3.  **`adjust_covariates` handles it**, provided the confounder is measured and its effect can be estimated from the donors (here, because fentanyl reached different states at different times). On this panel it removed the confounding and kept the inference valid; the cost is wider intervals and less power.
-4.  **Report both.** The unadjusted and adjusted results, and the estimate of $\gamma$ under IFE and TWFE, show readers how much of the estimated effect the covariate explains.
+4.  **Report both.** The unadjusted and adjusted results, and the estimate of $`\gamma`$ under IFE and TWFE, show readers how much of the estimated effect the covariate explains.
 
 # References
 

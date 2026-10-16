@@ -38,12 +38,13 @@ The bootstrap offers a way to measure each unit’s own uncertainty. This docume
 
 # The estimator: the demeaned synthetic control
 
-The counterfactual is estimated with a **demeaned synthetic control**. For the treated unit’s outcome $y_t$ and donor outcomes $x_{jt}$, the pre-treatment fit chooses an intercept $b_0$ and weights $w_j$ to solve
+The counterfactual is estimated with a **demeaned synthetic control**. For the treated unit’s outcome $`y_t`$ and donor outcomes $`x_{jt}`$, the pre-treatment fit chooses an intercept $`b_0`$ and weights $`w_j`$ to solve
 
-$$
+``` math
+
 \min_{b_0,\, w} \sum_{t \in \text{pre}} \Big( y_t - b_0 - \sum_j w_j x_{jt} \Big)^2
 \quad \text{subject to} \quad w_j \ge 0,\ \ \sum_j w_j = 1 .
-$$
+```
 
 - The **intercept** absorbs permanent level differences, so the treated unit does not have to lie within the range of its donors’ levels.
 - The **weights are non-negative and sum to one**, so the synthetic control follows its donors’ full movements over time.
@@ -68,71 +69,75 @@ The reason is the same in every case: the bootstrap measures **noise around the 
 
 ## Step 1: fit once and fix the weights
 
-Fit the demeaned synthetic control to the observed data and keep the intercept $b_0$ and weights $w$ fixed from here on. Refitting the weights in every bootstrap replicate was tried first, but with short pre-treatment periods (for example 19 annual observations and 38 donors) the refitted weights changed a lot from replicate to replicate and made the intervals unstable. Fixing the weights removes that problem.
+Fit the demeaned synthetic control to the observed data and keep the intercept $`b_0`$ and weights $`w`$ fixed from here on. Refitting the weights in every bootstrap replicate was tried first, but with short pre-treatment periods (for example 19 annual observations and 38 donors) the refitted weights changed a lot from replicate to replicate and made the intervals unstable. Fixing the weights removes that problem.
 
 ## Step 2: bootstrap the donors
 
-Resample every unit’s series separately with the maximum entropy bootstrap (500 replicates by default). In each replicate $r$, rebuild the synthetic control with the **same** weights, using the replicate’s donor values after treatment, and compute a replicate effect:
+Resample every unit’s series separately with the maximum entropy bootstrap (500 replicates by default). In each replicate $`r`$, rebuild the synthetic control with the **same** weights, using the replicate’s donor values after treatment, and compute a replicate effect:
 
-$$
+``` math
+
 e^{(r)}_t = y_t - \Big( b_0 + \sum_j w_j\, x^{(r)}_{jt} \Big), \qquad t \in \text{post}.
-$$
+```
 
-The cumulative replicate effect is the running total of $e^{(r)}_t$.
+The cumulative replicate effect is the running total of $`e^{(r)}_t`$.
 
 ## Step 3: a symmetric, mean-centred half-width
 
-For each post-treatment period, measure how spread out the 500 replicate effects are. The **half-width** $h_t$ is the $(1-\alpha)$ quantile (for example the 95th percentile) of the replicates’ distances from their own average:
+For each post-treatment period, measure how spread out the 500 replicate effects are. The **half-width** $`h_t`$ is the $`(1-\alpha)`$ quantile (for example the 95th percentile) of the replicates’ distances from their own average:
 
-$$
+``` math
+
 h_t = Q_{1-\alpha}\Big( \big| e^{(r)}_t - \bar{e}_t \big| \Big).
-$$
+```
 
-This interval is **symmetric**: it extends equally above and below the estimate. An earlier version used ordinary percentile intervals, which were lopsided. With downward-trending data and a lower limit in the bootstrap, the replicates could move up more easily than down, and the resulting intervals detected negative effects much less often than positive ones (in the California simulation, 5% versus 24% at $\pm 25\%$). Symmetric intervals removed that asymmetry.
+This interval is **symmetric**: it extends equally above and below the estimate. An earlier version used ordinary percentile intervals, which were lopsided. With downward-trending data and a lower limit in the bootstrap, the replicates could move up more easily than down, and the resulting intervals detected negative effects much less often than positive ones (in the California simulation, 5% versus 24% at $`\pm 25\%`$). Symmetric intervals removed that asymmetry.
 
 ## Step 4: a standardized gap
 
 Divide the estimated effect by its half-width:
 
-$$
-k_t = \frac{|\text{effect}_t|}{h_t}.
-$$
+``` math
 
-This is a standardized effect, like a $t$-statistic: how many of its own half-widths the effect is from zero.
+k_t = \frac{|\text{effect}_t|}{h_t}.
+```
+
+This is a standardized effect, like a $`t`$-statistic: how many of its own half-widths the effect is from zero.
 
 ## Step 5: donors as placebos
 
-Remove the treated unit. Then treat each donor in turn as if it had been treated, and repeat Steps 1 to 4 for it (using the remaining donors). Each donor’s true effect is zero, so its $k_t$ shows how large a standardized gap can become by chance, **including the effect of drift**.
+Remove the treated unit. Then treat each donor in turn as if it had been treated, and repeat Steps 1 to 4 for it (using the remaining donors). Each donor’s true effect is zero, so its $`k_t`$ shows how large a standardized gap can become by chance, **including the effect of drift**.
 
 ## Step 6: calibrate
 
-The donors’ standardized gaps $k_{p,t}$ show how far from zero an *untreated* unit’s estimate can land, measured in its own bootstrap half-widths. Calibration asks: **how many half-widths does an estimate have to be from zero before it is unusual compared with these untreated units?** That threshold is the **calibration factor** $k^*_t$.
+The donors’ standardized gaps $`k_{p,t}`$ show how far from zero an *untreated* unit’s estimate can land, measured in its own bootstrap half-widths. Calibration asks: **how many half-widths does an estimate have to be from zero before it is unusual compared with these untreated units?** That threshold is the **calibration factor** $`k^*_t`$.
 
-**The rank rule.** If the treated unit had not been treated, its own $k_t$ would be just one more draw from the same distribution as the donors’. Together with the $N$ donors there would be $N + 1$ values, and the treated unit’s value would be equally likely to fall anywhere in their ranking. With
+**The rank rule.** If the treated unit had not been treated, its own $`k_t`$ would be just one more draw from the same distribution as the donors’. Together with the $`N`$ donors there would be $`N + 1`$ values, and the treated unit’s value would be equally likely to fall anywhere in their ranking. With
 
-$$
+``` math
+
 m = \lfloor \alpha (N + 1) \rfloor, \qquad
 k^*_t = \text{the } m\text{-th largest of } \{ k_{p,t} : p = 1, \dots, N \},
-$$
+```
 
-the chance that an untreated unit’s $k_t$ exceeds $k^*_t$ is at most $\alpha$. That is what makes the test exact: a 5% test flags an untreated unit at most 5% of the time.
+the chance that an untreated unit’s $`k_t`$ exceeds $`k^*_t`$ is at most $`\alpha`$. That is what makes the test exact: a 5% test flags an untreated unit at most 5% of the time.
 
 **How the rank depends on the number of donors:**
 
-| Donors $N$ | $m$ at 95% | $m$ at 90% | Smallest possible p-value |
+| Donors $`N`$ | $`m`$ at 95% | $`m`$ at 90% | Smallest possible p-value |
 |----|----|----|----|
 | 49 (Kansas) | 2 (2nd largest) | 5 (5th largest) | 0.020 |
 | 37 (California) | 1 (largest) | 3 (3rd largest) | 0.026 |
-| 18 or fewer | 0 (interval infinite) | 1 (largest) | $\ge$ 0.053 |
+| 18 or fewer | 0 (interval infinite) | 1 (largest) | $`\ge`$ 0.053 |
 
-**Why it is called a stretch factor.** The interval in Step 7 is the bootstrap half-width $h_t$ multiplied by $k^*_t$. So $k^*_t$ says how much the bootstrap interval has to be **stretched** to reach the intended coverage. Values well above 1 confirm that the bootstrap alone gives intervals that are far too narrow.
+**Why it is called a stretch factor.** The interval in Step 7 is the bootstrap half-width $`h_t`$ multiplied by $`k^*_t`$. So $`k^*_t`$ says how much the bootstrap interval has to be **stretched** to reach the intended coverage. Values well above 1 confirm that the bootstrap alone gives intervals that are far too narrow.
 
-**Example: Kansas, 2016 Q1** (the last post-treatment quarter; 49 donors; 95%, so $m = 2$)
+**Example: Kansas, 2016 Q1** (the last post-treatment quarter; 49 donors; 95%, so $`m = 2`$)
 
-| Rank | Unit | Standardized gap $k$ |  |
+| Rank | Unit | Standardized gap $`k`$ |  |
 |----|----|----|----|
 | 1 | California | 7.77 |  |
-| **2** | **Tennessee** | **6.27** | **$k^*$ (the 2nd largest donor value)** |
+| **2** | **Tennessee** | **6.27** | **$`k^*`$ (the 2nd largest donor value)** |
 | 3 | Hawaii | 4.47 |  |
 | 4 | New York | 4.03 |  |
 | 5 | North Dakota | 3.72 |  |
@@ -142,23 +147,24 @@ the chance that an untreated unit’s $k_t$ exceeds $k^*_t$ is at most $\alpha$.
 
 Reading the table:
 
-- Kansas’s estimated effect in 2016 Q1 is $-1{,}891$, with bootstrap half-width $h = 1{,}878$, so $k = 1{,}891 / 1{,}878 = 1.01$: the estimate is about one half-width from zero.
+- Kansas’s estimated effect in 2016 Q1 is $`-1{,}891`$, with bootstrap half-width $`h = 1{,}878`$, so $`k = 1{,}891 / 1{,}878 = 1.01`$: the estimate is about one half-width from zero.
 - Untreated states routinely land several half-widths from zero (the median donor is at 1.46, and the most extreme at 7.77), so Kansas is not unusual.
-- The calibration factor is $k^* = 6.27$: the bootstrap half-width has to be stretched about **six-fold**.
-- The interval is $-1{,}891 \pm 6.27 \times 1{,}878 = -1{,}891 \pm 11{,}775$, or about $-13{,}660$ to $9{,}880$.
-- 32 donors have $k \ge 1.01$, so $p = (1 + 32) / 50 = 0.66$.
+- The calibration factor is $`k^* = 6.27`$: the bootstrap half-width has to be stretched about **six-fold**.
+- The interval is $`-1{,}891 \pm 6.27 \times 1{,}878 = -1{,}891 \pm 11{,}775`$, or about $`-13{,}660`$ to $`9{,}880`$.
+- 32 donors have $`k \ge 1.01`$, so $`p = (1 + 32) / 50 = 0.66`$.
 
 ## Step 7: the pointwise interval, p-value, and prediction interval
 
-For the pre-specified test period $t$:
+For the pre-specified test period $`t`$:
 
-$$
+``` math
+
 \text{effect interval: } \ \text{effect}_t \pm k^*_t \, h_t,
 \qquad
 p_t = \frac{1 + \#\{ p : k_{p,t} \ge k_t \}}{N + 1}.
-$$
+```
 
-The interval excludes zero exactly when the treated unit’s own $k_t$ is larger than $k^*_t$, which happens exactly when $p_t \le \alpha$. The **prediction interval** for the treated unit’s untreated outcome is the same interval centred on the synthetic control instead of the effect: $\text{synthetic}_t \pm k^*_t \, h_t$. The **cumulative** effect is handled the same way, using the cumulative replicate effects.
+The interval excludes zero exactly when the treated unit’s own $`k_t`$ is larger than $`k^*_t`$, which happens exactly when $`p_t \le \alpha`$. The **prediction interval** for the treated unit’s untreated outcome is the same interval centred on the synthetic control instead of the effect: $`\text{synthetic}_t \pm k^*_t \, h_t`$. The **cumulative** effect is handled the same way, using the cumulative replicate effects.
 
 ## In one sentence
 
@@ -185,45 +191,49 @@ A **simultaneous band** is built so that, with 95% confidence, it contains the t
 
 ## How it is built
 
-The ingredients are the same as for the pointwise intervals: the half-widths $h_{u,t}$ and standardized gaps $k_{u,t} = |\text{gap}_{u,t}| / h_{u,t}$ for the treated unit and every donor, in every post-treatment period. Three further steps follow.
+The ingredients are the same as for the pointwise intervals: the half-widths $`h_{u,t}`$ and standardized gaps $`k_{u,t} = |\text{gap}_{u,t}| / h_{u,t}`$ for the treated unit and every donor, in every post-treatment period. Three further steps follow.
 
 **Step A: a smooth time profile.** In each period, take the **median** standardized gap across donors, and smooth it over time (loess on the log scale, span 0.75):
 
-$$
-q_t = \text{median}_p \; k_{p,t}, \qquad \tilde{q}_t = \text{smoothed } q_t .
-$$
+``` math
 
-$\tilde{q}_t$ describes how much a *typical* untreated unit’s error exceeds its bootstrap half-width in each period. It corrects the bootstrap’s time profile, which does not track drift accurately on its own. The median keeps a single unusual donor from shaping the profile, and smoothing removes year-to-year noise.
+q_t = \text{median}_p \; k_{p,t}, \qquad \tilde{q}_t = \text{smoothed } q_t .
+```
+
+$`\tilde{q}_t`$ describes how much a *typical* untreated unit’s error exceeds its bootstrap half-width in each period. It corrects the bootstrap’s time profile, which does not track drift accurately on its own. The median keeps a single unusual donor from shaping the profile, and smoothing removes year-to-year noise.
 
 **Step B: score each donor on its worst period.** For every donor, divide its standardized gaps by the profile and keep the largest value across all post-treatment periods:
 
-$$
+``` math
+
 R_p = \max_t \frac{k_{p,t}}{\tilde{q}_t}.
-$$
+```
 
-**Step C: one multiplier for the whole path.** The multiplier $\lambda$ is the $m$-th largest donor score (with $m = \lfloor \alpha(N+1) \rfloor$, as before), and the band in every period is
+**Step C: one multiplier for the whole path.** The multiplier $`\lambda`$ is the $`m`$-th largest donor score (with $`m = \lfloor \alpha(N+1) \rfloor`$, as before), and the band in every period is
 
-$$
+``` math
+
 \text{effect}_t \pm \lambda\, \tilde{q}_t\, h_t .
-$$
+```
 
 The prediction band is the same, centred on the synthetic control. The cumulative effect gets its own band, built the same way from the cumulative gaps.
 
-**The test.** The treated unit’s score is $R_T = \max_t k_t / \tilde{q}_t$, with simultaneous p-value
+**The test.** The treated unit’s score is $`R_T = \max_t k_t / \tilde{q}_t`$, with simultaneous p-value
 
-$$
+``` math
+
 p_{\text{sim}} = \frac{1 + \#\{p : R_p \ge R_T\}}{N + 1}.
-$$
+```
 
-If $R_T > \lambda$, the band excludes zero in at least one period. The function reports the p-value and **which periods** the band flags.
+If $`R_T > \lambda`$, the band excludes zero in at least one period. The function reports the p-value and **which periods** the band flags.
 
 ## How the pieces divide the work
 
 | Piece | Role |
 |----|----|
-| $h_t$ | the treated unit’s own uncertainty in each period, from its bootstrap |
-| $\tilde{q}_t$ | the time profile: corrects the bootstrap’s shape using how typical donors actually behave |
-| $\lambda$ | one multiplier, large enough that the whole path is covered for all but the $m$ most extreme donors |
+| $`h_t`$ | the treated unit’s own uncertainty in each period, from its bootstrap |
+| $`\tilde{q}_t`$ | the time profile: corrects the bootstrap’s shape using how typical donors actually behave |
+| $`\lambda`$ | one multiplier, large enough that the whole path is covered for all but the $`m`$ most extreme donors |
 
 ## Why this version
 
@@ -231,7 +241,7 @@ Several simultaneous bands were tested on the California panel before settling o
 
 | Band | What sets its shape | Result |
 |----|----|----|
-| One factor times $h_t$ | the bootstrap alone | valid, but too wide where the bootstrap’s profile was off (half-width 125 vs 16 pointwise in 1989) |
+| One factor times $`h_t`$ | the bootstrap alone | valid, but too wide where the bootstrap’s profile was off (half-width 125 vs 16 pointwise in 1989) |
 | Leave-one-out pointwise profile | the most extreme donors each year | valid, but jagged and widest on average |
 | Median profile, unsmoothed | typical donors | valid, but noisy from year to year |
 | **Median profile, smoothed** | **typical donors, smoothed** | **valid and narrowest** |
@@ -343,7 +353,7 @@ A few things to notice:
 
 ## Why the bands widen in 2015-16
 
-Both bands widen sharply in the last three quarters because the **bootstrap half-width** $h_t$ jumps (from about 730 in 2015 Q2 to 1,400-1,900), not because of the calibration factors, which change smoothly. The jump comes from the **oil-producing states** in synthetic Kansas:
+Both bands widen sharply in the last three quarters because the **bootstrap half-width** $`h_t`$ jumps (from about 730 in 2015 Q2 to 1,400-1,900), not because of the calibration factors, which change smoothly. The jump comes from the **oil-producing states** in synthetic Kansas:
 
 | Donor          | Weight | Bootstrap spread, 2015 Q2 | Bootstrap spread, 2016 Q1 |
 |----------------|--------|---------------------------|---------------------------|
@@ -389,7 +399,7 @@ constructed_fit$test
 | Simultaneous: effect by quarter, whole post period |  | flags 2012 Q3 - 2015 Q2 | 0.04 | **yes** |
 | Simultaneous: cumulative effect, whole post period |  | flags every quarter from 2012 Q3 | 0.04 | **yes** |
 
-The estimates shift exactly by the added effect: the 2016 Q1 estimate of $-7{,}013$ is Kansas’s real estimate ($-1{,}891$) plus the added reduction ($-5{,}122$), and the cumulative estimate of $-118{,}347$ is $-37{,}582$ plus $-80{,}765$.
+The estimates shift exactly by the added effect: the 2016 Q1 estimate of $`-7{,}013`$ is Kansas’s real estimate ($`-1{,}891`$) plus the added reduction ($`-5{,}122`$), and the cumulative estimate of $`-118{,}347`$ is $`-37{,}582`$ plus $`-80{,}765`$.
 
 ![Constructed example, 1990-2016. Observed Kansas (with the added 10% reduction) falls below both prediction bands from 2012 Q3 to 2015 Q2, and is back inside them in the last three quarters, when the bands widen.](figures/kansas_injected_full_path_bands.png)
 
@@ -475,11 +485,11 @@ The calibrated bootstrap matched or slightly beat the simpler absolute placebo t
 | Simultaneous, bootstrap profile only | 64.6 | 18% / 29% |
 | Donor-gap spread (no bootstrap) | 94.2 | 3% / 5% |
 
-At the 90% level, the smoothed-median band detected 92-100% of $\pm 25\%$ effects.
+At the 90% level, the smoothed-median band detected 92-100% of $`\pm 25\%`$ effects.
 
 **A caution about comparing power.** The simultaneous band’s power counts detection in *any* of the 12-16 post-treatment periods, while a pointwise test asks about *one* period. These are different questions, so the numbers are not directly comparable. Asked the same single-period question, the simultaneous band is **less** powerful than the pointwise interval or the absolute placebo test, because it has to be wide enough to cover every period.
 
-**The bootstrap’s clearest contribution.** For simultaneous bands at 95%, the bootstrap-based band was far more powerful than the band built from the donors’ gaps alone (39-47% vs 3-5% at $\pm 25\%$), with both valid. This is the one place in the simulations where the maximum entropy bootstrap added a large, clear benefit over simpler placebo constructions.
+**The bootstrap’s clearest contribution.** For simultaneous bands at 95%, the bootstrap-based band was far more powerful than the band built from the donors’ gaps alone (39-47% vs 3-5% at $`\pm 25\%`$), with both valid. This is the one place in the simulations where the maximum entropy bootstrap added a large, clear benefit over simpler placebo constructions.
 
 # Strengths
 
@@ -497,11 +507,11 @@ At the 90% level, the smoothed-median band detected 92-100% of $\pm 25\%$ effect
 - **The bootstrap does not provide validity on its own.** Validity comes entirely from the donor calibration; without it, the intervals are far too narrow. The bootstrap only supplies the shape.
 - **Modest and design-dependent gains.** For pre-specified effects, simpler placebo tests performed as well or better, especially for cumulative effects. Whether the bootstrap is worth its extra machinery is an open question.
 - **Many moving parts.** Bootstrap replicates, trim limits, mean-centring, stretch factors and rank rules each add something to explain, test and maintain.
-- **Dependence on the number of donors.** With $N$ donors the smallest possible p-value is $1/(N+1)$, and a 95% interval needs at least 19 donors; with fewer, the interval is infinite. With about 40 donors, the 95% factor is set by the **single most extreme donor**, so intervals can be noticeably affected by one unusual unit.
+- **Dependence on the number of donors.** With $`N`$ donors the smallest possible p-value is $`1/(N+1)`$, and a 95% interval needs at least 19 donors; with fewer, the interval is infinite. With about 40 donors, the 95% factor is set by the **single most extreme donor**, so intervals can be noticeably affected by one unusual unit.
 - **Pointwise intervals are valid only at one pre-specified period.** Reading significance off several periods requires the simultaneous band.
 - **The simultaneous band is wider at any single period** than the pointwise interval, so it is weaker for a single pre-specified question.
 - **The simultaneous band has a smoothing choice** (the loess span). Results were insensitive to it in testing, but it is one more setting to justify.
-- **An unexplained pattern in very short panels.** In the California panel, the simultaneous band’s “detected anywhere” power *rose* as the pre-treatment period shortened (from 39% to 82-89% at $\pm 25\%$), with coverage unchanged, while its final-period power stayed near zero. The detections came from intermediate years; the cause has not been pinned down.
+- **An unexplained pattern in very short panels.** In the California panel, the simultaneous band’s “detected anywhere” power *rose* as the pre-treatment period shortened (from 39% to 82-89% at $`\pm 25\%`$), with coverage unchanged, while its final-period power stayed near zero. The detections came from intermediate years; the cause has not been pinned down.
 - **Computational cost.** Every donor is refitted and bootstrapped as a placebo, so an analysis takes about a minute rather than seconds.
 - **Sensitivity to volatile donors.** Interval width follows the bootstrap behaviour of the donors in the synthetic control. A heavily weighted donor that moves into a sparse part of its own history (as North Dakota and Texas did after the 2014 oil collapse) can widen the intervals for the whole synthetic control, partly for mechanical reasons specific to `meboot`.
 - **Assumes the donors are a fair comparison.** As with any placebo method, validity relies on the treated unit’s errors behaving like the donors’ errors in the absence of treatment.

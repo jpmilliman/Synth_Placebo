@@ -44,7 +44,7 @@ ge_fit <- dsc_placebo(germany, unit_col = "country", time_cols = "year", outcome
                       conf_level = 0.90)
 ```
 
-**Why 90%?** With $N$ donors the smallest possible p-value is $1/(N+1)$, and a 95% interval needs at least 19 donors. With 16, `dsc_placebo()` would return infinite 95% intervals, so this example uses 90%. The call takes about 10 seconds, most of it for the diagnostics; `diagnostics = FALSE` takes a second or two.
+**Why 90%?** With $`N`$ donors the smallest possible p-value is $`1/(N+1)`$, and a 95% interval needs at least 19 donors. With 16, `dsc_placebo()` would return infinite 95% intervals, so this example uses 90%. The call takes about 10 seconds, most of it for the diagnostics; `diagnostics = FALSE` takes a second or two.
 
 **The tests** (`ge_fit$test`). By default the pointwise tests are for the last post-treatment year (2003), and the scale is RMSPE:
 

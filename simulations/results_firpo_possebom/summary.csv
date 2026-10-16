@@ -1,0 +1,4 @@
+method,lower,upper,connected
+"A: Firpo-Possebom (ratio test, treated in placebo pools)",-2.42,-1.04,TRUE
+"B: ratio test, treated removed from placebo pools",-2.42,-1.04,TRUE
+"C: dsc_placebo() simultaneous band, constant effects inside it every year",-0.3684292420716444,-0.3136385537936306,NA

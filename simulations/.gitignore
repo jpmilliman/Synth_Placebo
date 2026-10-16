@@ -1,0 +1,6 @@
+# Rerunning a simulation writes per-task results and logs; only the summaries are kept in the repository
+**/tasks/
+*.log
+results_dsc_symcal_california/
+# third-party data downloaded by rmspe_guard_validation.R (re-downloaded when missing)
+results_rmspe_guard/texas.rds

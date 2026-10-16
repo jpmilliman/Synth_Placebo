@@ -1,20 +1,30 @@
 ##############################################################################
 # synthetic_control_functions_claude.R
 #
-# LASSO synthetic control with maximum entropy bootstrap inference.
+# Synthetic control for a single treated unit with placebo-calibrated inference.
 # Written by Claude (Anthropic) at the direction of the repository owner.
+# Full argument and output reference: docs/reference/function_reference.md
 #
-# Contents:
-#   1. meboot_multi()      - helper: maximum entropy bootstrap of multiple
-#                            columns (used inside synth_lasso_boot())
-#   2. synth_lasso_boot()  - LASSO synthetic control with sensitivity bounds,
-#                            jackknife conformal intervals, and bootstrap
-#                            effect / cumulative-effect intervals
-#   3. synth_lasso_placebo() - the same model with exact placebo (permutation)
-#                            tests and CIs instead of the bootstrap
+# Main method:
+#   6. dsc_placebo()       - demeaned synthetic control (intercept + non-negative donor
+#                            weights summing to one) with placebo-calibrated pointwise
+#                            intervals, simultaneous bands and prediction intervals;
+#                            covariate adjustment, an optional fect estimator, and
+#                            diagnostics
+#   7. plot_full_path(), plot_post_effect(), plot_prediction(), added_effect()
+#                          - ggplot figures for dsc_placebo() / dsc_symcal_boot() output
 #
-# Usage:
-#   source("Synthetic_control_functions/synthetic_control_functions_claude.R")
+# Earlier versions, kept for the record of the method's development:
+#   1. meboot_multi()      - maximum entropy bootstrap of multiple columns (used inside
+#                            synth_lasso_boot())
+#   2. synth_lasso_boot()  - LASSO synthetic control with bootstrap inference
+#   3. synth_lasso_placebo() - the same model with exact placebo (permutation) tests
+#   4. dsc_symcal_boot()   - demeaned synthetic control with a symmetric, donor-
+#                            calibrated fixed-weight bootstrap
+#   5. plot_dsc_symcal()   - ggplot figures for dsc_symcal_boot() results
+#
+# Usage (from the project root):
+#   source("synthetic_control_functions/synthetic_control_functions_claude.R")
 ##############################################################################
 
 ## ===========================================================================
@@ -1148,3 +1158,1034 @@ synth_lasso_placebo <- function(data,
                       n_failed = sum(failed)),
        settings = settings)
 }
+
+
+## ===========================================================================
+## 4. dsc_symcal_boot()
+## ===========================================================================
+
+##############################################################################
+# dsc_symcal_boot(): demeaned synthetic control with a symmetric, donor-
+# calibrated fixed-weight bootstrap
+#
+# Model
+#   Demeaned synthetic control: an intercept plus non-negative donor weights
+#   that sum to one, fitted on the pre-treatment period (constrained least
+#   squares, CVXR). The intercept absorbs level differences; the sum-to-one
+#   constraint keeps the synthetic control following the donors' full movement.
+#   Optional control series (e.g. population) enter with FREE, unpenalized
+#   coefficients.
+#
+# Inference
+#   1. Fixed-weight bootstrap: by-unit meboot replicates of every series (the
+#      outcome and any controls); in each replicate, synthetic = intercept +
+#      replicate donor values x the FIXED weights + replicate controls x the FIXED
+#      control coefficients; replicate effect = observed - replicate synthetic
+#      (per period, and running total for the cumulative effect).
+#   2. Symmetric, mean-centred half-width in every post period t:
+#      h_t = (conf_level) quantile of |replicate effect_t - mean replicate effect_t|.
+#   3. Standardized gap k_t = |effect_t| / h_t.
+#   4. Calibration: every donor is fitted as a placebo (treated unit removed)
+#      with steps 1-3, using the same model (including controls). With N donors,
+#      m = floor((1 - conf_level) x (N + 1)):
+#        pointwise factor    k*_t = m-th largest donor k_t in period t
+#        simultaneous band   smoothed-median profile q~_t (loess on the log of the
+#                            median donor k_t over post periods); lambda = m-th
+#                            largest donor max_t (k_t / q~_t); factor = lambda x q~_t
+#   5. Intervals: effect_t +/- factor_t x h_t; prediction intervals for the
+#      untreated outcome: synthetic_t +/- factor_t x h_t (cumulative: running
+#      totals).
+#
+# Which interval answers which question
+#   pointwise     the effect in ONE pre-specified period (test_period; default
+#                 the last post period). Valid for that period only: scanning
+#                 many periods for a striking one inflates false positives.
+#   simultaneous  whether there was an effect at ANY point in the post period,
+#                 which periods, and the shape of the effect path (covers every
+#                 post period at once).
+#
+# In simulations on the Kansas and California panels (Placebo simulations/),
+# the simultaneous band kept whole-path coverage at 95-97%, and pointwise
+# intervals kept 94-100% coverage at a pre-specified period, for pre-periods of
+# 5-80 periods (no controls). For a final-period effect, the absolute placebo
+# test with the same model was more powerful.
+#
+# With fewer than 19 donors, m = 0 at 95% and the intervals are infinite (the
+# exact calibration cannot reach that level); use conf_level = 0.90 or more
+# donors.
+#
+# Arguments
+#   data, unit_col, time_cols, outcome_col, treated_unit
+#                     long panel, as in synth_lasso_boot(); balanced, no NAs
+#   treatment_period  named vector of time column values for the first treated
+#                     period, e.g. c(year = 2012, qtr = 2) or c(year = 1989)
+#   test_period       named vector (same form) of the post period at which the
+#                     pointwise tests are made, for the per-period effect and the
+#                     cumulative effect through that period. NULL (default) = the
+#                     last post period.
+#   controls          optional character vector of numeric columns in `data`
+#                     (e.g. "popestimate"), added as predictors named
+#                     <control>_<unit> with free, unpenalized coefficients and
+#                     bootstrapped alongside the outcome (same trim proportion,
+#                     no limits). Not validated by simulation;
+#                     with the LASSO model, population controls added bias.
+#   control_units     whose control series enter: "treated" (default: the unit
+#                     being fitted, one column per control), "donors", or "all".
+#                     "donors" / "all" add one free coefficient per unit; the
+#                     function stops if the free coefficients would outnumber the
+#                     pre-treatment periods. NOTE: with "treated" or "all", the
+#                     treated unit's own post-period controls may themselves be
+#                     affected by the treatment.
+#   adjust_covariates optional character vector of time-varying covariates for a
+#                     POOLED adjustment ("Option D"): their effect gamma is
+#                     estimated by a two-way fixed-effects regression (unit and
+#                     period effects) on untreated observations only (all donor
+#                     periods + the treated unit's pre-period); every unit's
+#                     outcome is adjusted (outcome - gamma x covariate, using each
+#                     unit's ACTUAL covariate, post-treatment included) and the
+#                     method runs on the adjusted outcomes. Each placebo
+#                     re-estimates gamma with its own post period left out (and
+#                     the treated unit excluded). Suited to external shocks that
+#                     may start at the same time as the treatment (e.g. the spread
+#                     of fentanyl); assumes the treatment does not affect the
+#                     covariate and a common, linear covariate effect. Cannot be
+#                     combined with `controls`.
+#   conf_level        confidence level (default 0.95)
+#   reps              bootstrap replicates (default 500)
+#   trim              meboot trim / limits (default list(trim = 0.10, xmin_rel = 0.9))
+#   span              loess span for the simultaneous band's profile (default 0.75)
+#   seed              random seed for the bootstrap (default 12112025)
+#
+# Value: a list with
+#   effects   one row per period: time columns, post, observed, synthetic
+#             (the counterfactual; with adjust_covariates it includes
+#             gamma x the treated unit's covariate, shown in covariate_adjustment),
+#             effect; for post periods also halfwidth, factor_pointwise,
+#             factor_simultaneous, eff_low_pw / eff_high_pw, eff_low_sim /
+#             eff_high_sim, pred_low_pw / pred_high_pw, pred_low_sim /
+#             pred_high_sim, p_pointwise, and the same for the cumulative
+#             effect (cum_ prefix)
+#   test      the pointwise tests at test_period and the simultaneous test
+#   adjustment (with adjust_covariates: gamma, clustered SE, n_obs, the
+#             unadjusted estimates, and the estimates at gamma's 95% CI limits)
+#   weights, intercept, control_coefs, pre_rmspe, donor_factors,
+#   placebo   each donor-as-placebo's gaps and synthetic values (all periods) and
+#             bootstrap half-widths (post periods, per period and cumulative)
+#   failed_donors, settings
+##############################################################################
+dsc_symcal_boot <- function(data, unit_col, time_cols, outcome_col, treated_unit, treatment_period,
+                            test_period = NULL, controls = NULL, control_units = c("treated", "donors", "all"),
+                            adjust_covariates = NULL,
+                            conf_level = 0.95, reps = 500,
+                            trim = list(trim = 0.10, xmin_rel = 0.9), span = 0.75, seed = 12112025) {
+
+  for (p in c("CVXR", "meboot")) if (!requireNamespace(p, quietly = TRUE)) stop("dsc_symcal_boot() needs the ", p, " package.")
+  control_units <- match.arg(control_units)
+  alpha <- round(1 - conf_level, 10)
+
+  # ---- Data: ordered periods, post indicator, wide matrices --------------------
+  data <- as.data.frame(data)
+  if (length(controls) && length(adjust_covariates)) stop("Use either `controls` or `adjust_covariates`, not both.")
+  stopifnot(all(c(unit_col, time_cols, outcome_col, controls, adjust_covariates) %in% names(data)),
+            all(names(treatment_period) %in% time_cols))
+  periods <- unique(data[, time_cols, drop = FALSE])
+  periods <- periods[do.call(order, unname(as.list(periods))), , drop = FALSE]
+  rownames(periods) <- NULL
+  find_period <- function(pv, what) {
+    hit <- which(Reduce(`&`, lapply(names(pv), function(nm) periods[[nm]] == pv[[nm]])))
+    if (length(hit) != 1) stop(what, " (", paste(names(pv), pv, sep = " = ", collapse = ", "), ") must match exactly one period.")
+    hit
+  }
+  t_treat <- find_period(treatment_period, "treatment_period")
+  post <- seq_len(nrow(periods)) >= t_treat
+  n_post <- sum(post)
+  t_test <- if (is.null(test_period)) n_post else find_period(test_period, "test_period") - t_treat + 1
+  if (t_test < 1) stop("test_period must be a post-treatment period.")
+
+  d <- data.frame(unit = as.character(data[[unit_col]]),
+                  .t = match(do.call(paste, unname(as.list(data[, time_cols, drop = FALSE]))),
+                             do.call(paste, unname(as.list(periods)))),
+                  y = data[[outcome_col]])
+  for (v in c(controls, adjust_covariates)) d[[v]] <- data[[v]]
+  if (anyNA(d[, c("y", controls, adjust_covariates)]) || any(table(d$unit) != nrow(periods)))
+    stop("The panel must be balanced with no missing outcomes or controls.")
+  if (!treated_unit %in% d$unit) stop("treated_unit not found in ", unit_col, ".")
+  units <- sort(unique(d$unit)); donors <- setdiff(units, treated_unit)
+  wide <- function(v) sapply(units, function(u) { du <- d[d$unit == u, ]; du[[v]][order(du$.t)] })
+  Y <- wide("y")
+  Zobs <- setNames(lapply(controls, wide), controls)            # one period x unit matrix per control
+  Aobs <- setNames(lapply(adjust_covariates, wide), adjust_covariates)   # covariates for the pooled adjustment
+
+  # Option D: gamma from a two-way FE regression on untreated observations, excluding the units in
+  # `drop_units` entirely and the post period of `drop_post_unit`; standard errors clustered by unit
+  twfe_gamma <- function(drop_units = NULL, drop_post_unit) {
+    keep_u <- setdiff(units, drop_units)
+    long <- expand.grid(t = seq_len(nrow(periods)), unit = keep_u, stringsAsFactors = FALSE)
+    long$y <- Y[cbind(long$t, match(long$unit, units))]
+    for (v in adjust_covariates) long[[v]] <- Aobs[[v]][cbind(long$t, match(long$unit, units))]
+    long <- long[!(long$unit == drop_post_unit & post[long$t]), ]
+    X <- model.matrix(as.formula(paste("~ factor(unit) + factor(t) +", paste(adjust_covariates, collapse = " + "))), long)
+    fit <- lm.fit(X, long$y)
+    b <- fit$coefficients[adjust_covariates]
+    if (anyNA(b)) stop("adjust_covariates: gamma not identified (no variation beyond unit and period effects).")
+    XtX_inv <- chol2inv(qr.R(qr(X)))[order(qr(X)$pivot), order(qr(X)$pivot)]
+    e <- fit$residuals
+    meat <- Reduce(`+`, lapply(split(seq_len(nrow(X)), long$unit), function(ix) { s <- crossprod(X[ix, , drop = FALSE], e[ix]); s %*% t(s) }))
+    G <- length(unique(long$unit)); V <- G / (G - 1) * XtX_inv %*% meat %*% XtX_inv
+    idx <- match(adjust_covariates, colnames(X))
+    list(gamma = b, se = sqrt(diag(V)[idx]), n_obs = nrow(X))
+  }
+  adjust_mat <- function(Ymat, Alist, gam) {
+    if (is.null(gam)) return(Ymat)
+    for (v in names(gam)) Ymat <- Ymat - gam[[v]] * Alist[[v]][, colnames(Ymat), drop = FALSE]
+    Ymat
+  }
+
+  # Control columns for fitting unit u from donor set D (observed or replicate matrices)
+  control_cols <- function(Zlist, u, D) {
+    if (!length(controls)) return(NULL)
+    who <- switch(control_units, treated = u, donors = D, all = c(u, D))
+    do.call(cbind, lapply(controls, function(v) { M <- Zlist[[v]][, who, drop = FALSE]; colnames(M) <- paste0(v, "_", who); M }))
+  }
+  n_ctrl <- length(controls) * switch(control_units, treated = 1, donors = length(donors) - 1, all = length(donors))
+  if (n_ctrl + 1 >= sum(!post))
+    stop("Too many free coefficients (", n_ctrl, " control coefficients + intercept) for ", sum(!post),
+         " pre-treatment periods. Use control_units = \"treated\" or fewer controls.")
+
+  # ---- Demeaned SC fit (rescaled before solving: large values can make the -----
+  # ---- solver report a false "infeasible"; weights are scale-free) --------------
+  fit_dsc <- function(X, yv, C = NULL) {
+    sc <- mean(abs(yv[!post]))
+    Xp <- X[!post, , drop = FALSE] / sc; yp <- yv[!post] / sc
+    w <- CVXR::Variable(ncol(Xp)); b0 <- CVXR::Variable(1)
+    if (is.null(C)) {
+      resid <- yp - b0 - Xp %*% w
+    } else {
+      cs <- colMeans(abs(C[!post, , drop = FALSE])); cs[cs == 0] <- 1
+      Cp <- sweep(C[!post, , drop = FALSE], 2, cs, "/")
+      g <- CVXR::Variable(ncol(Cp))
+      resid <- yp - b0 - Xp %*% w - Cp %*% g
+    }
+    prob <- CVXR::Problem(CVXR::Minimize(CVXR::sum_squares(resid)), list(w >= 0, sum(w) == 1))
+    CVXR::psolve(prob)
+    st <- CVXR::status(prob)
+    if (!st %in% c("optimal", "optimal_inaccurate")) {        # retry once: explicit solver, more iterations
+      try(CVXR::psolve(prob, solver = "CLARABEL", max_iter = 10000), silent = TRUE)
+      st <- CVXR::status(prob)
+    }
+    if (!st %in% c("optimal", "optimal_inaccurate")) stop("CVXR status: ", st)
+    wv <- setNames(as.numeric(CVXR::value(w)), colnames(X)); wv[abs(wv) < 1e-8] <- 0
+    b <- as.numeric(CVXR::value(b0)) * sc
+    gv <- if (is.null(C)) NULL else setNames(as.numeric(CVXR::value(g)) * sc / cs, colnames(C))   # original units
+    synth <- b + as.numeric(X %*% wv) + if (is.null(C)) 0 else as.numeric(C %*% gv)
+    list(b0 = b, w = wv, g = gv, synth = synth)
+  }
+
+  # ---- Bootstrap replicates: list of list(y = period x unit, ctrl = list) -------
+  # The outcome uses `trim` (including any limits); covariates are bootstrapped separately with the
+  # same trim proportion but NO limits (relative limits need strictly positive series).
+  replicates_for <- function(dd) {
+    dd <- dd[order(dd$unit, dd$.t), ]
+    us <- sort(unique(dd$unit))
+    boot_wide <- function(vars, tr, sd) {
+      r <- withCallingHandlers(
+        meboot_multi(dd[, c("unit", ".t", vars)], boot_cols = vars, id_cols = c("unit", ".t"), reps = reps, trim = tr,
+                     group_col = "unit", output = "wide", names_from = "unit", seed = sd, as_matrix = TRUE),
+        warning = function(w) if (grepl("expand.sd", conditionMessage(w))) invokeRestart("muffleWarning"))
+      lapply(r, function(m) {
+        m <- m[order(m[, ".t"]), , drop = FALSE]
+        setNames(lapply(vars, function(v) { cn <- if (length(vars) == 1) us else paste0(v, "_", us)
+          M <- m[, cn, drop = FALSE]; colnames(M) <- us; M }), vars)
+      })
+    }
+    ry <- boot_wide("y", trim, seed)
+    cov_vars <- c(controls, adjust_covariates)
+    rc <- if (length(cov_vars)) boot_wide(cov_vars, list(trim = if (is.null(trim$trim)) 0.10 else trim$trim), seed + 1) else NULL
+    if (length(cov_vars)) {                       # constant series (e.g. never-exposed units) cannot be resampled:
+      obs <- setNames(lapply(cov_vars, function(v) sapply(us, function(u) dd[[v]][dd$unit == u][order(dd$.t[dd$unit == u])])), cov_vars)
+      rc <- lapply(rc, function(rr) setNames(lapply(cov_vars, function(v) { M <- rr[[v]]
+        bad <- colSums(!is.finite(M)) > 0; M[, bad] <- obs[[v]][, bad]; M }), cov_vars))   # keep them as observed
+    }
+    lapply(seq_along(ry), function(i) list(y = ry[[i]]$y,
+      ctrl = if (length(controls)) rc[[i]][controls] else list(),
+      adj  = if (length(adjust_covariates)) rc[[i]][adjust_covariates] else list()))
+  }
+
+  # ---- Fixed-weight effects, symmetric half-widths, standardized gaps -----------
+  unit_stats <- function(u, D, reps_list, gam = NULL) {
+    Ya <- adjust_mat(Y[, c(u, D), drop = FALSE], Aobs, gam)
+    yv <- Ya[, u]
+    fit <- fit_dsc(Ya[, D, drop = FALSE], yv, control_cols(Zobs, u, D))
+    gap <- yv - fit$synth
+    E <- sapply(reps_list, function(m) {
+      ya_r <- adjust_mat(m$y[, D, drop = FALSE], m$adj, gam)
+      s_r <- fit$b0 + as.numeric(ya_r[post, , drop = FALSE] %*% fit$w[D])
+      if (!is.null(fit$g)) s_r <- s_r + as.numeric(control_cols(m$ctrl, u, D)[post, , drop = FALSE] %*% fit$g)
+      yv[post] - s_r
+    })
+    E <- matrix(E, nrow = n_post)
+    Ec <- matrix(apply(E, 2, cumsum), nrow = n_post)
+    hw <- function(M) apply(M, 1, function(v) unname(quantile(abs(v - mean(v)), 1 - alpha)))
+    g <- gap[post]; gc <- cumsum(g); h <- hw(E); hc <- hw(Ec)
+    list(gap = gap, synth = fit$synth, h = h, hc = hc, k = abs(g) / h, kc = abs(gc) / hc, w = fit$w, b0 = fit$b0, g = fit$g)
+  }
+
+  # ---- Treated unit, and every donor as a placebo (treated unit removed) --------
+  adj_main <- if (length(adjust_covariates)) twfe_gamma(drop_post_unit = treated_unit) else NULL
+  tr <- unit_stats(treated_unit, donors, replicates_for(d), adj_main$gamma)
+  reps_ex <- replicates_for(d[d$unit != treated_unit, ])
+  pl <- lapply(donors, function(p) tryCatch({
+    gp <- if (length(adjust_covariates)) twfe_gamma(drop_units = treated_unit, drop_post_unit = p)$gamma else NULL
+    unit_stats(p, setdiff(donors, p), reps_ex, gp)
+  }, error = function(e) conditionMessage(e)))
+  failed <- vapply(pl, is.character, logical(1))
+  failed_donors <- if (any(failed)) data.frame(donor = donors[failed], error = unlist(pl[failed])) else
+    data.frame(donor = character(0), error = character(0))
+  if (any(failed)) warning(sum(failed), " placebo fit(s) failed and were left out of the calibration: ",
+                           paste(donors[failed], collapse = ", "), ". See $failed_donors.")
+  pl <- pl[!failed]; N <- length(pl); m <- floor(alpha * (N + 1))
+  kth <- function(x) if (m == 0) Inf else sort(x, decreasing = TRUE)[m]
+  if (m == 0) warning("With ", N, " donors the ", 100 * conf_level, "% level cannot be reached exactly: intervals are infinite.")
+
+  # ---- Calibration factors ------------------------------------------------------
+  Kp  <- matrix(sapply(pl, `[[`, "k"),  nrow = n_post)                  # post periods x donors
+  Kpc <- matrix(sapply(pl, `[[`, "kc"), nrow = n_post)
+  smooth_pos <- function(v) { tt <- seq_along(v); exp(as.numeric(predict(stats::loess(log(v) ~ tt, span = span, degree = 1)))) }
+  sim_factor <- function(K, kT) {
+    q <- smooth_pos(apply(K, 1, median)); R <- apply(K / q, 2, max)
+    list(factor = kth(R) * q, p = (1 + sum(R >= max(kT / q))) / (N + 1))
+  }
+  k_pw <- apply(Kp, 1, kth); k_pwc <- apply(Kpc, 1, kth)
+  sim <- sim_factor(Kp, tr$k); simc <- sim_factor(Kpc, tr$kc)
+
+  # ---- Effects table --------------------------------------------------------------
+  g <- tr$gap[post]; gc <- cumsum(g); s <- tr$synth[post]; sc <- cumsum(s)
+  na_pre <- rep(NA_real_, sum(!post))
+  col <- function(v) c(na_pre, v)
+  cov_adj <- if (is.null(adj_main)) rep(0, nrow(periods)) else
+    as.numeric(Reduce(`+`, lapply(adjust_covariates, function(v) adj_main$gamma[[v]] * Aobs[[v]][, treated_unit])))
+  s <- s + cov_adj[post]; sc <- cumsum(s)                        # counterfactual on the original scale
+  effects <- cbind(periods, data.frame(
+    post = post, observed = Y[, treated_unit], synthetic = Y[, treated_unit] - tr$gap, effect = tr$gap,
+    covariate_adjustment = cov_adj,
+    halfwidth = col(tr$h), factor_pointwise = col(k_pw), factor_simultaneous = col(sim$factor),
+    eff_low_pw = col(g - k_pw * tr$h), eff_high_pw = col(g + k_pw * tr$h),
+    eff_low_sim = col(g - sim$factor * tr$h), eff_high_sim = col(g + sim$factor * tr$h),
+    pred_low_pw = col(s - k_pw * tr$h), pred_high_pw = col(s + k_pw * tr$h),
+    pred_low_sim = col(s - sim$factor * tr$h), pred_high_sim = col(s + sim$factor * tr$h),
+    p_pointwise = col((1 + rowSums(Kp >= tr$k)) / (N + 1)),
+    cum_effect = col(gc), cum_halfwidth = col(tr$hc),
+    cum_factor_pointwise = col(k_pwc), cum_factor_simultaneous = col(simc$factor),
+    cum_eff_low_pw = col(gc - k_pwc * tr$hc), cum_eff_high_pw = col(gc + k_pwc * tr$hc),
+    cum_eff_low_sim = col(gc - simc$factor * tr$hc), cum_eff_high_sim = col(gc + simc$factor * tr$hc),
+    cum_pred_low_pw = col(sc - k_pwc * tr$hc), cum_pred_high_pw = col(sc + k_pwc * tr$hc),
+    cum_pred_low_sim = col(sc - simc$factor * tr$hc), cum_pred_high_sim = col(sc + simc$factor * tr$hc),
+    cum_p_pointwise = col((1 + rowSums(Kpc >= tr$kc)) / (N + 1))))
+
+  # ---- Tests: pointwise at test_period; simultaneous over the whole post period -----
+  e_post <- effects[post, ]
+  test_label <- paste(names(periods), unlist(periods[t_treat + t_test - 1, ]), sep = " = ", collapse = ", ")
+  flagged <- function(lo, hi) {
+    hit <- which(lo > 0 | hi < 0)
+    if (length(hit)) paste(apply(periods[post, , drop = FALSE][hit, , drop = FALSE], 1, paste, collapse = "-"), collapse = "; ") else "none"
+  }
+  test <- data.frame(
+    test = c("pointwise", "pointwise", "simultaneous", "simultaneous"),
+    measure = c("effect", "cumulative effect", "effect", "cumulative effect"),
+    period = c(test_label, paste("through", test_label), "whole post period", "whole post period"),
+    estimate = c(e_post$effect[t_test], e_post$cum_effect[t_test], NA, NA),
+    lower = c(e_post$eff_low_pw[t_test], e_post$cum_eff_low_pw[t_test], NA, NA),
+    upper = c(e_post$eff_high_pw[t_test], e_post$cum_eff_high_pw[t_test], NA, NA),
+    p_value = c(e_post$p_pointwise[t_test], e_post$cum_p_pointwise[t_test], sim$p, simc$p),
+    significant = c(e_post$eff_low_pw[t_test] > 0 | e_post$eff_high_pw[t_test] < 0,
+                    e_post$cum_eff_low_pw[t_test] > 0 | e_post$cum_eff_high_pw[t_test] < 0,
+                    sim$p <= alpha, simc$p <= alpha),
+    periods_flagged = c(NA, NA, flagged(e_post$eff_low_sim, e_post$eff_high_sim),
+                        flagged(e_post$cum_eff_low_sim, e_post$cum_eff_high_sim)))
+
+  adjustment <- NULL
+  if (!is.null(adj_main)) {
+    point_at <- function(gam) {                                 # point estimates only (no bootstrap)
+      Ya <- adjust_mat(Y[, c(treated_unit, donors), drop = FALSE], Aobs, gam)
+      gp <- (Ya[, treated_unit] - fit_dsc(Ya[, donors, drop = FALSE], Ya[, treated_unit])$synth)[post]
+      c(effect = gp[t_test], cumulative = sum(gp[seq_len(t_test)]))
+    }
+    unadj <- { gp <- (Y[, treated_unit] - fit_dsc(Y[, donors, drop = FALSE], Y[, treated_unit])$synth)[post]
+               c(effect = gp[t_test], cumulative = sum(gp[seq_len(t_test)])) }
+    adjustment <- list(gamma = adj_main$gamma, se = adj_main$se, n_obs = adj_main$n_obs,
+                       estimates = rbind(unadjusted = unadj, adjusted = point_at(adj_main$gamma),
+                                         gamma_lower = point_at(adj_main$gamma - 1.96 * adj_main$se),
+                                         gamma_upper = point_at(adj_main$gamma + 1.96 * adj_main$se)))
+  }
+
+  list(effects = effects, test = test, adjustment = adjustment,
+       weights = sort(tr$w[tr$w > 0], decreasing = TRUE), intercept = tr$b0, control_coefs = tr$g,
+       pre_rmspe = sqrt(mean(tr$gap[!post]^2)),
+       donor_factors = list(pointwise = Kp, cumulative = Kpc),
+       placebo = list(gaps = setNames(as.data.frame(sapply(pl, `[[`, "gap")), donors[!failed]),        # all periods x donors
+                      synthetic = setNames(as.data.frame(sapply(pl, `[[`, "synth")), donors[!failed]),
+                      halfwidth = setNames(as.data.frame(matrix(sapply(pl, `[[`, "h"), nrow = n_post)), donors[!failed]),
+                      cum_halfwidth = setNames(as.data.frame(matrix(sapply(pl, `[[`, "hc"), nrow = n_post)), donors[!failed])),
+       failed_donors = failed_donors,
+       settings = list(treated_unit = treated_unit, treatment_period = treatment_period, test_period = test_label,
+                       time_cols = time_cols, outcome = outcome_col, controls = controls,
+                       adjust_covariates = adjust_covariates,
+                       control_units = if (length(controls)) control_units else NA,
+                       conf_level = conf_level, reps = reps, trim = trim, span = span, seed = seed,
+                       n_donors = N, rank_used = m))
+}
+
+## ===========================================================================
+## 5. plot_dsc_symcal()
+## ===========================================================================
+
+##############################################################################
+# plot_dsc_symcal(): ggplot figures for a dsc_symcal_boot() result
+#   prediction   observed vs synthetic, with prediction bands
+#   effect       effect by period, with effect bands
+#   cumulative   cumulative effect, with effect bands
+# Shaded: simultaneous band; dashed: pointwise band; the pre-specified test
+# period is marked with a point and a vertical line.
+# Arguments: res (dsc_symcal_boot() result), y_label (axis label).
+# Value: a list of three ggplot objects.
+##############################################################################
+plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("plot_dsc_symcal() needs the ggplot2 package.")
+  e <- res$effects
+  e$x <- seq_len(nrow(e))
+  labs_x <- apply(e[, res$settings$time_cols, drop = FALSE], 1, paste, collapse = "-")
+  brks <- unique(round(seq(1, nrow(e), length.out = min(nrow(e), 8))))
+  t0 <- which(e$post)[1]
+  ep <- e[e$post, ]
+  tt <- which(e$post)[1] - 1 + which(apply(ep[, res$settings$time_cols, drop = FALSE], 1, function(r)
+    paste(names(r), r, sep = " = ", collapse = ", ")) == res$settings$test_period)
+  lvl <- paste0(100 * res$settings$conf_level, "%")
+  note <- paste0("Shaded: simultaneous ", lvl, " band; dashed: pointwise ", lvl, " band; marked: test period")
+  common <- list(ggplot2::geom_vline(xintercept = t0 - 0.5, linetype = "dotted", colour = "grey40"),
+                 ggplot2::geom_vline(xintercept = tt, linetype = "dashed", colour = "grey60"),
+                 ggplot2::scale_x_continuous(breaks = brks, labels = labs_x[brks]),
+                 ggplot2::theme_minimal())
+  band_plot <- function(est, lo_s, hi_s, lo_p, hi_p, fill, title, ylab) {
+    ggplot2::ggplot(ep, ggplot2::aes(x)) +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = .data[[lo_s]], ymax = .data[[hi_s]]), fill = fill, alpha = 0.2) +
+      ggplot2::geom_line(ggplot2::aes(y = .data[[lo_p]]), linetype = "dashed", colour = fill) +
+      ggplot2::geom_line(ggplot2::aes(y = .data[[hi_p]]), linetype = "dashed", colour = fill) +
+      ggplot2::geom_hline(yintercept = 0, colour = "grey40") +
+      ggplot2::geom_line(ggplot2::aes(y = .data[[est]])) +
+      ggplot2::geom_point(data = e[tt, ], ggplot2::aes(x, .data[[est]]), size = 2.5) +
+      common + ggplot2::labs(title = title, subtitle = note, x = NULL, y = ylab)
+  }
+  p_pred <- ggplot2::ggplot(e, ggplot2::aes(x)) +
+    ggplot2::geom_ribbon(data = ep, ggplot2::aes(ymin = pred_low_sim, ymax = pred_high_sim), fill = "steelblue", alpha = 0.25) +
+    ggplot2::geom_line(data = ep, ggplot2::aes(y = pred_low_pw), linetype = "dashed", colour = "steelblue4") +
+    ggplot2::geom_line(data = ep, ggplot2::aes(y = pred_high_pw), linetype = "dashed", colour = "steelblue4") +
+    ggplot2::geom_line(ggplot2::aes(y = synthetic, colour = "Synthetic")) +
+    ggplot2::geom_line(ggplot2::aes(y = observed, colour = "Observed")) +
+    ggplot2::scale_colour_manual(values = c(Observed = "black", Synthetic = "steelblue4"), name = NULL) +
+    common + ggplot2::theme(legend.position = "bottom") +
+    ggplot2::labs(title = paste0(res$settings$treated_unit, ": observed vs synthetic, with prediction intervals"),
+                  subtitle = note, x = NULL, y = y_label)
+  list(prediction = p_pred,
+       effect = band_plot("effect", "eff_low_sim", "eff_high_sim", "eff_low_pw", "eff_high_pw", "firebrick",
+                          paste0(res$settings$treated_unit, ": effect by period"), paste("Effect,", y_label)),
+       cumulative = band_plot("cum_effect", "cum_eff_low_sim", "cum_eff_high_sim", "cum_eff_low_pw", "cum_eff_high_pw", "darkgreen",
+                              paste0(res$settings$treated_unit, ": cumulative effect"), paste("Cumulative effect,", y_label)))
+}
+
+
+
+## ===========================================================================
+## 6. dsc_placebo()
+## ===========================================================================
+
+##############################################################################
+# dsc_placebo(): demeaned synthetic control with placebo-calibrated inference
+#   (no bootstrap). Full argument and output reference:
+#   docs/reference/function_reference.md
+#
+# Model: intercept + non-negative donor weights summing to one, fitted on the
+# pre-treatment period (as in dsc_symcal_boot()).
+#
+# Inference: the treated unit and every donor (fitted as a placebo with the
+# treated unit removed) get standardized gaps k_{u,t} = |gap_{u,t}| / s_{u,t},
+# where s depends on `scale` (cumulative effect: cumulative gap, same s for
+# rmspe/raw, cumulative synthetic for relative). With N donors and
+# m = floor((1 - conf_level) x (N + 1)):
+#   pointwise     k*_t = m-th largest donor k_{p,t}; interval gap_t +/- k*_t x s_{T,t};
+#                 p = rank of k_{T,t} among the donors (pre-specified test_period)
+#   simultaneous  q~_t = loess-smoothed (log scale) median donor k_{p,t};
+#                 lambda = m-th largest donor max_t k_{p,t} / q~_t;
+#                 band gap_t +/- lambda x q~_t x s_{T,t}
+# Prediction intervals: synthetic_t +/- the same half-widths. With m = 0 (fewer
+# than 19 donors at 95%) the intervals are infinite.
+#
+# Scale (`scale`): what each gap is divided by before ranking against placebos.
+#   "rmspe" (default)     the unit's pre-treatment RMSPE (floored, see the guard
+#                         below): gaps standardized by pre-treatment fit (the logic of
+#                         the RMSPE ratio). In simulation it stayed largely valid when
+#                         the treated unit was not exchangeable with the donors, where
+#                         the other scales failed.
+#   "relative"            the unit's synthetic value: percentage gaps. Most powerful
+#                         when the treated unit resembles the donors; not robust when
+#                         it does not. Needs positive synthetic values.
+#   "raw"                 nothing: raw gaps in the outcome's units, as in the classic
+#                         placebo plots of Abadie, Diamond and Hainmueller.
+#   Whatever the scale, $test also reports the classic post/pre RMSPE-ratio test
+#   (whole post period, p-value only).
+#
+# Arguments: data (long, balanced panel), unit_col, time_cols (coarsest first, e.g.
+#   c("year", "qtr")), outcome_col, treated_unit, treatment_period (named vector:
+#   first treated period), test_period (same format; default: last post period),
+#   conf_level (0.95), span (loess span of the simultaneous profile, 0.75), scale,
+#   rmspe_floor, adjust_covariates / adjust_model / ife_r, augment, estimator,
+#   diagnostics / warn / ife_seed - described below and in the reference.
+#
+# Covariate adjustment (optional): adjust_covariates = column name(s) of time-
+#   varying covariates. Step 1 estimates their effect gamma on UNTREATED cells
+#   only (the treated unit's post period is excluded), then every unit's outcome
+#   is adjusted (outcome - gamma x its actual covariate) and the method runs on
+#   the adjusted outcomes. Each placebo re-estimates gamma with the treated unit
+#   dropped and its own post period excluded.
+#     adjust_model = "ife" (default)  interactive fixed effects via fect (unit and
+#                                     time effects + latent factors); the number
+#                                     of factors is chosen by cross-validation
+#                                     over ife_r for the treated unit's analysis
+#                                     and reused for every placebo
+#     adjust_model = "twfe"           two-way fixed effects (no factors)
+#   Assumes the treatment does not affect the covariate and a common linear effect.
+#   $adjustment reports gamma, the number of factors, the two-way fixed-effects
+#   gamma (with a unit-clustered SE) for comparison, and the unadjusted estimates.
+#
+# Augmentation (optional): augment = "ife" gives the AUGMENTED demeaned synthetic
+#   control. An interactive fixed-effects outcome model (fect: unit and time
+#   effects + latent factors, plus adjust_covariates if given) is fitted on
+#   UNTREATED cells only; the demeaned synthetic control is then fitted to the
+#   residuals (outcome - model prediction), and the counterfactual is the model
+#   prediction plus the synthetic control of the residuals. Equivalently:
+#   demeaned SC + (lambda_T - sum_j w_j lambda_j) x f_t, i.e. a correction for the
+#   factor exposure the weights cannot match (e.g. a treated unit outside the
+#   donors' range). The number of factors is chosen by cross-validation over
+#   ife_r for the treated unit's analysis and reused for every placebo; with 0
+#   factors the estimator reduces exactly to the demeaned synthetic control.
+#   Each placebo refits the outcome model with the treated unit dropped and its
+#   own post period excluded.
+#
+# Guard (rmspe_floor, RMSPE scale only): each unit's pre-treatment RMSPE is floored at
+#   rmspe_floor x the median pre-treatment RMSPE over the treated unit and all placebos
+#   (default 0.25; 0 switches the guard off). Without it, a placebo that the demeaned
+#   synthetic control reproduces (almost) exactly before treatment - likely with short
+#   pre-periods and many donors - gets near-infinite standardized gaps and so do the
+#   intervals. $rmspe_guard reports the floor and the units it applied to. The classic
+#   RMSPE-ratio test is reported unguarded. Validated in simulations/rmspe_guard_validation.R.
+#
+# Estimator (estimator): "dsc" (default) is the demeaned synthetic control. "fect"
+#   replaces the counterfactual with fect's interactive fixed-effects (IFEct)
+#   prediction: unit and time effects + latent factors (+ adjust_covariates), fitted on
+#   untreated cells only, with the number of factors chosen by cross-validation over
+#   ife_r for the treated unit and reused for every placebo (the treated unit's model is
+#   then refitted with that number, exactly as each placebo's is). Each donor is refitted as
+#   a pseudo-treated unit (treated unit dropped), and the usual placebo calibration is
+#   applied. In simulation, fect with placebo calibration on the RMSPE scale was valid
+#   and much more powerful than DSC when the treated unit lay at or beyond the edge of
+#   the donors' range with stationary factors; it was not valid with trending factors.
+#   Use scale = "rmspe" with it. Cannot be combined with augment = "ife". With
+#   estimator = "fect", $weights and $intercept are NULL (there are no donor weights).
+#
+# Diagnostics (diagnostics = TRUE, default): checks whether the treated unit lies
+#   beyond what the donors can reproduce, the case where placebo-calibrated
+#   intervals were found to under-cover in simulation. $diagnostics reports:
+#     fit_rank         treated pre-treatment RMSPE relative to its level, and the
+#                      share of placebos that fit worse (flag: worse than 90%)
+#     hull             distance of the treated unit's estimated factor loadings
+#                      (fect IFE on untreated cells) from the donors' convex hull,
+#                      against each donor's distance from the other donors' hull
+#                      (flag: beyond 90% of donors)
+#     extrapolation    post-treatment drift implied by the loading mismatch,
+#                      (lambda_T - sum_j w_j lambda_j) x f_t, as % of the level
+#     persistence      first-order autocorrelation of each estimated factor
+#                      (trending if above 0.95)
+#   fect's cross-validation is random; ife_seed (default 12112025) fixes it locally (the
+#   session's random-number state is restored), so results are reproducible.
+#   A warning is issued (warn = TRUE) when the treated unit is flagged as extreme;
+#   it is strongest when the factors are trending. Loading-based checks need fect.
+#   $diagnostics$recommendation gives the arguments to re-run with when the
+#   diagnostics point to a better-suited method: with estimator = "dsc", a treated
+#   unit flagged as extreme with factors NOT trending -> re-run with estimator =
+#   "fect", scale = "rmspe". NULL when no change is recommended.
+#   Validated on 1,800 simulated panels (diagnostics_validation.R): the extreme flag
+#   caught 100% of 'outside' and 81% of 'edge' treated units, with 4-5% false alarms
+#   for treated units inside the donors' hull; runs with the combined warning (flag
+#   AND trending) had 74% coverage (DSC, RMSPE scale) vs 96% for the others.
+#
+# Value: a list with effects (one row per period: observed, synthetic, effect, effect
+#   and prediction intervals _pw / _sim, p_pointwise, and the cumulative versions cum_*),
+#   test (pointwise, simultaneous and RMSPE-ratio tests), weights, intercept, pre_rmspe,
+#   rmspe_guard, adjustment (with adjust_covariates), placebo (gaps and synthetic
+#   values), diagnostics, failed_donors and settings. See the reference for every column.
+#   effects also holds std_effect (the gap on the calibration scale) and threshold_ratio_pw /
+#   _sim (|std_effect| / the pointwise or simultaneous threshold; above 1 = outside the
+#   untreated units' chance range), with cum_ versions: the fit-based benchmark.
+##############################################################################
+dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, treatment_period,
+                        test_period = NULL, conf_level = 0.95, span = 0.75,
+                        scale = c("rmspe", "relative", "raw"),
+                        adjust_covariates = NULL, adjust_model = c("ife", "twfe"), ife_r = 0:5,
+                        augment = c("none", "ife"), diagnostics = TRUE, warn = TRUE, ife_seed = 12112025,
+                        estimator = c("dsc", "fect"), rmspe_floor = 0.25) {
+
+  if (!requireNamespace("CVXR", quietly = TRUE)) stop("dsc_placebo() needs the CVXR package.")
+  scale <- match.arg(scale); adjust_model <- match.arg(adjust_model); augment <- match.arg(augment)
+  estimator <- match.arg(estimator)
+  if (estimator == "fect" && augment == "ife") stop("augment = \"ife\" applies to estimator = \"dsc\" only.")
+  if (estimator == "fect" && !requireNamespace("fect", quietly = TRUE)) stop("estimator = \"fect\" needs the fect package.")
+  if (augment == "ife" && !requireNamespace("fect", quietly = TRUE)) stop("augment = \"ife\" needs the fect package.")
+  if (length(adjust_covariates) && adjust_model == "ife" && !requireNamespace("fect", quietly = TRUE)) stop("adjust_model = \"ife\" needs the fect package.")
+  alpha <- round(1 - conf_level, 10)
+
+  # ---- Data -------------------------------------------------------------------------
+  data <- as.data.frame(data)
+  stopifnot(all(c(unit_col, time_cols, outcome_col, adjust_covariates) %in% names(data)), all(names(treatment_period) %in% time_cols))
+  periods <- unique(data[, time_cols, drop = FALSE])
+  periods <- periods[do.call(order, unname(as.list(periods))), , drop = FALSE]; rownames(periods) <- NULL
+  find_period <- function(pv, what) {
+    hit <- which(Reduce(`&`, lapply(names(pv), function(nm) periods[[nm]] == pv[[nm]])))
+    if (length(hit) != 1) stop(what, " (", paste(names(pv), pv, sep = " = ", collapse = ", "), ") must match exactly one period.")
+    hit
+  }
+  t_treat <- find_period(treatment_period, "treatment_period")
+  post <- seq_len(nrow(periods)) >= t_treat; n_post <- sum(post)
+  t_test <- if (is.null(test_period)) n_post else find_period(test_period, "test_period") - t_treat + 1
+  if (t_test < 1) stop("test_period must be a post-treatment period.")
+  key <- do.call(paste, unname(as.list(data[, time_cols, drop = FALSE])))
+  d <- data.frame(unit = as.character(data[[unit_col]]), .t = match(key, do.call(paste, unname(as.list(periods)))), y = data[[outcome_col]])
+  for (v in adjust_covariates) d[[v]] <- data[[v]]
+  if (anyNA(d[, c("y", adjust_covariates)]) || any(table(d$unit) != nrow(periods))) stop("The panel must be balanced with no missing outcomes or covariates.")
+  if (!treated_unit %in% d$unit) stop("treated_unit not found in ", unit_col, ".")
+  units <- sort(unique(d$unit)); donors <- setdiff(units, treated_unit)
+  wide <- function(v) sapply(units, function(u) { du <- d[d$unit == u, ]; du[[v]][order(du$.t)] })
+  Y <- wide("y")
+  Aobs <- setNames(lapply(adjust_covariates, wide), adjust_covariates)
+
+  # ---- Step 1 (optional): covariate effect gamma on untreated cells --------------------------
+  # Long data for the units kept; D = 1 marks the excluded cells (drop_post_unit's post period)
+  long_for <- function(drop_units, drop_post_unit) {
+    keep <- setdiff(units, drop_units)
+    out <- expand.grid(.t = seq_len(nrow(periods)), unit = keep, stringsAsFactors = FALSE)
+    out$y <- Y[cbind(out$.t, match(out$unit, units))]
+    for (v in adjust_covariates) out[[v]] <- Aobs[[v]][cbind(out$.t, match(out$unit, units))]
+    out$D <- as.integer(out$unit == drop_post_unit & post[out$.t])
+    out
+  }
+  gamma_twfe <- function(drop_units = NULL, drop_post_unit) {
+    lg <- long_for(drop_units, drop_post_unit); lg <- lg[lg$D == 0, ]
+    X <- model.matrix(as.formula(paste("~ factor(unit) + factor(.t) +", paste(adjust_covariates, collapse = " + "))), lg)
+    qx <- qr(X); b <- qr.coef(qx, lg$y)[adjust_covariates]
+    if (anyNA(b)) stop("adjust_covariates: gamma not identified (no variation beyond unit and period effects).")
+    e <- lg$y - X[, !is.na(qr.coef(qx, lg$y)), drop = FALSE] %*% qr.coef(qx, lg$y)[!is.na(qr.coef(qx, lg$y))]
+    Xk <- X[, !is.na(qr.coef(qx, lg$y)), drop = FALSE]; XtX_inv <- solve(crossprod(Xk))
+    meat <- Reduce(`+`, lapply(split(seq_len(nrow(Xk)), lg$unit), function(ix) { sc <- crossprod(Xk[ix, , drop = FALSE], e[ix]); sc %*% t(sc) }))
+    G <- length(unique(lg$unit)); V <- G / (G - 1) * XtX_inv %*% meat %*% XtX_inv
+    list(gamma = b, se = sqrt(diag(V))[match(adjust_covariates, colnames(Xk))], n_obs = nrow(lg))
+  }
+  gamma_ife <- function(drop_units = NULL, drop_post_unit, r = ife_r, cv = TRUE) {
+    lg <- long_for(drop_units, drop_post_unit)
+    if (length(unique(r)) == 1) { cv <- FALSE; r <- unique(r) }   # one candidate: no cross-validation
+    fit <- NULL
+    utils::capture.output(fit <- with_seed(suppressMessages(suppressWarnings(fect::fect(
+      as.formula(paste("y ~ D +", paste(adjust_covariates, collapse = " + "))), data = lg, index = c("unit", ".t"),
+      method = "ife", r = if (cv) range(r) else r, CV = cv, force = "two-way", se = FALSE, parallel = FALSE)))))
+    b <- setNames(as.numeric(fit$beta[adjust_covariates, 1]), adjust_covariates)
+    list(gamma = b, r = if (cv) as.integer(fit$r.cv) else as.integer(r), n_obs = sum(lg$D == 0))
+  }
+  with_seed <- function(expr) {                       # fect's cross-validation is random: fix it locally, restore the session's RNG
+    old <- if (exists(".Random.seed", envir = globalenv())) get(".Random.seed", envir = globalenv()) else NULL
+    on.exit(if (is.null(old)) rm(".Random.seed", envir = globalenv()) else assign(".Random.seed", old, envir = globalenv()))
+    set.seed(ife_seed); expr
+  }
+  model_ife <- function(drop_units = NULL, drop_post_unit, r = ife_r, cv = TRUE) {
+    lg <- long_for(drop_units, drop_post_unit)
+    if (length(unique(r)) == 1) { cv <- FALSE; r <- unique(r) }   # one candidate: no cross-validation
+    rhs <- paste(c("D", adjust_covariates), collapse = " + ")
+    fit <- NULL
+    utils::capture.output(fit <- with_seed(suppressMessages(suppressWarnings(fect::fect(
+      as.formula(paste("y ~", rhs)), data = lg, index = c("unit", ".t"),
+      method = "ife", r = if (cv) range(r) else r, CV = cv, force = "two-way", se = FALSE, parallel = FALSE)))))
+    M <- if (is.matrix(fit$Y.ct.full)) fit$Y.ct.full else fit$Y.ct          # Y.ct.full is NULL after cross-validation
+    if (!is.matrix(M) || !all(dim(M) == c(nrow(periods), length(unique(lg$unit))))) stop("augment: unexpected fect prediction matrix")
+    colnames(M) <- as.character(fit$id)
+    lam <- if (!is.null(fit$lambda)) { L <- as.matrix(fit$lambda); rownames(L) <- as.character(fit$id); L } else NULL
+    list(M = M, r = if (cv) as.integer(fit$r.cv) else as.integer(r), n_obs = sum(lg$D == 0),
+         lambda = lam, factor = if (!is.null(fit$factor)) as.matrix(fit$factor) else NULL,
+         gamma = if (length(adjust_covariates)) setNames(as.numeric(fit$beta[adjust_covariates, 1]), adjust_covariates) else NULL)
+  }
+  adjust_mat <- function(cols, gam) {
+    Ya <- Y[, cols, drop = FALSE]
+    if (!is.null(gam)) for (v in names(gam)) Ya <- Ya - gam[[v]] * Aobs[[v]][, cols, drop = FALSE]
+    Ya
+  }
+  adj_main <- NULL; r_use <- NA_integer_; tw_main <- NULL; aug_main <- NULL
+  if (augment == "ife" || estimator == "fect") {
+    r_use <- model_ife(drop_post_unit = treated_unit)$r                  # cross-validation chooses the number of factors
+    aug_main <- model_ife(drop_post_unit = treated_unit, r = r_use, cv = FALSE)   # refit with it, exactly as for the placebos
+    adj_main <- list(gamma = aug_main$gamma, n_obs = aug_main$n_obs)
+    if (length(adjust_covariates)) tw_main <- gamma_twfe(drop_post_unit = treated_unit)
+  } else if (length(adjust_covariates)) {
+    tw_main <- gamma_twfe(drop_post_unit = treated_unit)
+    if (adjust_model == "ife") { r_use <- gamma_ife(drop_post_unit = treated_unit)$r
+                                  adj_main <- gamma_ife(drop_post_unit = treated_unit, r = r_use, cv = FALSE) } else adj_main <- tw_main
+  }
+  gamma_for_placebo <- function(p) {
+    if (!length(adjust_covariates)) return(NULL)
+    if (adjust_model == "ife") gamma_ife(drop_units = treated_unit, drop_post_unit = p, r = r_use, cv = FALSE)$gamma
+    else gamma_twfe(drop_units = treated_unit, drop_post_unit = p)$gamma
+  }
+
+  # ---- Demeaned SC fit (rescaled before solving) -------------------------------------------
+  fit_dsc <- function(X, yv) {
+    sc <- mean(abs(yv[!post]))
+    Xp <- X[!post, , drop = FALSE] / sc; yp <- yv[!post] / sc
+    w <- CVXR::Variable(ncol(Xp)); b0 <- CVXR::Variable(1)
+    prob <- CVXR::Problem(CVXR::Minimize(CVXR::sum_squares(yp - b0 - Xp %*% w)), list(w >= 0, sum(w) == 1))
+    CVXR::psolve(prob)
+    st <- CVXR::status(prob)
+    if (!st %in% c("optimal", "optimal_inaccurate")) {        # retry once: explicit solver, more iterations
+      try(CVXR::psolve(prob, solver = "CLARABEL", max_iter = 10000), silent = TRUE)
+      st <- CVXR::status(prob)
+    }
+    if (!st %in% c("optimal", "optimal_inaccurate")) stop("CVXR status: ", st)
+    wv <- setNames(as.numeric(CVXR::value(w)), colnames(X)); wv[abs(wv) < 1e-8] <- 0
+    b <- as.numeric(CVXR::value(b0)) * sc
+    list(b0 = b, w = wv, synth = b + as.numeric(X %*% wv))
+  }
+
+  # ---- Treated unit and placebos ------------------------------------------------------------
+  YaT <- if (augment == "ife") Y[, c(treated_unit, donors), drop = FALSE] - aug_main$M[, c(treated_unit, donors), drop = FALSE] else
+    adjust_mat(c(treated_unit, donors), adj_main$gamma)
+  ft <- fit_dsc(YaT[, donors, drop = FALSE], YaT[, treated_unit])
+  gT_all <- if (estimator == "fect") Y[, treated_unit] - aug_main$M[, treated_unit] else
+    YaT[, treated_unit] - ft$synth                                                              # gap (adjusted = original scale)
+  pl <- lapply(donors, function(p) tryCatch({
+    if (estimator == "fect")                                                                 # IFEct, donor p as pseudo-treated
+      return(list(gap = Y[, p] - model_ife(drop_units = treated_unit, drop_post_unit = p, r = r_use, cv = FALSE)$M[, p]))
+    cols_p <- c(p, setdiff(donors, p))
+    Yp <- if (augment == "ife") Y[, cols_p, drop = FALSE] - model_ife(drop_units = treated_unit, drop_post_unit = p, r = r_use, cv = FALSE)$M[, cols_p, drop = FALSE] else
+      adjust_mat(cols_p, gamma_for_placebo(p))
+    fp <- fit_dsc(Yp[, setdiff(donors, p), drop = FALSE], Yp[, p])
+    list(gap = Yp[, p] - fp$synth)
+  }, error = function(e) conditionMessage(e)))
+  failed <- vapply(pl, is.character, logical(1))
+  failed_donors <- if (any(failed)) data.frame(donor = donors[failed], error = unlist(pl[failed])) else
+    data.frame(donor = character(0), error = character(0))
+  if (any(failed)) warning(sum(failed), " placebo fit(s) failed and were left out: ", paste(donors[failed], collapse = ", "), ". See $failed_donors.")
+  pl <- pl[!failed]; dn <- donors[!failed]; N <- length(pl); m <- floor(alpha * (N + 1))
+  kth <- function(x) if (m == 0) Inf else sort(x, decreasing = TRUE)[m]
+  if (m == 0) warning("With ", N, " donors the ", 100 * conf_level, "% level cannot be reached exactly: intervals are infinite.")
+
+  GP <- sapply(pl, `[[`, "gap"); colnames(GP) <- dn; SP <- Y[, dn, drop = FALSE] - GP                            # gaps and counterfactuals, all periods x donors
+  synth_T <- Y[, treated_unit] - gT_all                                                         # counterfactual on the original scale
+  sT <- synth_T[post]; gT <- gT_all[post]
+  rmspe_T <- sqrt(mean(gT_all[!post]^2)); rmspe_P <- sqrt(colMeans(GP[!post, , drop = FALSE]^2))
+  # Guard (RMSPE scale): floor every unit's pre-treatment RMSPE at rmspe_floor x the median over all
+  # units, so a placebo reproduced (almost) exactly before treatment cannot get near-infinite
+  # standardized gaps. The same floor applies to the treated unit and every placebo.
+  floor_val <- if (scale == "rmspe" && rmspe_floor > 0) rmspe_floor * stats::median(c(rmspe_T, rmspe_P)) else 0
+  s_T <- max(rmspe_T, floor_val); s_P <- pmax(rmspe_P, floor_val)
+  floored_units <- c(if (rmspe_T < floor_val) treated_unit, dn[rmspe_P < floor_val])
+  if (scale == "relative" && (any(sT <= 0) || any(SP[post, ] <= 0)))
+    stop("Relative gaps need positive synthetic values; use scale = \"rmspe\" (the default) or \"raw\" for outcomes that can be zero or negative.")
+  # Scale for the treated unit (post vector) and placebos (post x donors), per period and cumulative
+  ones <- matrix(1, n_post, length(dn))
+  sc_T <- switch(scale, relative = sT, raw = rep(1, n_post), rmspe = rep(s_T, n_post))
+  sc_Tc <- switch(scale, relative = cumsum(sT), raw = rep(1, n_post), rmspe = rep(s_T, n_post))
+  sc_P <- switch(scale, relative = SP[post, , drop = FALSE], raw = ones, rmspe = sweep(ones, 2, s_P, "*"))
+  sc_Pc <- switch(scale, relative = apply(SP[post, , drop = FALSE], 2, cumsum), raw = ones, rmspe = sweep(ones, 2, s_P, "*"))
+  R  <- matrix(abs(GP[post, , drop = FALSE]) / sc_P, nrow = n_post)                            # standardized |gaps|, post x donors
+  Rc <- matrix(abs(apply(GP[post, , drop = FALSE], 2, cumsum)) / sc_Pc, nrow = n_post)
+  rT <- gT / sc_T; rTc <- cumsum(gT) / sc_Tc
+
+  smooth_pos <- function(v) { tt <- seq_along(v); exp(as.numeric(predict(stats::loess(log(v) ~ tt, span = span, degree = 1)))) }
+  calib <- function(K, kT) {
+    q <- smooth_pos(apply(K, 1, median)); Rp <- apply(K / q, 2, max)
+    list(pw = apply(K, 1, kth), sim = kth(Rp) * q,
+         p_pw = (1 + rowSums(K >= abs(kT))) / (N + 1), p_sim = (1 + sum(Rp >= max(abs(kT) / q))) / (N + 1))
+  }
+  cp <- calib(R, rT); cc <- calib(Rc, rTc)
+
+  # ---- Diagnostics: is the treated unit beyond what the donors can reproduce? -----------------
+  diag <- NULL
+  if (diagnostics) {
+    rel_rmspe <- function(gap, yv) sqrt(mean(gap[!post]^2)) / mean(abs(yv[!post]))
+    fit_T <- rel_rmspe(gT_all, Y[, treated_unit])
+    fit_P <- vapply(seq_along(dn), function(j) rel_rmspe(GP[, j], Y[, dn[j]]), numeric(1))
+    fit_share_worse <- mean(fit_P > fit_T)
+    diag <- list(fit_rank = list(treated_rel_rmspe = fit_T, placebo_rel_rmspe_median = median(fit_P),
+                                 share_placebos_worse = fit_share_worse, flag = fit_share_worse < 0.10))
+    comps <- if (!is.null(aug_main)) aug_main else if (requireNamespace("fect", quietly = TRUE))
+      tryCatch({ r_d <- model_ife(drop_post_unit = treated_unit)$r; model_ife(drop_post_unit = treated_unit, r = r_d, cv = FALSE) },
+               error = function(e) NULL) else NULL
+    if (!is.null(comps) && !is.null(comps$lambda) && comps$r >= 1) {
+      L <- comps$lambda; Fm <- comps$factor
+      hull_dist <- function(target, pool) {
+        w <- CVXR::Variable(nrow(pool))
+        pr <- CVXR::Problem(CVXR::Minimize(CVXR::sum_squares(target - t(pool) %*% w)), list(w >= 0, sum(w) == 1))
+        CVXR::psolve(pr); sqrt(max(0, as.numeric(CVXR::value(pr))))
+      }
+      d_T <- hull_dist(L[treated_unit, ], L[dn, , drop = FALSE])
+      d_D <- vapply(dn, function(j) hull_dist(L[j, ], L[setdiff(dn, j), , drop = FALSE]), numeric(1))
+      share_donors_beyond <- mean(d_D >= d_T)
+      wts <- ft$w[dn]; wts[is.na(wts)] <- 0
+      delta <- L[treated_unit, ] - colSums(L[dn, , drop = FALSE] * wts)
+      corr <- as.numeric(Fm %*% delta); drift <- corr - mean(corr[!post])
+      rho <- apply(Fm, 2, function(f) unname(stats::coef(stats::lm(f[-1] ~ f[-length(f)]))[2]))
+      diag$hull <- list(n_factors = comps$r, treated_distance = d_T, donor_distance_median = median(d_D),
+                        share_donors_beyond = share_donors_beyond, flag = d_T > 0 && share_donors_beyond < 0.10)
+      diag$extrapolation <- list(max_post_drift_pct = 100 * max(abs(drift[post])) / mean(abs(synth_T[post])),
+                                 final_drift_pct = 100 * drift[post][sum(post)] / synth_T[post][sum(post)])
+      diag$persistence <- list(factor_ar1 = rho, trending = max(rho) > 0.95)
+    } else {
+      diag$hull <- list(n_factors = if (is.null(comps)) NA else comps$r, flag = NA,
+                        note = "no loadings (0 factors chosen, or fect unavailable)")
+      diag$persistence <- list(trending = NA)
+    }
+    extreme <- isTRUE(diag$fit_rank$flag) || isTRUE(diag$hull$flag)
+    trending <- isTRUE(diag$persistence$trending)
+    diag$recommendation <- NULL
+    diag$assessment <- if (!extreme) {
+      if (estimator == "fect") "no sign that the treated unit lies beyond the donors; the simpler estimator = \"dsc\" with scale = \"rmspe\" was as valid and at least as powerful in this situation in simulation" else
+        "no sign that the treated unit lies beyond the donors"
+    } else if (trending) {
+      "treated unit appears beyond the donors' range and the factors are trending: placebo-calibrated intervals (DSC, augmented DSC and fect alike) under-covered in this situation in simulation; treat results as unreliable"
+    } else if (estimator == "dsc") {
+      diag$recommendation <- list(estimator = "fect", scale = "rmspe")
+      "treated unit appears beyond the donors' range (factors not trending): re-run with estimator = \"fect\" and scale = \"rmspe\" (fect with placebo calibration), which was valid and much more powerful than DSC in this situation in simulation"
+    } else if (scale != "rmspe") {
+      diag$recommendation <- list(scale = "rmspe")
+      "treated unit appears beyond the donors' range (factors not trending): fect suits this situation, but re-run with scale = \"rmspe\"; the relative and raw scales under-covered here in simulation"
+    } else "treated unit appears beyond the donors' range (factors not trending): fect with placebo calibration on the RMSPE scale is the recommended method for this situation"
+    if (warn && extreme) warning("dsc_placebo diagnostics: ", diag$assessment, ". See $diagnostics.", call. = FALSE)
+  }
+
+  # ---- Effects table (same column names as dsc_symcal_boot) ----------------------------------
+  gc <- cumsum(gT); sc <- cumsum(sT)
+  col <- function(v) c(rep(NA_real_, sum(!post)), v)
+  effects <- cbind(periods, data.frame(
+    post = post, observed = Y[, treated_unit], synthetic = synth_T, effect = gT_all,
+    covariate_adjustment = Y[, treated_unit] - YaT[, treated_unit],
+    rel_effect = col(gT / sT), std_effect = col(rT), factor_pointwise = col(cp$pw), factor_simultaneous = col(cp$sim),
+    threshold_ratio_pw = col(abs(rT) / cp$pw), threshold_ratio_sim = col(abs(rT) / cp$sim),
+    eff_low_pw = col(gT - cp$pw * sc_T), eff_high_pw = col(gT + cp$pw * sc_T),
+    eff_low_sim = col(gT - cp$sim * sc_T), eff_high_sim = col(gT + cp$sim * sc_T),
+    pred_low_pw = col(sT - cp$pw * sc_T), pred_high_pw = col(sT + cp$pw * sc_T),
+    pred_low_sim = col(sT - cp$sim * sc_T), pred_high_sim = col(sT + cp$sim * sc_T),
+    p_pointwise = col(cp$p_pw),
+    cum_effect = col(gc), cum_rel_effect = col(gc / sc), cum_std_effect = col(rTc),
+    cum_factor_pointwise = col(cc$pw), cum_factor_simultaneous = col(cc$sim),
+    cum_threshold_ratio_pw = col(abs(rTc) / cc$pw), cum_threshold_ratio_sim = col(abs(rTc) / cc$sim),
+    cum_eff_low_pw = col(gc - cc$pw * sc_Tc), cum_eff_high_pw = col(gc + cc$pw * sc_Tc),
+    cum_eff_low_sim = col(gc - cc$sim * sc_Tc), cum_eff_high_sim = col(gc + cc$sim * sc_Tc),
+    cum_pred_low_pw = col(sc - cc$pw * sc_Tc), cum_pred_high_pw = col(sc + cc$pw * sc_Tc),
+    cum_pred_low_sim = col(sc - cc$sim * sc_Tc), cum_pred_high_sim = col(sc + cc$sim * sc_Tc),
+    cum_p_pointwise = col(cc$p_pw)))
+
+  # ---- Tests -------------------------------------------------------------------------------------
+  e_post <- effects[post, ]
+  test_label <- paste(names(periods), unlist(periods[t_treat + t_test - 1, ]), sep = " = ", collapse = ", ")
+  flagged <- function(lo, hi) {
+    hit <- which(lo > 0 | hi < 0)
+    if (length(hit)) paste(apply(periods[post, , drop = FALSE][hit, , drop = FALSE], 1, paste, collapse = "-"), collapse = "; ") else "none"
+  }
+  ratio_T <- sqrt(mean(gT^2)) / rmspe_T; ratio_P <- sqrt(colMeans(GP[post, , drop = FALSE]^2)) / rmspe_P
+  p_ratio <- (1 + sum(ratio_P >= ratio_T)) / (N + 1)
+  test <- data.frame(
+    test = c("pointwise", "pointwise", "simultaneous", "simultaneous"),
+    measure = c("effect", "cumulative effect", "effect", "cumulative effect"),
+    period = c(test_label, paste("through", test_label), "whole post period", "whole post period"),
+    estimate = c(e_post$effect[t_test], e_post$cum_effect[t_test], NA, NA),
+    lower = c(e_post$eff_low_pw[t_test], e_post$cum_eff_low_pw[t_test], NA, NA),
+    upper = c(e_post$eff_high_pw[t_test], e_post$cum_eff_high_pw[t_test], NA, NA),
+    p_value = c(e_post$p_pointwise[t_test], e_post$cum_p_pointwise[t_test], cp$p_sim, cc$p_sim),
+    significant = c(e_post$eff_low_pw[t_test] > 0 | e_post$eff_high_pw[t_test] < 0,
+                    e_post$cum_eff_low_pw[t_test] > 0 | e_post$cum_eff_high_pw[t_test] < 0, cp$p_sim <= alpha, cc$p_sim <= alpha),
+    periods_flagged = c(NA, NA, flagged(e_post$eff_low_sim, e_post$eff_high_sim), flagged(e_post$cum_eff_low_sim, e_post$cum_eff_high_sim)))
+  test <- rbind(test, data.frame(test = "RMSPE ratio (Abadie et al.)", measure = "post/pre RMSPE ratio", period = "whole post period",
+                                 estimate = ratio_T, lower = NA, upper = NA, p_value = p_ratio, significant = p_ratio <= alpha,
+                                 periods_flagged = NA))
+
+  list(effects = effects, test = test,
+       weights = if (estimator == "fect") NULL else sort(ft$w[ft$w > 0], decreasing = TRUE),
+       intercept = if (estimator == "fect") NULL else ft$b0,
+       pre_rmspe = sqrt(mean(gT_all[!post]^2)), rmspe_guard = list(floor = floor_val, units_floored = floored_units),
+       adjustment = if (is.null(adj_main)) NULL else {
+         gu <- (Y[, treated_unit] - fit_dsc(Y[, donors, drop = FALSE], Y[, treated_unit])$synth)[post]
+         list(model = if (estimator == "fect") "fect_ife" else if (augment == "ife") "ife_augment" else adjust_model,
+              gamma = adj_main$gamma, n_factors = r_use,
+              gamma_twfe = tw_main$gamma, se_twfe = tw_main$se, n_obs = adj_main$n_obs,
+              unadjusted = c(effect = gu[t_test], cumulative = sum(gu[seq_len(t_test)])))
+       },
+       placebo = list(gaps = as.data.frame(GP), synthetic = as.data.frame(SP)),
+       diagnostics = diag,
+       failed_donors = failed_donors,
+       settings = list(treated_unit = treated_unit, treatment_period = treatment_period, test_period = test_label,
+                       time_cols = time_cols, outcome = outcome_col, conf_level = conf_level, span = span,
+                       scale = scale, rmspe_floor = if (scale == "rmspe") rmspe_floor else NA, adjust_covariates = adjust_covariates,
+                       adjust_model = if (length(adjust_covariates)) adjust_model else NA, augment = augment, estimator = estimator,
+                       n_donors = N, rank_used = m))
+}
+
+
+
+## ===========================================================================
+## 7. Plotting functions for dsc_symcal_boot() / dsc_placebo() output
+## ===========================================================================
+
+##############################################################################
+# Generic figures for any output of dsc_symcal_boot() or dsc_placebo(). They use
+# only the standard output columns and $settings (time columns, treated unit,
+# outcome, confidence level), so they work for any panel and time structure.
+#
+#   plot_full_path(fit)      whole series: observed vs synthetic, with pointwise
+#                            and simultaneous prediction bands after treatment
+#   plot_post_effect(fit)    post period: effect (measure = "effect") or
+#                            cumulative effect ("cumulative"), simultaneous band
+#                            shaded, pointwise interval at the last period
+#                            (error bar), optional known added effect (dashed)
+#   plot_prediction(fit)     post period: observed vs synthetic, simultaneous
+#                            prediction band shaded, pointwise interval at the
+#                            last period
+#   added_effect(fit_real, fit_constructed)
+#                            the post-period difference between two fits'
+#                            observed series (e.g. an injected effect), for
+#                            plot_post_effect(added = ...)
+#
+# Common arguments: title (default: automatic), unit_label (default: the treated
+# unit), y_label (default: the outcome column). Axis breaks: with two or more
+# time columns, the first period of each value of the first column (e.g. Q1 of
+# each year); with one time column, about 12 evenly spaced periods.
+# Requires ggplot2, dplyr, tidyr and forcats. Value: a ggplot object.
+##############################################################################
+
+# Internal: period index, x-axis breaks and labels from the fit's time columns
+.dsc_time_axis <- function(e, time_cols) {
+  e <- dplyr::mutate(e, x = dplyr::row_number())
+  if (length(time_cols) >= 2) {
+    first_sub <- min(e[[time_cols[2]]])
+    br <- dplyr::filter(e, .data[[time_cols[2]]] == first_sub)
+  } else {
+    step <- max(1, ceiling(nrow(e) / 12))
+    br <- dplyr::slice(e, seq(1, dplyr::n(), by = step))
+  }
+  list(data = e, breaks = br$x, labels = br[[time_cols[1]]])
+}
+
+.dsc_check_fit <- function(fit) {
+  for (p in c("ggplot2", "dplyr", "tidyr", "forcats")) if (!requireNamespace(p, quietly = TRUE)) stop("Plotting needs the ", p, " package.")
+  need <- c("observed", "synthetic", "effect", "cum_effect", "eff_low_sim", "eff_high_sim", "eff_low_pw", "eff_high_pw",
+            "pred_low_sim", "pred_high_sim", "pred_low_pw", "pred_high_pw", "post")
+  if (!is.list(fit) || is.null(fit$effects) || !all(need %in% names(fit$effects)) || is.null(fit$settings$time_cols))
+    stop("`fit` must be the output of dsc_symcal_boot() or dsc_placebo().")
+}
+
+plot_full_path <- function(fit, title = NULL, unit_label = fit$settings$treated_unit, y_label = fit$settings$outcome) {
+  .dsc_check_fit(fit)
+  level <- paste0(100 * fit$settings$conf_level, "%")
+  ax <- .dsc_time_axis(fit$effects, fit$settings$time_cols)
+  e <- ax$data
+  t0 <- e |> dplyr::filter(post) |> dplyr::slice(1) |> dplyr::pull(x)
+  bands <- e |>
+    dplyr::filter(post) |>
+    dplyr::select(x, pred_low_sim, pred_high_sim, pred_low_pw, pred_high_pw) |>
+    tidyr::pivot_longer(-x, names_to = c(".value", "band"), names_pattern = "pred_(low|high)_(sim|pw)") |>
+    dplyr::mutate(band = dplyr::if_else(band == "sim", paste(level, "simultaneous band"), paste(level, "pointwise band")),
+                  band = forcats::fct_relevel(band, paste(level, "simultaneous band")))
+  series <- e |>
+    dplyr::select(x, observed, synthetic) |>
+    tidyr::pivot_longer(-x, names_to = "series", values_to = "value") |>
+    dplyr::mutate(series = dplyr::if_else(series == "observed", paste(unit_label, "(observed)"), paste("Synthetic", unit_label)),
+                  series = forcats::fct_relevel(series, paste(unit_label, "(observed)")))
+  if (is.null(title)) title <- paste0(unit_label, " vs synthetic ", unit_label, ", with ", level, " prediction bands")
+  ggplot2::ggplot() +
+    ggplot2::geom_ribbon(data = bands, ggplot2::aes(x, ymin = low, ymax = high, fill = band), alpha = 0.35) +
+    ggplot2::geom_line(data = series, ggplot2::aes(x, value, colour = series, linetype = series), linewidth = 0.7) +
+    ggplot2::geom_vline(xintercept = t0 - 0.5, linetype = "dotted", colour = "grey30") +
+    ggplot2::scale_fill_manual(values = c("steelblue1", "steelblue4"), name = NULL) +
+    ggplot2::scale_colour_manual(values = c("black", "steelblue4"), name = NULL) +
+    ggplot2::scale_linetype_manual(values = c("solid", "dashed"), name = NULL) +
+    ggplot2::scale_x_continuous(breaks = ax$breaks, labels = ax$labels, expand = c(0.01, 0)) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(legend.position = "bottom", axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5, size = 8),
+                   panel.grid.minor.x = ggplot2::element_blank()) +
+    ggplot2::labs(title = title, x = NULL, y = y_label)
+}
+
+plot_post_effect <- function(fit, measure = c("effect", "cumulative"), title = NULL, y_label = NULL,
+                             fill = NULL, added = NULL, unit_label = fit$settings$treated_unit) {
+  .dsc_check_fit(fit)
+  measure <- match.arg(measure)
+  level <- paste0(100 * fit$settings$conf_level, "%")
+  pre <- if (measure == "effect") "eff_" else "cum_eff_"
+  if (is.null(fill)) fill <- if (measure == "effect") "firebrick" else "darkgreen"
+  if (is.null(y_label)) y_label <- paste(if (measure == "effect") "Effect on" else "Cumulative effect on", fit$settings$outcome)
+  if (is.null(title)) title <- paste0(unit_label, ": ", if (measure == "effect") "estimated effect by period" else "cumulative effect")
+  ax <- .dsc_time_axis(dplyr::filter(fit$effects, post), fit$settings$time_cols)
+  e <- ax$data |>
+    dplyr::mutate(estimate = if (measure == "effect") effect else cum_effect,
+                  lo_sim = .data[[paste0(pre, "low_sim")]], hi_sim = .data[[paste0(pre, "high_sim")]],
+                  lo_pw  = .data[[paste0(pre, "low_pw")]],  hi_pw  = .data[[paste0(pre, "high_pw")]])
+  if (!is.null(added)) {
+    if (length(added) != nrow(e)) stop("`added` must have one value per post-treatment period (", nrow(e), ").")
+    e <- dplyr::mutate(e, added = if (measure == "effect") added else cumsum(added))
+  }
+  last_period <- dplyr::slice_tail(e, n = 1)
+  p <- ggplot2::ggplot(e, ggplot2::aes(x)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lo_sim, ymax = hi_sim), fill = fill, alpha = 0.2) +
+    ggplot2::geom_hline(yintercept = 0, colour = "grey40")
+  if (!is.null(added)) p <- p + ggplot2::geom_line(ggplot2::aes(y = added, linetype = "Added effect"), colour = "grey35")
+  p +
+    ggplot2::geom_line(ggplot2::aes(y = estimate, linetype = "Estimated effect")) +
+    ggplot2::geom_point(ggplot2::aes(y = estimate), size = 1.2) +
+    ggplot2::geom_errorbar(data = last_period, ggplot2::aes(ymin = lo_pw, ymax = hi_pw), width = 0.35, linewidth = 0.9) +
+    ggplot2::geom_point(data = last_period, ggplot2::aes(y = estimate), size = 2.8, shape = 21, fill = "white", stroke = 1.1) +
+    ggplot2::scale_linetype_manual(values = c("Estimated effect" = "solid", "Added effect" = "dashed"), name = NULL) +
+    ggplot2::scale_x_continuous(breaks = ax$breaks, labels = ax$labels) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(legend.position = if (is.null(added)) "none" else "bottom",
+                   plot.caption = ggplot2::element_text(hjust = 0, size = 9)) +
+    ggplot2::labs(title = title, x = NULL, y = y_label,
+                  caption = paste0("Shaded: ", level, " simultaneous band (whole post period). Error bar: ", level,
+                                   " pointwise interval (last period only)."))
+}
+
+plot_prediction <- function(fit, title = NULL, unit_label = fit$settings$treated_unit, y_label = fit$settings$outcome) {
+  .dsc_check_fit(fit)
+  level <- paste0(100 * fit$settings$conf_level, "%")
+  ax <- .dsc_time_axis(dplyr::filter(fit$effects, post), fit$settings$time_cols)
+  e <- ax$data
+  series <- e |>
+    dplyr::select(x, observed, synthetic) |>
+    tidyr::pivot_longer(-x, names_to = "series", values_to = "value") |>
+    dplyr::mutate(series = dplyr::if_else(series == "observed", paste(unit_label, "(observed)"), paste("Synthetic", unit_label)),
+                  series = forcats::fct_relevel(series, paste(unit_label, "(observed)")))
+  last_period <- dplyr::slice_tail(e, n = 1)
+  if (is.null(title)) title <- paste0(unit_label, ": observed vs synthetic (prediction intervals)")
+  ggplot2::ggplot(e, ggplot2::aes(x)) +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = pred_low_sim, ymax = pred_high_sim), fill = "steelblue", alpha = 0.2) +
+    ggplot2::geom_line(data = series, ggplot2::aes(x, value, colour = series), linewidth = 0.8) +
+    ggplot2::geom_errorbar(data = last_period, ggplot2::aes(ymin = pred_low_pw, ymax = pred_high_pw), width = 0.35,
+                           linewidth = 0.9, colour = "steelblue4") +
+    ggplot2::geom_point(data = last_period, ggplot2::aes(y = synthetic), size = 2.8, shape = 21, fill = "white",
+                        colour = "steelblue4", stroke = 1.1) +
+    ggplot2::scale_colour_manual(values = c("black", "steelblue4"), name = NULL) +
+    ggplot2::scale_x_continuous(breaks = ax$breaks, labels = ax$labels) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(legend.position = "bottom", plot.caption = ggplot2::element_text(hjust = 0, size = 9)) +
+    ggplot2::labs(title = title, x = NULL, y = y_label,
+                  caption = paste0("Shaded: ", level, " simultaneous prediction band. Error bar: ", level,
+                                   " pointwise prediction interval (last period only)."))
+}
+
+added_effect <- function(fit_real, fit_constructed) {
+  .dsc_check_fit(fit_real); .dsc_check_fit(fit_constructed)
+  if (!identical(fit_real$effects$post, fit_constructed$effects$post)) stop("The two fits must cover the same periods.")
+  (fit_constructed$effects$observed - fit_real$effects$observed)[fit_real$effects$post]
+}
+

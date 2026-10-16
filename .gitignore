@@ -5,4 +5,9 @@
 old_code
 Claude_install_file.R
 Placebo simulations
-testing_the_function_california.R
+simulation_tracker.md
+simulation_tracker.html
+papers
+Example_cases
+# rendered HTML versions of the documents (GitHub shows the .md versions)
+docs/**/*.html

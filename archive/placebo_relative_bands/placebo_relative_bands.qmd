@@ -1,0 +1,477 @@
+---
+title: "Inference for a Single Treated Unit: Placebo-Calibrated Intervals on Relative Gaps"
+subtitle: "Pointwise intervals (the absolute placebo test) and simultaneous bands for the demeaned synthetic control, without a bootstrap"
+author: "Jeffrey Milliman"
+date: "October 2026"
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    code-fold: false
+  gfm: default
+execute:
+  eval: false
+---
+
+# Overview
+
+This document explains a simple method for putting uncertainty intervals around synthetic control estimates when there is a **single treated unit**, such as one state that adopts a policy. It combines two ingredients:
+
+1. a **demeaned synthetic control** to estimate the counterfactual; and
+2. **placebo calibration on relative gaps**: every untreated unit is analysed as if it had been treated, and the treated unit's percentage gap is compared with theirs.
+
+There is **no bootstrap**. The method produces two kinds of interval, which answer different questions:
+
+- a **pointwise interval** for the effect in a period chosen in advance (by default the last post-treatment period), for both the per-period and the cumulative effect, with a matching p-value. It answers: *was there an effect in this period?* This is the **absolute placebo test**.
+- a **simultaneous band** that covers the whole post-treatment path at once, with a p-value for the whole period. It answers: *was there an effect at any point, when, and what did the effect path look like?*
+
+Both come with matching **prediction intervals** for the treated unit's untreated outcome.
+
+The method is implemented in `dsc_placebo()` in `synthetic_control_functions/synthetic_control_functions_claude.R`, and runs in a few seconds. This document describes the method as it was developed, comparing units by their **relative** (percentage) gaps. That is a less conventional choice than the raw gaps or the RMSPE ratio used in most placebo analyses, so the document explains the choice, compares it with those alternatives, and shows that it can change conclusions (see *Choice of scale* and the Kansas example). It grew out of a project testing whether the maximum entropy bootstrap could provide inference for synthetic control (see the companion document on the fixed-weight bootstrap). An ablation study found that once intervals are calibrated against placebos, **the bootstrap adds little**: the same construction on relative gaps, with no bootstrap, was valid and at least as powerful in almost every setting tested.
+
+::: {.callout-important}
+## Update (October 2026): the default scale is now RMSPE
+
+The simulations in this document all used real panels in which every untreated state takes a turn as the treated unit, so the treated unit is always **exchangeable** with the donors. Later, fully simulated tests (a factor model in which the treated unit could be made unlike the donors) showed that the **relative scale is not robust** when the treated unit's exposure to common trends lies beyond the donors' range: cumulative coverage fell to 68% (edge of the range) and 37% (outside it), against 89-91% for the **RMSPE scale**. `dsc_placebo()` therefore now uses `scale = "rmspe"` by default; `scale = "relative"` remains available and is more powerful when the treated unit resembles the donors. The results below use the relative scale throughout. See the diagnostics write-up for when and why each scale fails, and the case study for the current defaults.
+:::
+
+# Background: why inference is hard with one treated unit
+
+A synthetic control estimates what would have happened to a treated unit without the treatment by combining untreated units (the **donors**) so that the combination tracks the treated unit closely before treatment. After treatment, the gap between the treated unit and its synthetic control is the estimated effect.
+
+Putting an interval around that gap is difficult for two reasons:
+
+- **There is only one treated unit.** Standard errors that rely on many treated units, or on many independent observations, do not apply.
+- **Most of the error comes from drift.** A synthetic control that fits well before treatment will not track the treated unit perfectly afterwards; the further from the fitting period, the more it drifts. This drift is the main source of error, and it is not visible in the pre-treatment fit.
+
+The standard solution is a **placebo test**: pretend each donor was treated, estimate its "effect" (which should be zero), and see whether the treated unit's effect is unusual compared with these placebo effects. Because the placebos drift too, placebo tests capture drift directly. This method builds both its pointwise intervals and its simultaneous band on that idea.
+
+# The estimator: the demeaned synthetic control
+
+The counterfactual is estimated with a **demeaned synthetic control**. For the treated unit's outcome $y_t$ and donor outcomes $x_{jt}$, the pre-treatment fit chooses an intercept $b_0$ and weights $w_j$ to solve
+
+$$
+\min_{b_0,\, w} \sum_{t \in \text{pre}} \Big( y_t - b_0 - \sum_j w_j x_{jt} \Big)^2
+\quad \text{subject to} \quad w_j \ge 0,\ \ \sum_j w_j = 1 .
+$$
+
+- The **intercept** absorbs permanent level differences, so the treated unit does not have to lie within the range of its donors' levels.
+- The **weights are non-negative and sum to one**, so the synthetic control follows its donors' full movements over time.
+
+This estimator has no tuning parameter. In simulations it was essentially unbiased, including with short pre-treatment periods.
+
+# The method, step by step
+
+## Step 1: fit the treated unit and every placebo
+
+Fit the demeaned synthetic control for the treated unit, using all donors. Then remove the treated unit, and fit each donor in turn as if it had been treated, using the remaining donors. Each donor's true effect is zero, so its gaps show how far a synthetic control can miss by chance, **drift included**.
+
+## Step 2: relative gaps
+
+For every unit $u$ (the treated unit and each placebo) and post-treatment period $t$, express the gap as a share of that unit's synthetic control:
+
+$$
+r_{u,t} = \frac{\text{gap}_{u,t}}{\text{synthetic}_{u,t}} .
+$$
+
+For example, $r = -0.04$ means the unit came in 4% below its synthetic control. Percentages put every unit on the same footing: a \$2,000 gap is a lot for a state with GDP per capita of \$35,000, and less for one at \$70,000.
+
+For the **cumulative** effect, use cumulative percentages: $r^c_{u,t}$ = (cumulative gap through $t$) / (cumulative synthetic through $t$).
+
+### Choice of scale
+
+Dividing by the synthetic value is one choice of **scale**: what each gap is measured against before the treated unit is ranked against the placebos. It is **not the conventional choice**. Most placebo analyses use one of two others:
+
+- **raw gaps**, in the outcome's own units, as in the familiar placebo plots of Abadie, Diamond and Hainmueller, where every placebo's gap path is drawn around the treated unit's;
+- the **post/pre RMSPE ratio**, which measures each unit's post-treatment error against its own pre-treatment fit. It is the main formal test in their work.
+
+Relative gaps are closest to the common practice of analysing **logged** outcomes, which also makes gaps approximately proportional.
+
+`dsc_placebo()` offers all three, with the same calibration (pointwise and simultaneous) for each:
+
+| `scale` | Each gap is divided by | Notes |
+|---|---|---|
+| `"relative"` (used in this document) | the unit's synthetic value | percentage gaps; needs positive outcome levels |
+| `"raw"` | nothing | the conventional placebo-plot scale |
+| `"rmspe"` (default since October 2026) | the unit's pre-treatment RMSPE | gaps standardized by pre-treatment fit, the logic of the RMSPE ratio; the most robust when the treated unit is unlike the donors |
+
+Whatever the scale, the function also reports the **classic post/pre RMSPE-ratio test** for the whole post-treatment period, as a conventional benchmark.
+
+**Why relative was chosen here.** In simulations (see *What the simulations showed*), all three scales were valid, but the relative scale was clearly the most powerful, and raw gaps the weakest. With raw gaps, states with high outcome levels (Alaska and North Dakota for GDP per capita, for example) have large gaps in absolute terms, set the thresholds for everyone, and make effects in smaller states hard to detect. Percentages remove that imbalance.
+
+**The scale must be chosen in advance.** Different scales can lead to different conclusions (as they do for Kansas below), so choosing the scale after seeing the results would be a form of specification searching. Report the pre-specified scale as the main result, and the others (including the RMSPE ratio) as sensitivity checks.
+
+## Step 3: calibrate
+
+The donors' absolute relative gaps $|r_{p,t}|$ show how far an *untreated* unit's synthetic control can miss. Calibration asks: **how large does a percentage gap have to be before it is unusual compared with these untreated units?**
+
+**The rank rule.** If the treated unit had not been treated, its $|r_t|$ would be just one more draw from the same distribution as the donors'. Together with the $N$ donors there would be $N + 1$ values, and the treated unit's value would be equally likely to fall anywhere in their ranking. With
+
+$$
+m = \lfloor \alpha (N + 1) \rfloor, \qquad
+k^*_t = \text{the } m\text{-th largest of } \{ |r_{p,t}| : p = 1, \dots, N \},
+$$
+
+the chance that an untreated unit's $|r_t|$ exceeds $k^*_t$ is at most $\alpha$. That makes the test exact.
+
+**How the rank depends on the number of donors:**
+
+| Donors $N$ | $m$ at 95% | $m$ at 90% | Smallest possible p-value |
+|---|---|---|---|
+| 49 (Kansas) | 2 (2nd largest) | 5 (5th largest) | 0.020 |
+| 37 (California) | 1 (largest) | 3 (3rd largest) | 0.026 |
+| 18 or fewer | 0 (interval infinite) | 1 (largest) | $\ge$ 0.053 |
+
+**Example: Kansas, 2016 Q1** (the last post-treatment quarter; 49 donors; 95%, so $m = 2$)
+
+| Rank | Unit | Absolute relative gap $\lvert r \rvert$ | |
+|---|---|---|---|
+| 1 | North Dakota | 29.23% | |
+| **2** | **Hawaii** | **12.47%** | **$k^*$ (the 2nd largest donor value)** |
+| 3 | Alaska | 11.62% | |
+| 4 | California | 10.38% | |
+| 5 | New York | 8.38% | |
+| 6 | Louisiana | 7.83% | |
+| ... | (median donor) | 2.77% | |
+| 19 of 50 | **Kansas** | **3.56%** | the treated unit |
+
+Reading the table:
+
+- Kansas's effect in 2016 Q1 is $-1{,}891$ against a synthetic Kansas of $53{,}109$, so $r = -3.56\%$.
+- Untreated states' synthetic controls missed by as much as 29% (North Dakota, after the oil collapse), and by 2.77% for the median donor. A 3.56% gap is not unusual.
+- The threshold is $k^* = 12.47\%$: an effect would need to exceed about 12.5% of synthetic Kansas in this quarter to be significant at 95%.
+- 18 donors have $|r| \ge 3.56\%$, so $p = (1 + 18) / 50 = 0.38$.
+
+## Step 4: the pointwise interval, p-value, and prediction interval
+
+For the pre-specified test period $t$:
+
+$$
+\text{effect interval: } \ \text{gap}_t \pm k^*_t \times \text{synthetic}_{T,t},
+\qquad
+p_t = \frac{1 + \#\{ p : |r_{p,t}| \ge |r_{T,t}| \}}{N + 1}.
+$$
+
+For Kansas in 2016 Q1: $-1{,}891 \pm 0.1247 \times 53{,}109 = -1{,}891 \pm 6{,}623$, or $-8{,}516$ to $4{,}733$. The interval excludes zero exactly when $p_t \le \alpha$. The **prediction interval** is the same interval centred on the synthetic control: $\text{synthetic}_t \pm k^*_t \times \text{synthetic}_{T,t}$. The cumulative effect is handled the same way with cumulative percentages.
+
+This pointwise test is the **absolute placebo test**: the treated unit's percentage gap ranked against the placebos' percentage gaps.
+
+## In one sentence
+
+Every unit's gap is expressed as a percentage of its own synthetic control, and the treated unit's percentage gap is compared with how large the untreated units' percentage gaps get by chance.
+
+# Why the interval is "pointwise"
+
+A pointwise interval is valid for **one period chosen in advance**. If an analyst looks at intervals for every post-treatment period and reports whichever one excludes zero, the chance of a false positive is much higher than 5%. In the California simulations of the closely related bootstrap-based method, pointwise 90% intervals contained the true effect in *every* year for only 74% of states; the same multiple-comparisons problem applies to any pointwise interval.
+
+So the test period should be decided before looking at the results. By default `dsc_placebo()` uses the **last post-treatment period** (`test_period = NULL`), for both the per-period effect and the cumulative effect through that period. A different period can be specified, for example `test_period = c(year = 2014, qtr = 4)`. For statements about the whole post-treatment path, use the simultaneous band.
+
+# The simultaneous band
+
+## Why a second kind of interval is needed
+
+Effects are usually shown as a figure of the whole post-treatment path, and readers naturally scan it for periods where the interval excludes zero. Pointwise intervals do not protect against that: each has a 95% chance of covering the truth *on its own*, but over 12 to 16 post-treatment periods the chance that at least one misses is much higher.
+
+A **simultaneous band** is built so that, with 95% confidence, it contains the true effect in **every** post-treatment period at once. That makes statements about the whole path valid: "the effect was significant in 2013", "the effect stayed below zero throughout", "the effect never exceeded 10%".
+
+## How it is built
+
+The ingredients are the same relative gaps $|r_{u,t}|$ for the treated unit and every placebo.
+
+**Step A: a smooth time profile.** In each period, take the **median** absolute relative gap across donors, and smooth it over time (loess on the log scale, span 0.75):
+
+$$
+q_t = \text{median}_p \; |r_{p,t}|, \qquad \tilde{q}_t = \text{smoothed } q_t .
+$$
+
+$\tilde{q}_t$ describes how large a *typical* untreated unit's percentage miss is in each period. It usually grows with time since treatment, as synthetic controls drift. The median keeps a single unusual donor from shaping the profile, and smoothing removes period-to-period noise.
+
+**Step B: score each donor on its worst period.**
+
+$$
+R_p = \max_t \frac{|r_{p,t}|}{\tilde{q}_t}
+$$
+
+is how many "typical misses" the donor's most extreme period reaches.
+
+**Step C: one multiplier for the whole path.** The multiplier $\lambda$ is the $m$-th largest donor score, and the band in every period is
+
+$$
+\text{gap}_t \pm \lambda\, \tilde{q}_t \times \text{synthetic}_{T,t} .
+$$
+
+The prediction band is the same, centred on the synthetic control. The cumulative effect gets its own band, built the same way from cumulative percentages.
+
+**The test.** The treated unit's score is $R_T = \max_t |r_{T,t}| / \tilde{q}_t$, with simultaneous p-value
+
+$$
+p_{\text{sim}} = \frac{1 + \#\{p : R_p \ge R_T\}}{N + 1}.
+$$
+
+If $R_T > \lambda$, the band excludes zero in at least one period. The function reports the p-value and **which periods** the band flags.
+
+## How the pieces divide the work
+
+| Piece | Role |
+|---|---|
+| $\text{synthetic}_{T,t}$ | converts percentages back to the outcome scale for the treated unit |
+| $\tilde{q}_t$ | the time profile: how large typical untreated misses are in each period |
+| $\lambda$ | one multiplier, large enough that the whole path is covered for all but the $m$ most extreme donors |
+
+## Pointwise or simultaneous?
+
+| Question | Use |
+|---|---|
+| Was there an effect in a period chosen in advance (e.g. the last period, or the cumulative total)? | pointwise interval (absolute placebo test) |
+| Was there an effect at any point, and when? | simultaneous band |
+| What did the effect path look like, with honest uncertainty? | simultaneous band (pointwise as a guide for single periods) |
+
+The simultaneous band is wider than the pointwise interval at any single period, because it has to cover every period at once.
+
+# Worked example: Kansas
+
+In 2012, Kansas cut income taxes sharply. Using quarterly GDP per capita, treatment from 2012 Q2, and the other 49 states as donors:
+
+```{r}
+source("synthetic_control_functions/synthetic_control_functions_claude.R")
+
+kansas_fit <- dsc_placebo(
+  data             = augsynth::kansas,
+  unit_col         = "state",
+  time_cols        = c("year", "qtr"),
+  outcome_col      = "gdpcapita",
+  treated_unit     = "Kansas",
+  treatment_period = c(year = 2012, qtr = 2),   # test_period defaults to the last quarter (2016 Q1)
+  scale            = "relative"                # used throughout this document; the default is now "rmspe"
+)
+
+kansas_fit$test        # pointwise and simultaneous tests, plus the classic RMSPE-ratio test
+kansas_fit$weights     # donor weights
+```
+
+The synthetic Kansas is built mainly from South Carolina (0.26), Texas (0.23), Washington (0.15), North Dakota (0.14) and Mississippi (0.13). The analysis takes about 3 seconds. The results at 95% are:
+
+| Test | Estimate | 95% interval | p-value |
+|---|---|---|---|
+| Pointwise: effect in 2016 Q1 | -1,891 | -8,516 to 4,733 | 0.38 |
+| Pointwise: cumulative effect, 2012 Q2 to 2016 Q1 | -37,582 | -108,634 to 33,471 | 0.22 |
+| Simultaneous: effect by quarter, whole post period | | flags no quarter | 0.18 |
+| Simultaneous: cumulative effect, whole post period | | flags no quarter | 0.16 |
+
+With the pre-specified relative scale, none of the tests finds an effect: the data are consistent with no effect, and also with sizeable negative or positive effects.
+
+The figures below are drawn with the plotting functions in `synthetic_control_functions_claude.R` (`plot_full_path()`, `plot_post_effect()`, `plot_prediction()` and `added_effect()`), which work with any output of `dsc_symcal_boot()` or `dsc_placebo()`. Each figure has its own code block (click to show).
+
+The first figure shows the whole series, 1990 to 2016. After the tax cuts, two prediction bands are shaded around synthetic Kansas: the **pointwise band** (darker), valid for any one quarter chosen in advance, and the wider **simultaneous band** (lighter), valid for all post-treatment quarters at once. Observed Kansas stays inside both bands throughout.
+
+![Kansas vs synthetic Kansas, 1990-2016. After 2012 Q2: dark shade = 95% pointwise prediction band; light shade = 95% simultaneous prediction band.](figures/placebo_full_path.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+plot_full_path(kansas_fit, "Kansas vs synthetic Kansas, 1990-2016, with 95% prediction bands",
+               y_label = "GDP per capita ($)")
+```
+
+The next figures show only the post-treatment period. The **shaded area is the simultaneous band**; the **error bar is the pointwise interval at the pre-specified test period** (2016 Q1).
+
+![Estimated effect by quarter. Shaded: 95% simultaneous band; error bar: 95% pointwise interval for 2016 Q1.](figures/placebo_effect.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+plot_post_effect(kansas_fit, "effect", "Kansas: estimated effect on GDP per capita, by quarter",
+                 "Effect (GDP per capita, $)")
+```
+
+![Cumulative effect since 2012 Q2. Shaded: 95% simultaneous band; error bar: 95% pointwise interval through 2016 Q1.](figures/placebo_cumulative.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+plot_post_effect(kansas_fit, "cumulative", "Kansas: cumulative effect on GDP per capita since 2012 Q2",
+                 "Cumulative effect (GDP per capita, $)")
+```
+
+![Observed Kansas and synthetic Kansas. Shaded: 95% simultaneous prediction band; error bar: 95% pointwise prediction interval for 2016 Q1.](figures/placebo_prediction.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+plot_prediction(kansas_fit, "Kansas: observed vs synthetic Kansas (prediction intervals)",
+                y_label = "GDP per capita ($)")
+```
+
+A few things to notice:
+
+- At 2016 Q1 the **pointwise interval is narrower** than the simultaneous band (half-width about 6,600 vs 11,400), because it only has to cover one quarter.
+- The **per-quarter band widens smoothly** over time (half-width from about 4,400 to 11,400), following how untreated synthetic controls drift. Unlike the bootstrap version, it does not jump when heavily weighted donors (such as the oil states after 2014) become volatile: its width depends on how untreated units drift in general, not on the treated unit's particular donors.
+- The **cumulative band widens in every quarter** (half-width from about 4,200 to 105,000), as errors accumulate.
+
+
+## Sensitivity to the choice of scale
+
+The same analysis with the other scales gives different answers (p-values, 95%):
+
+| Test | Relative (this document) | Raw | RMSPE (current default) |
+|---|---|---|---|
+| Pointwise: effect in 2016 Q1 | 0.38 | 0.44 | 0.20 |
+| Pointwise: cumulative effect through 2016 Q1 | 0.22 | 0.22 | **0.04** |
+| Simultaneous: effect by quarter | 0.18 | 0.24 | **0.02** |
+| Simultaneous: cumulative effect | 0.16 | 0.18 | **0.02** |
+| Classic post/pre RMSPE ratio (whole period) | **0.04** | **0.04** | **0.04** |
+
+Measured as a percentage or in dollars, Kansas's post-treatment gap is ordinary among the placebo states. Measured against its own pre-treatment fit, which is unusually close compared with most donors, the same gap stands out. This is the mechanism by which the RMSPE ratio rewards a good pre-treatment fit.
+
+Both kinds of test were valid in the simulations, and the relative scale was more powerful, which is the reason for pre-specifying it. But the conventional RMSPE-ratio test, which most synthetic control studies report, would call Kansas's effect significant. An honest summary is that **the evidence for an effect in Kansas is mixed, and depends on a choice that has to be made in advance.** Reporting the pre-specified result together with the RMSPE-ratio benchmark makes that transparent.
+
+# A constructed example with a detectable effect
+
+Neither real case analysed in this project (Kansas, California) shows a statistically significant effect. To show what a detected effect looks like, this example uses the real Kansas data **with a known effect added**: Kansas's GDP per capita is reduced by **10%** in every quarter from 2012 Q2 onwards, and everything else is unchanged.
+
+::: {.callout-note}
+This is an **illustration**, not a finding about Kansas. The estimated effect here is Kansas's real estimate plus the added 10% reduction, so the "true" effect in this example is the added effect plus whatever Kansas's actual effect was.
+:::
+
+```{r}
+kansas_constructed <- augsynth::kansas
+post_rows <- kansas_constructed$state == "Kansas" &
+  (kansas_constructed$year > 2012 | (kansas_constructed$year == 2012 & kansas_constructed$qtr >= 2))
+kansas_constructed$gdpcapita[post_rows] <- kansas_constructed$gdpcapita[post_rows] * 0.90   # -10% from 2012 Q2
+
+constructed_fit <- dsc_placebo(kansas_constructed, "state", c("year", "qtr"), "gdpcapita", "Kansas",
+                               treatment_period = c(year = 2012, qtr = 2))
+constructed_fit$test
+```
+
+**Results (95%)**
+
+| Test | Estimate | 95% interval | p-value | Significant? |
+|---|---|---|---|---|
+| Pointwise: effect in 2016 Q1 | -7,013 | -13,638 to -389 | 0.04 | **yes** |
+| Pointwise: cumulative effect through 2016 Q1 | -118,347 | -189,399 to -47,295 | 0.04 | **yes** |
+| Simultaneous: effect by quarter, whole post period | | flags 2012 Q2 - 2014 Q2 | 0.04 | **yes** |
+| Simultaneous: cumulative effect, whole post period | | flags every quarter | 0.04 | **yes** |
+
+The estimates shift exactly by the added effect: the 2016 Q1 estimate of $-7{,}013$ is Kansas's real estimate ($-1{,}891$) plus the added reduction ($-5{,}122$).
+
+![Constructed example, 1990-2016. Observed Kansas (with the added 10% reduction) falls below the prediction bands after the tax cuts.](figures/placebo_constructed_full_path.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+plot_full_path(constructed_fit, "Constructed example: Kansas with a 10% reduction added from 2012 Q2, vs synthetic Kansas",
+               y_label = "GDP per capita ($)")
+```
+
+![Constructed example: estimated effect by quarter (solid) and the added effect (dashed). Shaded: 95% simultaneous band; error bar: 95% pointwise interval for 2016 Q1.](figures/placebo_constructed_effect.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+added <- added_effect(kansas_fit, constructed_fit)     # the added -10%, by post-treatment quarter
+plot_post_effect(constructed_fit, "effect", "Constructed example: estimated effect by quarter",
+                 "Effect (GDP per capita, $)", added = added)
+```
+
+![Constructed example: cumulative effect (solid) and the added effect (dashed). Shaded: 95% simultaneous band; error bar: 95% pointwise interval through 2016 Q1.](figures/placebo_constructed_cumulative.png)
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for this figure"
+plot_post_effect(constructed_fit, "cumulative", "Constructed example: cumulative effect since 2012 Q2",
+                 "Cumulative effect (GDP per capita, $)", added = added)
+```
+
+**What this example shows**
+
+- **All four tests detect the effect**, including the effect in the final quarter alone. (The bootstrap-based version of the method missed the final quarter in the same example, because its intervals widened sharply when oil-state donors became volatile.)
+- **The simultaneous band shows when the effect is visible:** from 2012 Q2 to 2014 Q2 quarter by quarter, and in every quarter for the cumulative effect. In later quarters the per-quarter band is wider, so the quarterly effect no longer stands out on its own, even though the cumulative effect keeps growing.
+- **The bands contain the added effect in every quarter,** both per quarter and cumulatively.
+- **Significance comes at the edge.** With p = 0.04, an effect of this size (about 10% of GDP per capita) is close to the smallest the Kansas design can reliably detect.
+
+# What the simulations showed
+
+The method was tested by treating each untreated state in turn as a fake treated unit, injecting known effects, and checking how often the intervals contained the true effect (**coverage**) and how often they detected it (**power**). Two designs were used: Kansas (49 states, 80 pre-treatment quarters) and California (38 states, 19 pre-treatment years).
+
+## Validity
+
+| Design, level | Pointwise: final-period coverage | Simultaneous: whole-path coverage |
+|---|---|---|
+| California, 95% | 97% | 97% |
+| California, 90% | 92-95% | 92% |
+| Kansas, 95% | 96% | 94-96% |
+| Kansas, 90% | 92-94% | 90-94% |
+
+In earlier simulations, the absolute placebo test also kept final-period coverage at 94-100% when the pre-treatment period was shortened (Kansas 80 down to 8 quarters; California 19 down to 5 years).
+
+## Power by scale
+
+The same calibration was run with four scales: relative (this document's scale), raw gaps, pre-treatment RMSPE, and the bootstrap half-width used by the companion bootstrap method. **All four were valid** (whole-path and final-period coverage 94-98% at 95%).
+
+Simultaneous band (detected anywhere in the post period), 95%:
+
+| Design, measure | Effect | Relative | Raw | RMSPE | Bootstrap |
+|---|---|---|---|---|---|
+| California, cumulative | -25% / +25% | **100% / 89%** | 5% / 5% | 42% / 47% | 39% / 39% |
+| California, per period | -25% / +25% | **95% / 79%** | 3% / 5% | 24% / 26% | 37% / 53% |
+| Kansas, cumulative | -10% / +10% | **88% / 84%** | 22% / 20% | 78% / 80% | 76% / 80% |
+| Kansas, per period | -10% / +10% | **84% / 67%** | 31% / 24% | 73% / 76% | 78% / 61% |
+
+Pointwise interval (final period), 95%:
+
+| Design, measure | Effect | Relative | Raw | RMSPE | Bootstrap |
+|---|---|---|---|---|---|
+| California, cumulative | -25% / +25% | **61% / 66%** | 34% / 42% | 16% / 24% | 16% / 24% |
+| Kansas, cumulative | -10% / +10% | **65% / 55%** | 24% / 14% | 59% / 57% | 53% / 47% |
+
+The relative scale was the most powerful in almost every comparison, and raw gaps, the conventional choice, the weakest by a wide margin. The one exception for the relative scale was small effects ($\pm 10\%$) per period at the 90% level in California, where the bootstrap version detected more (47% / 61% vs 16% / 34%).
+
+**A caution about comparing power.** The simultaneous band's power counts detection in *any* of the 12-16 post-treatment periods, while a pointwise test asks about *one* period. These are different questions, so the two kinds of power are not directly comparable.
+
+# Strengths
+
+- **Simple.** One estimator, placebo fits, and a ranking. No bootstrap, no resampling settings, and only one choice beyond the level (the smoothing span of the simultaneous band).
+- **Fast.** About 3 seconds for the Kansas analysis, against about a minute for the bootstrap version.
+- **Exact pointwise inference.** The pointwise test is a permutation test: under the placebo assumption, its false-positive rate is at most the nominal level by construction.
+- **Valid in every design tested,** including short pre-treatment periods, for both pointwise intervals and simultaneous bands.
+- **At least as powerful as the bootstrap-based method** almost everywhere, and much more powerful for cumulative effects in short panels.
+- **More powerful than conventional calibration.** In the simulations, relative gaps detected effects far more often than raw gaps, and more often than gaps standardized by pre-treatment fit.
+- **Conventional alternatives built in.** Raw gaps, RMSPE-standardized gaps and the classic RMSPE-ratio test are available for sensitivity checks.
+- **Smooth, interpretable bands.** The simultaneous band widens gradually as untreated synthetic controls drift, and does not react mechanically to individual volatile donors.
+- **Honest whole-path statements and prediction intervals**, as with the bootstrap version.
+- **Compatible tools.** The output has the same columns as `dsc_symcal_boot()`, so `plot_dsc_symcal()` and the same reporting code work for both.
+
+# Weaknesses and limitations
+
+- **A less conventional scale.** Ranking placebos by relative gaps is less common than raw gaps or the RMSPE ratio, so the choice needs to be stated and justified.
+- **Conclusions can depend on the scale.** For Kansas, the relative and raw scales find no effect, while the RMSPE scale and the classic RMSPE-ratio test do. The scale has to be chosen before looking at results.
+- **Requires positive outcome levels.** Relative gaps divide by the synthetic value, so outcomes that can be zero or negative (changes, net flows, differences) need a different scale, such as raw gaps or the pre-treatment fit.
+- **Assumes errors scale with the level.** A 5% miss is treated as equally likely for every unit. If the treated unit's synthetic control is unusually uncertain in percentage terms, the intervals will not widen for it.
+- **Not unit-specific.** Every treated unit faces the same percentage thresholds, whatever its synthetic control is made of. (The bootstrap version tried to adapt to this, but in the simulations that adaptivity did not improve power.)
+- **Dependence on the number of donors.** With $N$ donors the smallest possible p-value is $1/(N+1)$, and a 95% interval needs at least 19 donors; with fewer, the interval is infinite.
+- **Dependence on extreme donors.** With about 40-50 donors, the 95% threshold is set by the most extreme one or two donors (Hawaii and North Dakota for Kansas in 2016 Q1).
+- **Pointwise intervals are valid only at one pre-specified period.** Reading significance off several periods requires the simultaneous band, which is wider at any single period.
+- **The simultaneous band has a smoothing choice** (the loess span). This was insensitive in testing of the bootstrap version, but it is one more setting to justify.
+- **Assumes the donors are a fair comparison.** As with any placebo method, validity relies on the treated unit's errors behaving like the donors' errors in the absence of treatment.
+- **No covariate adjustment yet.** The pooled covariate adjustment developed for the bootstrap version (`adjust_covariates`) has not been added to `dsc_placebo()`.
+
+# Practical guidance
+
+1. **Decide the test period in advance** (the default is the last post-treatment period) and report both the per-period and the cumulative result.
+2. **Check the number of donors.** Use at least 19 for 95% intervals; otherwise report 90% intervals.
+3. **Choose the scale in advance.** The function's default is now `"rmspe"`, the most robust when the treated unit may be unlike the donors; `"relative"` is more powerful when the treated unit resembles them (it needs positive outcomes). Report the classic RMSPE-ratio test alongside as a conventional benchmark, and check `$diagnostics`.
+4. **Report the pre-treatment fit and the donor weights**, so readers can judge the synthetic control.
+5. **Use the simultaneous band**, not the pointwise intervals, for statements about the whole post-treatment period, and report which periods it flags.
+6. **Plot both:** the simultaneous band shaded, with the pointwise band or interval for reading individual periods.
+7. **Name the question each result answers:** a pre-specified period (pointwise) or anywhere in the post period (simultaneous).
+8. **Look at the most extreme placebos** (here North Dakota and Hawaii), since they set the thresholds; consider whether any donor is an inappropriate comparison.
+
+# References
+
+- Abadie, A., Diamond, A., and Hainmueller, J. (2010). Synthetic control methods for comparative case studies. *Journal of the American Statistical Association*, 105(490), 493-505.
+- Doudchenko, N., and Imbens, G. W. (2016). Balancing, regression, difference-in-differences and synthetic control methods: A synthesis. NBER Working Paper 22791.
+- Firpo, S., and Possebom, V. (2018). Synthetic control method: Inference, sensitivity analysis and confidence sets. *Journal of Causal Inference*, 6(2).
+- Ferman, B., and Pinto, C. (2021). Synthetic controls with imperfect pretreatment fit. *Quantitative Economics*, 12(4), 1197-1221.

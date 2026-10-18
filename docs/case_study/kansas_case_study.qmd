@@ -217,7 +217,8 @@ These are not needed for Kansas, but are available:
 |---|---|
 | `adjust_covariates = "x"` | adjusts for a time-varying covariate, including one that changes at the same time as the treatment (e.g. the arrival of fentanyl), with its effect estimated on untreated observations only; `adjust_model = "ife"` (default) or `"twfe"` |
 | `estimator = "fect"` | fect's interactive fixed-effects counterfactual with the same placebo calibration; recommended by the diagnostics when the treated unit is extreme and the factors are not trending |
-| `augment = "ife"` | augmented demeaned synthetic control (reduces bias for extreme treated units, but its intervals were too narrow in simulation; not recommended for inference) |
+| `augment = "ridge"` | ridge-augmented demeaned synthetic control: a ridge correction for the part of the treated unit's pre-treatment path the weights can't match, with the same placebo calibration; recommended by the diagnostics when the treated unit is extreme and the factors are trending, and combinable with `adjust_covariates`. Kansas lies within the donors' range, so it changes little here: the cumulative shortfall is 39,240 instead of 37,580 (dollars per capita summed over the quarters), and its 95% interval still excludes zero |
+| `augment = "ife"` | augmented demeaned synthetic control with an interactive fixed-effects model (reduces bias for extreme treated units, but its intervals were too narrow in simulation; not recommended for inference) |
 | `span` | smoothing of the simultaneous band's time profile |
 | `diagnostics = FALSE` | skips the diagnostics (saves about 10-20 seconds) |
 | `ife_seed` | fixes fect's random cross-validation, so results are reproducible |

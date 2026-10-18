@@ -4,7 +4,8 @@
 # Helpers for the diagnostics write-up (diagnostics_toy_cases.qmd):
 #   toy_panel()            the factor-model generator of augmented_comparison_simulation.R,
 #                          also returning the TRUE factor loadings
-#   run_toy_case()         simulate a panel and fit dsc_placebo() (RMSPE scale, diagnostics)
+#   run_toy_case()         simulate a panel and fit dsc_placebo() (RMSPE scale, diagnostics;
+#                          augment = "ridge" for the ridge-augmented estimator)
 #   plot_true_loadings()   donors' true loadings, their convex hull, and the treated unit
 #   diagnostics_table()    the four diagnostics and the assessment, as a one-row tibble
 # Requires synthetic_control_functions_claude.R to be sourced first.
@@ -30,10 +31,10 @@ toy_panel <- function(treated, factors, n_donors = 40, T0 = 40, T1 = 12, rep_see
        T0 = T0)
 }
 
-run_toy_case <- function(treated, factors, rep_seed, T0 = 40) {
+run_toy_case <- function(treated, factors, rep_seed, T0 = 40, augment = "none") {
   p <- toy_panel(treated, factors, T0 = T0, rep_seed = rep_seed)
   fit <- dsc_placebo(as.data.frame(p$data), "unit", "period", "y", "u01", treatment_period = c(period = T0 + 1),
-                     scale = "rmspe", warn = FALSE)
+                     scale = "rmspe", warn = FALSE, augment = augment)
   list(treated = treated, factors = factors, seed = rep_seed, panel = p, fit = fit)
 }
 

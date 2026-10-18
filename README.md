@@ -14,7 +14,7 @@
    - **simultaneous bands** that cover the whole post-treatment path at once (was there an effect at any point, and when?),
    - **prediction intervals** for the treated unit's untreated outcome, and
    - the classic **post/pre RMSPE-ratio test** as a conventional benchmark.
-3. **Checks whether the method can be trusted** for this treated unit: **diagnostics** flag when the treated unit lies beyond what the donors can reproduce, the situation in which placebo inference fails, and recommend an alternative estimator where one was found to work.
+3. **Checks whether the method can be trusted** for this treated unit: **diagnostics** flag when the treated unit lies beyond what the donors can reproduce, the situation in which placebo inference fails, and recommend an alternative estimator where one was found to work. For a treated unit outside the donors' range with trending factors, that is the **ridge-augmented** synthetic control (`augment = "ridge"`), which corrects the counterfactual for the imbalance the weights leave.
 
 ## Installation
 
@@ -27,7 +27,7 @@ install.packages("scpi")                                                     # d
 source("synthetic_control_functions/synthetic_control_functions_claude.R")
 ```
 
-`CVXR` fits the synthetic control; `fect` is needed for the diagnostics, covariate adjustment, augmentation and the fect estimator; the plotting functions use `ggplot2`, `dplyr`, `tidyr` and `forcats`. The other examples use `augsynth::kansas` (`remotes::install_github("ebenmichael/augsynth")`), `tidysynth::smoking`, and the Oregon panel in `data/oregon_fentanyl/`; the simulations also use `tidyverse`, `future` and `furrr`. Developed and tested with R 4.5.3, CVXR 1.9.2, fect 2.4.5 and ggplot2 4.0.3.
+`CVXR` fits the synthetic control; `fect` is needed for the diagnostics, covariate adjustment with interactive fixed effects, `augment = "ife"` and the fect estimator (`augment = "ridge"` doesn't need it); the plotting functions use `ggplot2`, `dplyr`, `tidyr` and `forcats`. The other examples use `augsynth::kansas` (`remotes::install_github("ebenmichael/augsynth")`), `tidysynth::smoking`, and the Oregon panel in `data/oregon_fentanyl/`; the simulations also use `tidyverse`, `future` and `furrr`. Developed and tested with R 4.5.3, CVXR 1.9.2, fect 2.4.5 and ggplot2 4.0.3.
 
 ## Example: German reunification
 
@@ -112,6 +112,7 @@ plot_prediction(ge_fit, "West Germany: observed vs synthetic (prediction interva
 | `scale` | `"rmspe"` | gaps measured against each unit's pre-treatment fit; `"relative"` (percentage gaps) or `"raw"` as alternatives |
 | `rmspe_floor` | `0.25` | guard against near-perfect pre-treatment fits on the RMSPE scale (short pre-periods, many donors) |
 | `adjust_covariates` | none | adjust for measured time-varying confounders, including shocks that start with the treatment |
+| `augment` | `"none"` | `"ridge"` for a treated unit at or beyond the edge of the donors' range: a ridge correction for the pre-treatment imbalance the weights leave, with the same placebo calibration; works with or without `adjust_covariates`. The penalty `ridge_c` is 0.1 by default; `ridge_c = "cv"` cross-validates it |
 | `estimator` | `"dsc"` | `"fect"` for an interactive fixed-effects counterfactual with the same placebo calibration |
 | `diagnostics` | `TRUE` | check whether the donors can reproduce the treated unit |
 
@@ -127,7 +128,7 @@ Every argument and every element of the output is described in the [function ref
 
 1. **Placebo-test inversion in closed form, per period and cumulatively.** Removing the treated unit from every placebo's donor pool makes the placebo distribution independent of the hypothesised effect, so inverting the test for each period gives a closed-form interval (the gap plus or minus a threshold), with matching cumulative and prediction intervals. Firpo and Possebom (2018) invert the RMSPE-ratio test for effect paths of a given shape; `scpi` (Cattaneo, Feng and Titiunik 2021) and `augsynth` (Ben-Michael, Feller and Rothstein 2021) build intervals by modelling the error or by conformal inference instead.
 2. **A placebo-calibrated simultaneous band for any effect path.** A single rank-based multiplier on a smoothed profile of placebo drift gives a band that covers the whole post-treatment path without assuming its shape. Other whole-path methods use parametric effect shapes (Firpo and Possebom 2018), joint confidence regions from refined placebo tests (Lei and Sudijono 2025), or model-based simultaneous prediction intervals (`scpi`).
-3. **Diagnostics for when placebo inference fails.** Checks whether the treated unit lies outside the donors' range in estimated factor loadings and whether the common factors trend, and recommends an alternative where one was found to work; validated on 1,800 simulated panels.
+3. **Diagnostics for when placebo inference fails, and a remedy.** Checks whether the treated unit lies outside the donors' range in estimated factor loadings and whether the common factors trend, and recommends an alternative where one was found to work; validated on 1,800 simulated panels. For the hardest case, an extreme treated unit with trending factors, the **ridge-augmented** estimator (`augment = "ridge"`, the estimator of Ben-Michael, Feller and Rothstein's ridge ASCM) put through the same placebo calibration restored coverage in simulation (91% at 90%, against 49-62% without), alone or after covariate adjustment.
 4. **Covariate adjustment for confounders that arrive with the treatment.** A time-varying covariate's effect is estimated on untreated cells only (interactive or two-way fixed effects) and removed before the synthetic control and the placebo calibration; validated on the Oregon fentanyl panel.
 5. **Safeguards and benchmarks.** A guard that keeps the RMSPE scale usable when short pre-periods let placebos fit exactly; a threshold ratio that gives a calibrated alternative to sensitivity bounds based on pre-treatment fit; and the option of putting `fect`'s counterfactual through the same calibration.
 6. **A documented development record.** Every design choice is tied to the simulation that motivated it, including approaches that failed (bootstrap-only intervals, LASSO weights); see [`simulations/README.md`](simulations/README.md).
@@ -154,7 +155,7 @@ The project started as an attempt to use **maximum entropy bootstrapping** (`meb
 1. **The bootstrap alone does not give valid intervals** (14-82% false positives): it measures noise around the fitted model, not the synthetic control drifting away from the treated unit after treatment.
 2. **Calibrating against placebo units makes it valid**, but once intervals are calibrated, **the bootstrap adds little**: the same construction without it was at least as powerful.
 3. **LASSO weights summing to less than one biased the estimate**; constraining them to sum to one, with an intercept (the demeaned synthetic control), removed the bias.
-4. **Placebo inference relies on the treated unit resembling the donors.** When its exposure to common trends lies beyond the donors' range, intervals can fail; the **RMSPE scale** was the most robust, so it is the default, and with **trending** common factors no method tested was valid, so `dsc_placebo()` now diagnoses this case.
+4. **Placebo inference relies on the treated unit resembling the donors.** When its exposure to common trends lies beyond the donors' range, intervals can fail; the **RMSPE scale** was the most robust, so it is the default. With **trending** common factors no placebo calibration of the plain estimator was valid, so `dsc_placebo()` diagnoses this case, and recommends the **ridge-augmented** estimator (`augment = "ridge"`), which restored coverage there in simulation.
 5. **A confounder that arrives with the treatment** (a shock the donors do not share) biases any synthetic control fitted on pre-treatment outcomes, however good the fit. When the confounder is measured, the **covariate adjustment** (`adjust_covariates`) removes it: in the Oregon case study, an unadjusted "effect" of decriminalization on overdose deaths largely disappears once the arrival of fentanyl is accounted for, and a validation on the same panel shows the adjusted method stays valid.
 
 Every method tried, including those that failed, is recorded in [`experimental_methods_tracker.md`](experimental_methods_tracker.md).
@@ -177,7 +178,7 @@ Every method tried, including those that failed, is recorded in [`experimental_m
 
 | Function | Purpose |
 |---|---|
-| `dsc_placebo()` | **the main method**: demeaned synthetic control (or fect), placebo-calibrated inference, covariate adjustment, diagnostics |
+| `dsc_placebo()` | **the main method**: demeaned synthetic control (optionally ridge-augmented, or fect), placebo-calibrated inference, covariate adjustment, diagnostics |
 | `plot_full_path()`, `plot_post_effect()`, `plot_prediction()`, `added_effect()` | figures for `dsc_placebo()` and `dsc_symcal_boot()` output |
 | `dsc_symcal_boot()`, `plot_dsc_symcal()` | the earlier bootstrap-calibrated version |
 | `synth_lasso_boot()`, `synth_lasso_placebo()`, `meboot_multi()` | the original LASSO synthetic control with bootstrap or placebo inference (see `archive/`) |

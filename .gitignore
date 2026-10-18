@@ -12,3 +12,6 @@ Example_cases
 # rendered HTML versions of the documents (GitHub shows the .md versions)
 docs/**/*.html
 Targeted_synthetic_control
+Experimental_inference
+ideas_to_implement.md
+threats_to_validity.md

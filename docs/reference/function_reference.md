@@ -26,8 +26,9 @@ dsc_placebo(data, unit_col, time_cols, outcome_col, treated_unit, treatment_peri
             test_period = NULL, conf_level = 0.95, span = 0.75,
             scale = c("rmspe", "relative", "raw"),
             adjust_covariates = NULL, adjust_model = c("ife", "twfe"), ife_r = 0:5,
-            augment = c("none", "ife"), diagnostics = TRUE, warn = TRUE, ife_seed = 12112025,
-            estimator = c("dsc", "fect"), rmspe_floor = 0.25)
+            augment = c("none", "ife", "ridge"), diagnostics = TRUE, warn = TRUE, ife_seed = 12112025,
+            estimator = c("dsc", "fect"), rmspe_floor = 0.25,
+            ridge_c = 0.1, ridge_grid = 10^seq(-3, 2, by = 0.5))
 ```
 
 **What it does.** The counterfactual is an intercept plus non-negative donor weights that sum to one, fitted to the treated unit's pre-treatment outcomes. Every donor is then fitted the same way as if it had been treated (a *placebo*), with the treated unit removed from the pool. Each unit's post-treatment gaps are put on a common scale (by default, divided by the unit's own pre-treatment RMSPE), and the treated unit's gaps are ranked among the placebos'. With $`N`$ donors and $`m = \lfloor (1 - \mathtt{conf\_level})(N + 1) \rfloor`$:
@@ -65,7 +66,7 @@ The construction is explained, with a worked example, in [Placebo-calibrated int
 | Argument | Default | Description |
 |---|---|---|
 | `adjust_covariates` | `NULL` | Name(s) of time-varying covariate columns to adjust for. Their effect $`\gamma`$ is estimated on untreated cells only (all donor periods and the treated unit's pre-treatment periods); every unit's outcome is then replaced by outcome $`- \hat\gamma \times`$ covariate, and the method runs on the adjusted outcomes. Each placebo re-estimates $`\gamma`$ without its own post-treatment period. Assumes the treatment does not affect the covariates and that their effect is common and linear. See the [Oregon case study](../oregon_fentanyl/oregon_fentanyl_case_study.md). |
-| `adjust_model` | `"ife"` | Model used to estimate $`\gamma`$: `"ife"`, interactive fixed effects (unit and time effects plus latent factors, via `fect`), or `"twfe"`, two-way fixed effects. |
+| `adjust_model` | `"ife"` | Model used to estimate $`\gamma`$: `"ife"`, interactive fixed effects (unit and time effects plus latent factors, via `fect`), or `"twfe"`, two-way fixed effects. Ignored with `augment = "ife"` or `estimator = "fect"`, where the covariates enter the interactive fixed-effects outcome model directly. Used with `augment = "ridge"` (the outcomes are adjusted first). |
 | `ife_r` | `0:5` | Candidate numbers of latent factors for every interactive fixed-effects model (covariate adjustment, `augment = "ife"`, `estimator = "fect"` and the diagnostics). The number is chosen by cross-validation for the treated unit and reused for every placebo. A single value skips cross-validation. |
 
 **Estimator**
@@ -73,13 +74,15 @@ The construction is explained, with a worked example, in [Placebo-calibrated int
 | Argument | Default | Description |
 |---|---|---|
 | `estimator` | `"dsc"` | `"dsc"`: the demeaned synthetic control. `"fect"`: the counterfactual is `fect`'s interactive fixed-effects prediction, fitted on untreated cells, with each donor refitted as a pseudo-treated unit and the same placebo calibration (use with `scale = "rmspe"`). Recommended by the diagnostics only for a treated unit beyond the donors' range with stationary factors. |
-| `augment` | `"none"` | `"ife"`: augmented demeaned synthetic control. An interactive fixed-effects outcome model is fitted on untreated cells, the synthetic control is fitted to its residuals, and the counterfactual is the model prediction plus the synthetic control of the residuals. Reduces bias for a treated unit outside the donors' range, but raised variance and made intervals overconfident in simulation; not combined with `estimator = "fect"`. |
+| `augment` | `"none"` | Corrects the counterfactual for a treated unit the weights can't match (at or beyond the edge of the donors' range).<br>• `"ridge"`: **ridge-augmented demeaned synthetic control**, in the spirit of Ben-Michael, Feller and Rothstein's augmented SCM. In each post-treatment period the counterfactual is the demeaned synthetic control plus a correction: a ridge regression, across the donors, of their outcome in that period on their demeaned pre-treatment paths, applied to the part of the treated unit's pre-treatment path the weights leave unmatched. The correction is about zero when the weights already match. Pre-treatment gaps, and so the RMSPE scale, are the demeaned synthetic control's; each placebo refits its own correction. Validated in simulation (see [Ridge augmentation](#ridge-augmentation)): it restored coverage for a treated unit at or beyond the edge of the donors' range with trending factors, and lowered the error almost everywhere. The diagnostics recommend it in that situation.<br>• `"ife"`: augmented demeaned synthetic control with an interactive fixed-effects outcome model fitted on untreated cells; the synthetic control is fitted to its residuals, and the counterfactual is the model prediction plus the synthetic control of the residuals. Reduces bias for a treated unit outside the donors' range, but raised variance and made intervals overconfident in simulation.<br>**Combinations:**<br>• `"ridge"` with `adjust_covariates`: the outcomes are adjusted first (with `adjust_model`), and the ridge model is fitted to the adjusted outcomes. With `adjust_model = "ife"` this was the best combination tested for a confounded treated unit.<br>• `"ife"` with `adjust_covariates`: the covariates enter the same outcome model, and γ is estimated jointly with the factors (`adjust_model` is then ignored). This combination has not been validated in simulation.<br>• Either with `estimator = "fect"`: not allowed; the function stops with an error. |
+| `ridge_c` | `0.1` | `augment = "ridge"` only. The ridge penalty, as a multiple of the donors' mean squared (centred) pre-treatment path norm. The default 0.1 was chosen by simulation (see "Choosing the penalty" below). `"cv"` (or `NULL`) chooses it from `ridge_grid` by cross-validation inside the pre-treatment period instead: each donor, fitted on the other donors, predicts its last min(post-treatment periods, T₀/4) pre-treatment periods from the earlier ones. Cross-validation needs at least 8 pre-treatment periods. Larger values shrink the correction towards zero (the plain demeaned synthetic control). |
+| `ridge_grid` | `10^seq(-3, 2, by = 0.5)` | `augment = "ridge"` only. The candidate values of `ridge_c` for the cross-validation (`ridge_c = "cv"`). |
 
 **Diagnostics and reproducibility**
 
 | Argument | Default | Description |
 |---|---|---|
-| `diagnostics` | `TRUE` | Check whether the treated unit lies beyond what the donors can reproduce (pre-treatment fit rank, distance from the donors' convex hull in estimated factor loadings, implied extrapolation drift, factor persistence). Loading-based checks need `fect` and take most of the run time; `FALSE` skips them. See [When placebo inference fails](../diagnostics/diagnostics_toy_cases.md). |
+| `diagnostics` | `TRUE` | Check whether the treated unit lies beyond what the donors can reproduce (pre-treatment fit rank, distance from the donors' convex hull in estimated factor loadings, implied extrapolation drift, factor persistence), and report how persistent the untreated gaps are (residual autocorrelation). Loading-based checks need `fect` and take most of the run time; `FALSE` skips them. See [When placebo inference fails](../diagnostics/diagnostics_toy_cases.md). |
 | `warn` | `TRUE` | Issue a warning when the diagnostics flag the treated unit as extreme. |
 | `ife_seed` | `12112025` | Seed for `fect`'s cross-validation, applied locally (the session's random-number state is restored afterwards), so results with interactive fixed effects are reproducible. |
 
@@ -95,18 +98,19 @@ A list:
 | `intercept` | The intercept of the synthetic control (`NULL` with `estimator = "fect"`). |
 | `pre_rmspe` | The treated unit's pre-treatment RMSPE (unfloored). |
 | `rmspe_guard` | `floor`: the floor applied to the pre-treatment RMSPEs (0 if none); `units_floored`: the units it applied to. |
+| `ridge` | With `augment = "ridge"`: `c` (the penalty used), `chosen_by` (`"default (0.1)"`, `"ridge_c"` or `"cross-validation"`), `holdout_periods` (the cross-validation's held-out pre-treatment periods), `cv` (with cross-validation: data frame of `c` and cross-validated mean squared error), `at_grid_edge` (whether the chosen value is at either end of `ridge_grid`), `note` (a caution when it is), and `correction` (the correction subtracted from the treated unit's gap in each period; 0 before treatment). `NULL` otherwise. |
 | `adjustment` | With `adjust_covariates`: `model`, `gamma` (the estimates), `n_factors`, `gamma_twfe` and `se_twfe` (two-way fixed-effects estimate with a unit-clustered standard error, for comparison), `n_obs`, and `unadjusted` (the effect and cumulative effect at `test_period` without the adjustment). `NULL` otherwise. |
 | `placebo` | `gaps` and `synthetic`: data frames (periods $`\times`$ donors) of each placebo's gaps and counterfactuals. |
-| `diagnostics` | With `diagnostics = TRUE`: `fit_rank` (treated relative pre-treatment RMSPE, placebo median, share of placebos that fit worse, flag), `hull` (number of factors, treated and median donor distance from the convex hull, share of donors further out, flag), `extrapolation` (largest and final implied drift, % of the counterfactual), `persistence` (first-order autocorrelation of each estimated factor, and whether any exceeds 0.95), `assessment` (a sentence summarising the checks) and `recommendation` (arguments to re-run with, or `NULL`). |
+| `diagnostics` | With `diagnostics = TRUE`: `fit_rank` (treated relative pre-treatment RMSPE, placebo median, share of placebos that fit worse, flag), `hull` (number of factors, treated and median donor distance from the convex hull, share of donors further out, flag), `extrapolation` (largest and final implied drift, % of the counterfactual), `persistence` (first-order autocorrelation of each estimated factor, and whether any exceeds 0.95), `residual_autocorrelation` (persistence of the untreated gaps: `rho`, `rho_interval_90`, `level`, `half_life`, `backdate_periods`, `effective_pre_periods`, `rho_in_sample`, `seasonal_lag`, `rho_seasonal`, `rho_seasonal_excess`, `n_post_periods`, `n_placebos`, `guide`; see [Reading the residual autocorrelation](#reading-the-residual-autocorrelation)), `assessment` (a sentence summarising the checks) and `recommendation` (arguments to re-run with, or `NULL`: `augment = "ridge"` for a treated unit flagged as extreme with trending factors; `estimator = "fect"`, `scale = "rmspe"` for one flagged with stationary factors). |
 | `failed_donors` | Data frame of placebo fits that failed (donor and error message); these donors are left out of the calibration. |
-| `settings` | The settings used: `treated_unit`, `treatment_period`, `test_period`, `time_cols`, `outcome`, `conf_level`, `span`, `scale`, `rmspe_floor`, `adjust_covariates`, `adjust_model`, `augment`, `estimator`, `n_donors` and `rank_used` ($`m`$). |
+| `settings` | The settings used: `treated_unit`, `treatment_period`, `test_period`, `time_cols`, `outcome`, `conf_level`, `span`, `scale`, `rmspe_floor`, `adjust_covariates`, `adjust_model`, `augment`, `estimator`, `ridge_c` (the penalty used with `augment = "ridge"`, else `NA`), `n_donors` and `rank_used` ($`m`$). |
 
 **Columns of `effects`** (`_pw` = pointwise, `_sim` = simultaneous; interval columns are `NA` before treatment):
 
 | Column(s) | Contents |
 |---|---|
 | *time columns*, `post` | The period, and whether it is post-treatment. |
-| `observed`, `synthetic`, `effect` | The treated unit's outcome, its counterfactual, and the gap (observed $`-`$ synthetic). |
+| `observed`, `synthetic`, `effect` | The treated unit's outcome, its counterfactual (including the ridge correction with `augment = "ridge"`), and the gap (observed $`-`$ synthetic). |
 | `covariate_adjustment` | The amount removed from the treated unit's outcome by `adjust_covariates` (0 without it). |
 | `rel_effect`, `std_effect` | The effect as a share of the counterfactual, and on the calibration scale (e.g. in pre-treatment RMSPEs). |
 | `factor_pointwise`, `factor_simultaneous` | The calibrated thresholds on the calibration scale (pointwise threshold; simultaneous multiplier $`\times`$ profile). |
@@ -137,6 +141,103 @@ For West Germany at 90%, the 2003 effect is 52.0 pre-treatment RMSPEs and the th
 
 Read the pointwise ratio only at the pre-specified `test_period`, and `threshold_ratio_sim` for statements about the whole path. With few donors the threshold rests on one or two placebos, so the ratio is coarse. On the relative and raw scales the columns compare percentage or raw gaps instead of multiples of the pre-treatment fit.
 
+### Reading the residual autocorrelation
+
+`$diagnostics$residual_autocorrelation` measures how persistent the untreated gaps are: how much of this period's gap is still there next period. It is information, not a flag. It doesn't change any result or the assessment; it tells you how to read them.
+
+**How it is estimated.**
+- **Data:** the placebos' post-treatment gaps. The donors are untreated, and those periods lie outside their fit, so these gaps are genuine out-of-sample errors: exactly the kind of error the treated unit's counterfactual makes.
+- **Estimator:** each placebo's gaps are divided by its pre-treatment RMSPE, then pooled as a first-order autoregression through the origin, giving `rho`.
+- **Uncertainty:** `rho_interval_90` is a 90% bootstrap interval over placebos.
+- **Requirement:** at least 3 post-treatment periods.
+
+**Why not the pre-treatment residuals?** They understate persistence badly, because the weights absorb smooth noise. In simulation (two factors, AR(1) errors, 29 donors), the median in-sample residual autocorrelation compared with the truth was:
+
+| True persistence | 10 pre-periods | 20 pre-periods | 40 pre-periods |
+|---|---|---|---|
+| 0.7 | −0.12 | 0.19 | 0.38 |
+| 0.9 | −0.07 | 0.23 | 0.50 |
+
+The out-of-sample estimate recovered 0.70–0.71 for 0.7, and 0.83–0.86 for 0.9, at all three lengths. The in-sample value is still reported as `rho_in_sample`: a large gap between the two means the weights absorb much of the noise, so the pre-treatment fit overstates how closely the synthetic control will track the treated unit. The guide says so when the gap exceeds 0.3.
+
+**What the level means:**
+
+| `level` | `rho` | What it means |
+|---|---|---|
+| low | < 0.3 | Gaps behave close to independent noise. A close pre-treatment fit is informative; a shock just before treatment fades within a period; backdating by 1–2 periods is enough. |
+| moderate | 0.3–0.7 | Shocks fade over a few periods. The pre-treatment fit is worth fewer independent periods than it seems; a pre-treatment shock carries into the first post-treatment periods, so backdate by `backdate_periods` to check for anticipation or such a shock. |
+| high | 0.7–0.9 | Smooth, sustained drifts in the gap happen by chance, so a convincing-looking gap plot is weaker evidence than it appears. Backdating needs more periods; check that enough pre-period remains to fit on. |
+| very high | ≥ 0.9 | The gaps behave like a random walk, which is common for outcomes in levels: GDP, sales, trending rates. A close pre-treatment fit is weak evidence, gaps fan out with the horizon, and backdating can't settle whether a pre-treatment shock carries over (`backdate_periods` is `NA`). A value at or above 1 means the placebos' gaps drift away rather than revert. |
+
+**The supporting numbers:**
+- **`half_life`:** periods for a shock to halve, log(0.5)/log(ρ); `Inf` when ρ ≥ 1.
+- **`backdate_periods`:** periods for a shock to fall to 25%, a guide to how far to backdate `treatment_period`. Choose the window from substance first (announcement and debate dates), then check it against this.
+- **`effective_pre_periods`:** roughly how many independent periods the pre-period is worth, T₀(1 − ρ)/(1 + ρ). At ρ = 0.9, 20 pre-periods are worth about one.
+
+**What it doesn't change.** If the treated unit is like the donors, the placebo calibration already accounts for persistence. The placebos drift as much as the treated unit would, and the simultaneous band's drift profile grows over the post-period accordingly. So a high value is not a reason to distrust the p-values. It is a reason to:
+- give less weight to a close pre-treatment fit and to the shape of the gap plot;
+- think harder about whether a pre-treatment shock or anticipation is carrying over;
+- prefer later post-treatment periods if that is a concern.
+
+**Seasonal persistence.** When the finest time column has 2–12 values (quarters or months), `rho_seasonal` is the pooled autocorrelation at that lag (4 or 12). It needs at least lag + 3 post-treatment periods. Because a persistent series is also correlated at the seasonal lag, the guide uses `rho_seasonal_excess` = `rho_seasonal` − ρ^lag: the seasonal persistence beyond what lag 1 implies. When this exceeds 0.2, a shock in one season tends to recur a year later. Backdate in whole years and consider deseasonalizing each unit before fitting.
+
+**Examples:**
+
+| Panel | `rho` | `level` | `rho_in_sample` | Seasonal excess |
+|---|---|---|---|---|
+| West Germany (annual GDP, 1991) | 1.05 | very high | 0.56 | — |
+| California (annual cigarette sales, 1989) | 0.96 | very high | −0.01 | — |
+| Kansas (quarterly GDP, 2012 Q2) | 0.99 | very high | 0.74 | 0.03 (lag 4) |
+| Simulated (stationary factors, AR(1) errors 0.3) | 0.52 | moderate | 0.11 | — |
+| Simulated (AR(1) errors 0.7) | 0.78 | high | 0.21 | — |
+
+All three real panels have random-walk-like untreated gaps, which matches how much their simultaneous bands widen over the post-period. The simulated panels come out higher than their error persistence: the gap also contains the factor-exposure mismatch, which has persistence of its own (AR 0.5 here).
+
+**Limits:**
+- **It describes the donors' gaps, not the treated unit's.** A treated unit more persistent than its donors isn't detected.
+- **It needs post-treatment periods,** so it isn't available for a design check before treatment.
+- **It is wide with few placebos or few post-treatment periods;** check `rho_interval_90`.
+- **Disturbed donors distort it.** Spillovers or shocks to donors in the post-period affect it.
+- **Steady divergence also reads as persistence.** A systematic drift of the placebos' gaps (a deterministic divergence) produces a value near 1, just as a random walk does.
+
+### Ridge augmentation
+
+`augment = "ridge"` targets the case where placebo inference otherwise fails: a treated unit at or beyond the edge of the donors' range. There, non-negative weights summing to one can't reproduce its pre-treatment path, and the leftover imbalance becomes bias. The ridge correction learns from the donors how pre-treatment differences carry into each post-treatment period, and applies that to the treated unit's leftover imbalance.
+
+**How it differs from `augsynth`.** It is the same estimator as `augsynth(progfunc = "Ridge", fixedeff = TRUE)`: given the same penalty, the two agree to within 0.00003 on Kansas, California and West Germany. They differ in how the penalty is chosen and in the inference.
+- **Penalty:** `augsynth` fits the treated unit's own pre-period, leaving out one period at a time; `dsc_placebo()` predicts donors' late pre-treatment periods from their earlier ones.
+- **Inference:** `augsynth` uses conformal inference, which over-rejected in simulation; `dsc_placebo()` uses the same placebo calibration as without augmentation, each placebo refitting its own correction.
+
+**Evidence** (simulations on the factor-model generator; coverage of 90% intervals):
+
+| Situation | Without augmentation | `augment = "ridge"` |
+|---|---|---|
+| Treated unit at the edge of the donors' range, trending factors (19-39 donors, 40-80 pre-periods) | 62% (bias +16.5%) | 91% (bias +3.3%) |
+| Treated unit outside the donors' range, trending factors (19-39 donors, 40-80 pre-periods) | 49% (bias +38%) | 91% (bias +9%) |
+| Treated unit outside the donors' range, trending factors, 9-19 donors, 20 pre-periods | 76% | 90% |
+| Treated unit like the donors (no covariate; 9-39 donors, 10-80 pre-periods) | 89-93% | 88-94% |
+| Confounded covariate, outside the range, trending factors, with `adjust_covariates` (IFE) | 73% | 89% (cumulative 93%) |
+| Fake treated units in Kansas, California and West Germany | 88-92% | 88-92% |
+
+Point estimates had lower RMSE than without augmentation almost everywhere, by half or more for extreme treated units. Power was about the same when the treated unit is like the donors. On the three real cases the estimates barely change (Kansas −2,006 vs −1,891 in the final quarter; California −17.3 vs −17.4; West Germany −3.51 vs −3.49).
+
+**Choosing the penalty.** The default is a fixed `ridge_c = 0.1`; `ridge_c = "cv"` cross-validates it. The evidence above used cross-validation. `Experimental_inference/ridge_default_validation.R` compared the two, along with rolling-window cross-validation, for `dsc_placebo()` and the LTO test. It used 9-14 donors, 10-40 pre-periods and the confounded covariate, plus subsamples of four real panels.
+- **Extreme treated units with trending factors:** both remove the excess false positives (24-28% → 6-8% at 10%).
+- **Real panels:** the fixed value had lower error (RMSE 15.2% against 18.8% for flagged units) and more power.
+- **10 pre-periods:** the fixed value had lower error (19.1% against 22.8%).
+- **40 pre-periods:** the fixed value had slightly more false positives (8.8% against 7.1%).
+- **Stability:** a fixed value does not change when one donor is dropped; the cross-validated one changed about half the time with 9 donors.
+
+Report cross-validation as a sensitivity check when the correction matters. On the Basque Country, for example, cross-validation corrected more (final-year effect −1.00 against −1.39 with 0.1), and these data can't tell which is right.
+
+**Cautions:**
+- **Very short pre-periods.** With about 10 pre-treatment periods, the cross-validated penalty (`ridge_c = "cv"`) was less stable: at an end of `ridge_grid` in about 5-10% of replicates. For a noisy treated unit with trending factors the error was larger than without augmentation (RMSE 20% vs 16%), although coverage held. `$ridge$note` flags a penalty at the grid's edge; compare with `augment = "none"`.
+- **Bias can remain.** For a treated unit well outside the donors' range with trending factors, bias fell from about +38% to +9% but did not vanish.
+- **With stationary factors it is conservative** for extreme treated units (99-100% coverage at 90%).
+- **Covariates.** Adjust with `adjust_model = "ife"` when the covariate's timing may be related to the factors: the two-way fixed-effects estimate of γ was badly biased in that design.
+
+Simulations: `simulations/ridge_edge_validation.R`, `simulations/ridge_small_sample_validation.R`, `simulations/ridge_covariate_validation.R`; agreement of `dsc_placebo()` with the validated prototype: `simulations/ridge_function_check.R`.
+
 ### Errors, warnings and limits
 
 - **Too few donors for the level.** If $`\lfloor (1 - \mathtt{conf\_level})(N + 1) \rfloor = 0`$, the intervals are infinite (`Inf`) and the smallest p-value is above $`1 -`$ `conf_level`. Lower `conf_level`.
@@ -144,7 +245,8 @@ Read the pointwise ratio only at the pre-specified `test_period`, and `threshold
 - **Failed placebo fits** are left out with a warning and listed in `failed_donors`.
 - **Constant treated outcome.** A treated unit whose pre-treatment outcome is constant (e.g. all zeros) cannot be fitted.
 - **Diagnostics warning.** With `warn = TRUE`, a treated unit flagged as extreme produces a warning that repeats `$diagnostics$assessment`.
-- **Run time.** A few seconds for about 50 donors without diagnostics. The diagnostics, covariate adjustment with `adjust_model = "ife"`, `augment = "ife"` and `estimator = "fect"` fit `fect` models and take longer (roughly 10-50 seconds for the examples in this repository).
+- **Ridge augmentation with short pre-periods.** `augment = "ridge"` with `ridge_c = "cv"` stops if there are fewer than 8 pre-treatment periods; the default fixed penalty has no such limit.
+- **Run time.** A few seconds for about 50 donors without diagnostics (`augment = "ridge"` with `ridge_c = "cv"` adds one cross-validation fit per donor). The diagnostics, covariate adjustment with `adjust_model = "ife"`, `augment = "ife"` and `estimator = "fect"` fit `fect` models and take longer (roughly 10-50 seconds for the examples in this repository).
 - **Requirements.** `CVXR`; `fect` for interactive fixed effects (diagnostics, covariate adjustment, augmentation, the fect estimator).
 
 ### Example

@@ -1,0 +1,1729 @@
+treated,factors,n_donors,T0,conf,method,measure,effect,power_final_pw,power_any_sim
+edge,random_walk,19,40,0.9,dsc_both,cumulative,+10%,0.39,0.49
+edge,random_walk,19,40,0.9,dsc_both,cumulative,-10%,0.2,0.21
+edge,random_walk,19,40,0.9,dsc_both,cumulative,ramp to -10%,0.09,0.1
+edge,random_walk,19,40,0.9,dsc_both,per period,+10%,0.31,0.38
+edge,random_walk,19,40,0.9,dsc_both,per period,-10%,0.1,0.16
+edge,random_walk,19,40,0.9,dsc_both,per period,ramp to -10%,0.1,0.05
+edge,random_walk,19,40,0.9,dsc_space,cumulative,+10%,0.72,0.72
+edge,random_walk,19,40,0.9,dsc_space,cumulative,-10%,0.3,0.33
+edge,random_walk,19,40,0.9,dsc_space,cumulative,ramp to -10%,0.17,0.24
+edge,random_walk,19,40,0.9,dsc_space,per period,+10%,0.59,0.61
+edge,random_walk,19,40,0.9,dsc_space,per period,-10%,0.16,0.27
+edge,random_walk,19,40,0.9,dsc_space,per period,ramp to -10%,0.16,0.15
+edge,random_walk,19,40,0.9,dsc_time,cumulative,+10%,0.44,0.51
+edge,random_walk,19,40,0.9,dsc_time,cumulative,-10%,0.25,0.26
+edge,random_walk,19,40,0.9,dsc_time,cumulative,ramp to -10%,0.2,0.21
+edge,random_walk,19,40,0.9,dsc_time,per period,+10%,0.34,0.51
+edge,random_walk,19,40,0.9,dsc_time,per period,-10%,0.18,0.24
+edge,random_walk,19,40,0.9,dsc_time,per period,ramp to -10%,0.18,0.19
+edge,random_walk,19,40,0.9,ridge_both,cumulative,+10%,0.38,0.4
+edge,random_walk,19,40,0.9,ridge_both,cumulative,-10%,0.21,0.28
+edge,random_walk,19,40,0.9,ridge_both,cumulative,ramp to -10%,0.06,0.05
+edge,random_walk,19,40,0.9,ridge_both,per period,+10%,0.24,0.3
+edge,random_walk,19,40,0.9,ridge_both,per period,-10%,0.08,0.18
+edge,random_walk,19,40,0.9,ridge_both,per period,ramp to -10%,0.08,0.03
+edge,random_walk,19,40,0.9,ridge_space,cumulative,+10%,0.5,0.49
+edge,random_walk,19,40,0.9,ridge_space,cumulative,-10%,0.33,0.39
+edge,random_walk,19,40,0.9,ridge_space,cumulative,ramp to -10%,0.14,0.12
+edge,random_walk,19,40,0.9,ridge_space,per period,+10%,0.37,0.43
+edge,random_walk,19,40,0.9,ridge_space,per period,-10%,0.16,0.31
+edge,random_walk,19,40,0.9,ridge_space,per period,ramp to -10%,0.16,0.09
+edge,random_walk,19,40,0.9,ridge_time,cumulative,+10%,0.51,0.54
+edge,random_walk,19,40,0.9,ridge_time,cumulative,-10%,0.3,0.42
+edge,random_walk,19,40,0.9,ridge_time,cumulative,ramp to -10%,0.18,0.16
+edge,random_walk,19,40,0.9,ridge_time,per period,+10%,0.41,0.5
+edge,random_walk,19,40,0.9,ridge_time,per period,-10%,0.21,0.33
+edge,random_walk,19,40,0.9,ridge_time,per period,ramp to -10%,0.21,0.15
+edge,random_walk,19,40,0.95,dsc_both,cumulative,+10%,0.3,0.36
+edge,random_walk,19,40,0.95,dsc_both,cumulative,-10%,0.12,0.15
+edge,random_walk,19,40,0.95,dsc_both,cumulative,ramp to -10%,0.04,0.02
+edge,random_walk,19,40,0.95,dsc_both,per period,+10%,0.21,0.28
+edge,random_walk,19,40,0.95,dsc_both,per period,-10%,0.05,0.1
+edge,random_walk,19,40,0.95,dsc_both,per period,ramp to -10%,0.05,0.02
+edge,random_walk,19,40,0.95,dsc_space,cumulative,+10%,0.6,0.63
+edge,random_walk,19,40,0.95,dsc_space,cumulative,-10%,0.18,0.28
+edge,random_walk,19,40,0.95,dsc_space,cumulative,ramp to -10%,0.07,0.09
+edge,random_walk,19,40,0.95,dsc_space,per period,+10%,0.42,0.46
+edge,random_walk,19,40,0.95,dsc_space,per period,-10%,0.1,0.18
+edge,random_walk,19,40,0.95,dsc_space,per period,ramp to -10%,0.1,0.07
+edge,random_walk,19,40,0.95,dsc_time,cumulative,+10%,0.39,0.44
+edge,random_walk,19,40,0.95,dsc_time,cumulative,-10%,0.21,0.19
+edge,random_walk,19,40,0.95,dsc_time,cumulative,ramp to -10%,0.17,0.12
+edge,random_walk,19,40,0.95,dsc_time,per period,+10%,0.28,0.41
+edge,random_walk,19,40,0.95,dsc_time,per period,-10%,0.12,0.15
+edge,random_walk,19,40,0.95,dsc_time,per period,ramp to -10%,0.12,0.11
+edge,random_walk,19,40,0.95,ridge_both,cumulative,+10%,0.25,0.3
+edge,random_walk,19,40,0.95,ridge_both,cumulative,-10%,0.15,0.18
+edge,random_walk,19,40,0.95,ridge_both,cumulative,ramp to -10%,0.03,0
+edge,random_walk,19,40,0.95,ridge_both,per period,+10%,0.17,0.22
+edge,random_walk,19,40,0.95,ridge_both,per period,-10%,0.05,0.14
+edge,random_walk,19,40,0.95,ridge_both,per period,ramp to -10%,0.05,0.02
+edge,random_walk,19,40,0.95,ridge_space,cumulative,+10%,0.34,0.4
+edge,random_walk,19,40,0.95,ridge_space,cumulative,-10%,0.25,0.35
+edge,random_walk,19,40,0.95,ridge_space,cumulative,ramp to -10%,0.08,0.03
+edge,random_walk,19,40,0.95,ridge_space,per period,+10%,0.27,0.32
+edge,random_walk,19,40,0.95,ridge_space,per period,-10%,0.09,0.22
+edge,random_walk,19,40,0.95,ridge_space,per period,ramp to -10%,0.09,0.06
+edge,random_walk,19,40,0.95,ridge_time,cumulative,+10%,0.46,0.48
+edge,random_walk,19,40,0.95,ridge_time,cumulative,-10%,0.27,0.28
+edge,random_walk,19,40,0.95,ridge_time,cumulative,ramp to -10%,0.15,0.13
+edge,random_walk,19,40,0.95,ridge_time,per period,+10%,0.31,0.42
+edge,random_walk,19,40,0.95,ridge_time,per period,-10%,0.16,0.27
+edge,random_walk,19,40,0.95,ridge_time,per period,ramp to -10%,0.16,0.14
+edge,random_walk,19,80,0.9,dsc_both,cumulative,+10%,0.45,0.56
+edge,random_walk,19,80,0.9,dsc_both,cumulative,-10%,0.14,0.16
+edge,random_walk,19,80,0.9,dsc_both,cumulative,ramp to -10%,0.08,0.08
+edge,random_walk,19,80,0.9,dsc_both,per period,+10%,0.3,0.32
+edge,random_walk,19,80,0.9,dsc_both,per period,-10%,0.1,0.16
+edge,random_walk,19,80,0.9,dsc_both,per period,ramp to -10%,0.1,0.06
+edge,random_walk,19,80,0.9,dsc_space,cumulative,+10%,0.78,0.79
+edge,random_walk,19,80,0.9,dsc_space,cumulative,-10%,0.21,0.26
+edge,random_walk,19,80,0.9,dsc_space,cumulative,ramp to -10%,0.24,0.27
+edge,random_walk,19,80,0.9,dsc_space,per period,+10%,0.61,0.55
+edge,random_walk,19,80,0.9,dsc_space,per period,-10%,0.19,0.2
+edge,random_walk,19,80,0.9,dsc_space,per period,ramp to -10%,0.19,0.13
+edge,random_walk,19,80,0.9,dsc_time,cumulative,+10%,0.45,0.58
+edge,random_walk,19,80,0.9,dsc_time,cumulative,-10%,0.18,0.2
+edge,random_walk,19,80,0.9,dsc_time,cumulative,ramp to -10%,0.14,0.16
+edge,random_walk,19,80,0.9,dsc_time,per period,+10%,0.31,0.39
+edge,random_walk,19,80,0.9,dsc_time,per period,-10%,0.14,0.17
+edge,random_walk,19,80,0.9,dsc_time,per period,ramp to -10%,0.14,0.11
+edge,random_walk,19,80,0.9,ridge_both,cumulative,+10%,0.34,0.31
+edge,random_walk,19,80,0.9,ridge_both,cumulative,-10%,0.17,0.2
+edge,random_walk,19,80,0.9,ridge_both,cumulative,ramp to -10%,0.04,0.04
+edge,random_walk,19,80,0.9,ridge_both,per period,+10%,0.22,0.24
+edge,random_walk,19,80,0.9,ridge_both,per period,-10%,0.05,0.15
+edge,random_walk,19,80,0.9,ridge_both,per period,ramp to -10%,0.05,0.05
+edge,random_walk,19,80,0.9,ridge_space,cumulative,+10%,0.4,0.33
+edge,random_walk,19,80,0.9,ridge_space,cumulative,-10%,0.3,0.3
+edge,random_walk,19,80,0.9,ridge_space,cumulative,ramp to -10%,0.13,0.1
+edge,random_walk,19,80,0.9,ridge_space,per period,+10%,0.34,0.31
+edge,random_walk,19,80,0.9,ridge_space,per period,-10%,0.18,0.24
+edge,random_walk,19,80,0.9,ridge_space,per period,ramp to -10%,0.18,0.14
+edge,random_walk,19,80,0.9,ridge_time,cumulative,+10%,0.46,0.54
+edge,random_walk,19,80,0.9,ridge_time,cumulative,-10%,0.26,0.35
+edge,random_walk,19,80,0.9,ridge_time,cumulative,ramp to -10%,0.07,0.08
+edge,random_walk,19,80,0.9,ridge_time,per period,+10%,0.28,0.41
+edge,random_walk,19,80,0.9,ridge_time,per period,-10%,0.09,0.2
+edge,random_walk,19,80,0.9,ridge_time,per period,ramp to -10%,0.09,0.07
+edge,random_walk,19,80,0.95,dsc_both,cumulative,+10%,0.32,0.35
+edge,random_walk,19,80,0.95,dsc_both,cumulative,-10%,0.08,0.13
+edge,random_walk,19,80,0.95,dsc_both,cumulative,ramp to -10%,0.05,0.04
+edge,random_walk,19,80,0.95,dsc_both,per period,+10%,0.18,0.25
+edge,random_walk,19,80,0.95,dsc_both,per period,-10%,0.04,0.09
+edge,random_walk,19,80,0.95,dsc_both,per period,ramp to -10%,0.04,0.05
+edge,random_walk,19,80,0.95,dsc_space,cumulative,+10%,0.63,0.57
+edge,random_walk,19,80,0.95,dsc_space,cumulative,-10%,0.14,0.19
+edge,random_walk,19,80,0.95,dsc_space,cumulative,ramp to -10%,0.12,0.12
+edge,random_walk,19,80,0.95,dsc_space,per period,+10%,0.47,0.46
+edge,random_walk,19,80,0.95,dsc_space,per period,-10%,0.11,0.16
+edge,random_walk,19,80,0.95,dsc_space,per period,ramp to -10%,0.11,0.09
+edge,random_walk,19,80,0.95,dsc_time,cumulative,+10%,0.34,0.42
+edge,random_walk,19,80,0.95,dsc_time,cumulative,-10%,0.12,0.17
+edge,random_walk,19,80,0.95,dsc_time,cumulative,ramp to -10%,0.11,0.1
+edge,random_walk,19,80,0.95,dsc_time,per period,+10%,0.22,0.31
+edge,random_walk,19,80,0.95,dsc_time,per period,-10%,0.08,0.13
+edge,random_walk,19,80,0.95,dsc_time,per period,ramp to -10%,0.08,0.09
+edge,random_walk,19,80,0.95,ridge_both,cumulative,+10%,0.27,0.23
+edge,random_walk,19,80,0.95,ridge_both,cumulative,-10%,0.12,0.16
+edge,random_walk,19,80,0.95,ridge_both,cumulative,ramp to -10%,0.01,0.03
+edge,random_walk,19,80,0.95,ridge_both,per period,+10%,0.17,0.18
+edge,random_walk,19,80,0.95,ridge_both,per period,-10%,0.03,0.09
+edge,random_walk,19,80,0.95,ridge_both,per period,ramp to -10%,0.03,0.03
+edge,random_walk,19,80,0.95,ridge_space,cumulative,+10%,0.39,0.32
+edge,random_walk,19,80,0.95,ridge_space,cumulative,-10%,0.23,0.24
+edge,random_walk,19,80,0.95,ridge_space,cumulative,ramp to -10%,0.09,0.07
+edge,random_walk,19,80,0.95,ridge_space,per period,+10%,0.28,0.25
+edge,random_walk,19,80,0.95,ridge_space,per period,-10%,0.1,0.17
+edge,random_walk,19,80,0.95,ridge_space,per period,ramp to -10%,0.1,0.08
+edge,random_walk,19,80,0.95,ridge_time,cumulative,+10%,0.36,0.38
+edge,random_walk,19,80,0.95,ridge_time,cumulative,-10%,0.18,0.25
+edge,random_walk,19,80,0.95,ridge_time,cumulative,ramp to -10%,0.05,0.05
+edge,random_walk,19,80,0.95,ridge_time,per period,+10%,0.25,0.31
+edge,random_walk,19,80,0.95,ridge_time,per period,-10%,0.06,0.14
+edge,random_walk,19,80,0.95,ridge_time,per period,ramp to -10%,0.06,0.06
+edge,random_walk,39,40,0.9,dsc_both,cumulative,+10%,0.42,0.37
+edge,random_walk,39,40,0.9,dsc_both,cumulative,-10%,0.19,0.17
+edge,random_walk,39,40,0.9,dsc_both,cumulative,ramp to -10%,0.11,0.1
+edge,random_walk,39,40,0.9,dsc_both,per period,+10%,0.25,0.33
+edge,random_walk,39,40,0.9,dsc_both,per period,-10%,0.09,0.14
+edge,random_walk,39,40,0.9,dsc_both,per period,ramp to -10%,0.09,0.05
+edge,random_walk,39,40,0.9,dsc_space,cumulative,+10%,0.62,0.59
+edge,random_walk,39,40,0.9,dsc_space,cumulative,-10%,0.33,0.33
+edge,random_walk,39,40,0.9,dsc_space,cumulative,ramp to -10%,0.3,0.25
+edge,random_walk,39,40,0.9,dsc_space,per period,+10%,0.5,0.48
+edge,random_walk,39,40,0.9,dsc_space,per period,-10%,0.24,0.32
+edge,random_walk,39,40,0.9,dsc_space,per period,ramp to -10%,0.24,0.21
+edge,random_walk,39,40,0.9,dsc_time,cumulative,+10%,0.42,0.42
+edge,random_walk,39,40,0.9,dsc_time,cumulative,-10%,0.25,0.25
+edge,random_walk,39,40,0.9,dsc_time,cumulative,ramp to -10%,0.14,0.16
+edge,random_walk,39,40,0.9,dsc_time,per period,+10%,0.3,0.4
+edge,random_walk,39,40,0.9,dsc_time,per period,-10%,0.14,0.2
+edge,random_walk,39,40,0.9,dsc_time,per period,ramp to -10%,0.14,0.09
+edge,random_walk,39,40,0.9,ridge_both,cumulative,+10%,0.36,0.36
+edge,random_walk,39,40,0.9,ridge_both,cumulative,-10%,0.15,0.22
+edge,random_walk,39,40,0.9,ridge_both,cumulative,ramp to -10%,0.05,0.01
+edge,random_walk,39,40,0.9,ridge_both,per period,+10%,0.24,0.27
+edge,random_walk,39,40,0.9,ridge_both,per period,-10%,0.09,0.14
+edge,random_walk,39,40,0.9,ridge_both,per period,ramp to -10%,0.09,0.01
+edge,random_walk,39,40,0.9,ridge_space,cumulative,+10%,0.55,0.49
+edge,random_walk,39,40,0.9,ridge_space,cumulative,-10%,0.29,0.34
+edge,random_walk,39,40,0.9,ridge_space,cumulative,ramp to -10%,0.13,0.06
+edge,random_walk,39,40,0.9,ridge_space,per period,+10%,0.39,0.42
+edge,random_walk,39,40,0.9,ridge_space,per period,-10%,0.14,0.23
+edge,random_walk,39,40,0.9,ridge_space,per period,ramp to -10%,0.14,0.08
+edge,random_walk,39,40,0.9,ridge_time,cumulative,+10%,0.47,0.53
+edge,random_walk,39,40,0.9,ridge_time,cumulative,-10%,0.29,0.37
+edge,random_walk,39,40,0.9,ridge_time,cumulative,ramp to -10%,0.13,0.13
+edge,random_walk,39,40,0.9,ridge_time,per period,+10%,0.29,0.45
+edge,random_walk,39,40,0.9,ridge_time,per period,-10%,0.18,0.27
+edge,random_walk,39,40,0.9,ridge_time,per period,ramp to -10%,0.18,0.11
+edge,random_walk,39,40,0.95,dsc_both,cumulative,+10%,0.37,0.27
+edge,random_walk,39,40,0.95,dsc_both,cumulative,-10%,0.15,0.13
+edge,random_walk,39,40,0.95,dsc_both,cumulative,ramp to -10%,0.04,0.03
+edge,random_walk,39,40,0.95,dsc_both,per period,+10%,0.23,0.24
+edge,random_walk,39,40,0.95,dsc_both,per period,-10%,0.04,0.08
+edge,random_walk,39,40,0.95,dsc_both,per period,ramp to -10%,0.04,0.02
+edge,random_walk,39,40,0.95,dsc_space,cumulative,+10%,0.52,0.48
+edge,random_walk,39,40,0.95,dsc_space,cumulative,-10%,0.24,0.25
+edge,random_walk,39,40,0.95,dsc_space,cumulative,ramp to -10%,0.13,0.13
+edge,random_walk,39,40,0.95,dsc_space,per period,+10%,0.41,0.43
+edge,random_walk,39,40,0.95,dsc_space,per period,-10%,0.16,0.21
+edge,random_walk,39,40,0.95,dsc_space,per period,ramp to -10%,0.16,0.1
+edge,random_walk,39,40,0.95,dsc_time,cumulative,+10%,0.42,0.32
+edge,random_walk,39,40,0.95,dsc_time,cumulative,-10%,0.22,0.2
+edge,random_walk,39,40,0.95,dsc_time,cumulative,ramp to -10%,0.11,0.1
+edge,random_walk,39,40,0.95,dsc_time,per period,+10%,0.27,0.33
+edge,random_walk,39,40,0.95,dsc_time,per period,-10%,0.09,0.14
+edge,random_walk,39,40,0.95,dsc_time,per period,ramp to -10%,0.09,0.08
+edge,random_walk,39,40,0.95,ridge_both,cumulative,+10%,0.29,0.25
+edge,random_walk,39,40,0.95,ridge_both,cumulative,-10%,0.11,0.14
+edge,random_walk,39,40,0.95,ridge_both,cumulative,ramp to -10%,0.05,0.01
+edge,random_walk,39,40,0.95,ridge_both,per period,+10%,0.19,0.18
+edge,random_walk,39,40,0.95,ridge_both,per period,-10%,0.06,0.1
+edge,random_walk,39,40,0.95,ridge_both,per period,ramp to -10%,0.06,0
+edge,random_walk,39,40,0.95,ridge_space,cumulative,+10%,0.42,0.41
+edge,random_walk,39,40,0.95,ridge_space,cumulative,-10%,0.21,0.22
+edge,random_walk,39,40,0.95,ridge_space,cumulative,ramp to -10%,0.1,0.04
+edge,random_walk,39,40,0.95,ridge_space,per period,+10%,0.27,0.29
+edge,random_walk,39,40,0.95,ridge_space,per period,-10%,0.12,0.17
+edge,random_walk,39,40,0.95,ridge_space,per period,ramp to -10%,0.12,0.06
+edge,random_walk,39,40,0.95,ridge_time,cumulative,+10%,0.46,0.46
+edge,random_walk,39,40,0.95,ridge_time,cumulative,-10%,0.24,0.29
+edge,random_walk,39,40,0.95,ridge_time,cumulative,ramp to -10%,0.12,0.06
+edge,random_walk,39,40,0.95,ridge_time,per period,+10%,0.27,0.4
+edge,random_walk,39,40,0.95,ridge_time,per period,-10%,0.13,0.23
+edge,random_walk,39,40,0.95,ridge_time,per period,ramp to -10%,0.13,0.07
+edge,random_walk,39,80,0.9,dsc_both,cumulative,+10%,0.4,0.45
+edge,random_walk,39,80,0.9,dsc_both,cumulative,-10%,0.14,0.12
+edge,random_walk,39,80,0.9,dsc_both,cumulative,ramp to -10%,0.13,0.19
+edge,random_walk,39,80,0.9,dsc_both,per period,+10%,0.26,0.35
+edge,random_walk,39,80,0.9,dsc_both,per period,-10%,0.12,0.08
+edge,random_walk,39,80,0.9,dsc_both,per period,ramp to -10%,0.12,0.11
+edge,random_walk,39,80,0.9,dsc_space,cumulative,+10%,0.82,0.76
+edge,random_walk,39,80,0.9,dsc_space,cumulative,-10%,0.4,0.27
+edge,random_walk,39,80,0.9,dsc_space,cumulative,ramp to -10%,0.44,0.34
+edge,random_walk,39,80,0.9,dsc_space,per period,+10%,0.56,0.49
+edge,random_walk,39,80,0.9,dsc_space,per period,-10%,0.25,0.19
+edge,random_walk,39,80,0.9,dsc_space,per period,ramp to -10%,0.25,0.2
+edge,random_walk,39,80,0.9,dsc_time,cumulative,+10%,0.4,0.47
+edge,random_walk,39,80,0.9,dsc_time,cumulative,-10%,0.15,0.17
+edge,random_walk,39,80,0.9,dsc_time,cumulative,ramp to -10%,0.16,0.22
+edge,random_walk,39,80,0.9,dsc_time,per period,+10%,0.28,0.4
+edge,random_walk,39,80,0.9,dsc_time,per period,-10%,0.13,0.12
+edge,random_walk,39,80,0.9,dsc_time,per period,ramp to -10%,0.13,0.18
+edge,random_walk,39,80,0.9,ridge_both,cumulative,+10%,0.26,0.27
+edge,random_walk,39,80,0.9,ridge_both,cumulative,-10%,0.13,0.13
+edge,random_walk,39,80,0.9,ridge_both,cumulative,ramp to -10%,0.02,0.01
+edge,random_walk,39,80,0.9,ridge_both,per period,+10%,0.18,0.21
+edge,random_walk,39,80,0.9,ridge_both,per period,-10%,0.05,0.08
+edge,random_walk,39,80,0.9,ridge_both,per period,ramp to -10%,0.05,0
+edge,random_walk,39,80,0.9,ridge_space,cumulative,+10%,0.39,0.35
+edge,random_walk,39,80,0.9,ridge_space,cumulative,-10%,0.22,0.19
+edge,random_walk,39,80,0.9,ridge_space,cumulative,ramp to -10%,0.06,0.05
+edge,random_walk,39,80,0.9,ridge_space,per period,+10%,0.29,0.3
+edge,random_walk,39,80,0.9,ridge_space,per period,-10%,0.15,0.1
+edge,random_walk,39,80,0.9,ridge_space,per period,ramp to -10%,0.15,0.05
+edge,random_walk,39,80,0.9,ridge_time,cumulative,+10%,0.36,0.47
+edge,random_walk,39,80,0.9,ridge_time,cumulative,-10%,0.2,0.28
+edge,random_walk,39,80,0.9,ridge_time,cumulative,ramp to -10%,0.06,0.09
+edge,random_walk,39,80,0.9,ridge_time,per period,+10%,0.22,0.34
+edge,random_walk,39,80,0.9,ridge_time,per period,-10%,0.09,0.17
+edge,random_walk,39,80,0.9,ridge_time,per period,ramp to -10%,0.09,0.08
+edge,random_walk,39,80,0.95,dsc_both,cumulative,+10%,0.31,0.35
+edge,random_walk,39,80,0.95,dsc_both,cumulative,-10%,0.08,0.08
+edge,random_walk,39,80,0.95,dsc_both,cumulative,ramp to -10%,0.05,0.04
+edge,random_walk,39,80,0.95,dsc_both,per period,+10%,0.22,0.27
+edge,random_walk,39,80,0.95,dsc_both,per period,-10%,0.06,0.05
+edge,random_walk,39,80,0.95,dsc_both,per period,ramp to -10%,0.06,0.05
+edge,random_walk,39,80,0.95,dsc_space,cumulative,+10%,0.67,0.59
+edge,random_walk,39,80,0.95,dsc_space,cumulative,-10%,0.24,0.15
+edge,random_walk,39,80,0.95,dsc_space,cumulative,ramp to -10%,0.22,0.16
+edge,random_walk,39,80,0.95,dsc_space,per period,+10%,0.46,0.41
+edge,random_walk,39,80,0.95,dsc_space,per period,-10%,0.17,0.09
+edge,random_walk,39,80,0.95,dsc_space,per period,ramp to -10%,0.17,0.13
+edge,random_walk,39,80,0.95,dsc_time,cumulative,+10%,0.32,0.4
+edge,random_walk,39,80,0.95,dsc_time,cumulative,-10%,0.09,0.11
+edge,random_walk,39,80,0.95,dsc_time,cumulative,ramp to -10%,0.09,0.11
+edge,random_walk,39,80,0.95,dsc_time,per period,+10%,0.25,0.34
+edge,random_walk,39,80,0.95,dsc_time,per period,-10%,0.09,0.11
+edge,random_walk,39,80,0.95,dsc_time,per period,ramp to -10%,0.09,0.12
+edge,random_walk,39,80,0.95,ridge_both,cumulative,+10%,0.21,0.21
+edge,random_walk,39,80,0.95,ridge_both,cumulative,-10%,0.05,0.07
+edge,random_walk,39,80,0.95,ridge_both,cumulative,ramp to -10%,0.01,0.01
+edge,random_walk,39,80,0.95,ridge_both,per period,+10%,0.16,0.15
+edge,random_walk,39,80,0.95,ridge_both,per period,-10%,0.02,0.04
+edge,random_walk,39,80,0.95,ridge_both,per period,ramp to -10%,0.02,0
+edge,random_walk,39,80,0.95,ridge_space,cumulative,+10%,0.33,0.3
+edge,random_walk,39,80,0.95,ridge_space,cumulative,-10%,0.15,0.14
+edge,random_walk,39,80,0.95,ridge_space,cumulative,ramp to -10%,0.04,0.04
+edge,random_walk,39,80,0.95,ridge_space,per period,+10%,0.24,0.23
+edge,random_walk,39,80,0.95,ridge_space,per period,-10%,0.07,0.06
+edge,random_walk,39,80,0.95,ridge_space,per period,ramp to -10%,0.07,0.04
+edge,random_walk,39,80,0.95,ridge_time,cumulative,+10%,0.28,0.33
+edge,random_walk,39,80,0.95,ridge_time,cumulative,-10%,0.12,0.2
+edge,random_walk,39,80,0.95,ridge_time,cumulative,ramp to -10%,0.04,0.04
+edge,random_walk,39,80,0.95,ridge_time,per period,+10%,0.19,0.27
+edge,random_walk,39,80,0.95,ridge_time,per period,-10%,0.06,0.11
+edge,random_walk,39,80,0.95,ridge_time,per period,ramp to -10%,0.06,0.06
+edge,stationary,19,40,0.9,dsc_both,cumulative,+10%,0.25,0.26
+edge,stationary,19,40,0.9,dsc_both,cumulative,-10%,0.35,0.29
+edge,stationary,19,40,0.9,dsc_both,cumulative,ramp to -10%,0.13,0.04
+edge,stationary,19,40,0.9,dsc_both,per period,+10%,0.14,0.24
+edge,stationary,19,40,0.9,dsc_both,per period,-10%,0.14,0.13
+edge,stationary,19,40,0.9,dsc_both,per period,ramp to -10%,0.14,0.04
+edge,stationary,19,40,0.9,dsc_space,cumulative,+10%,0.3,0.32
+edge,stationary,19,40,0.9,dsc_space,cumulative,-10%,0.47,0.45
+edge,stationary,19,40,0.9,dsc_space,cumulative,ramp to -10%,0.32,0.18
+edge,stationary,19,40,0.9,dsc_space,per period,+10%,0.17,0.27
+edge,stationary,19,40,0.9,dsc_space,per period,-10%,0.29,0.25
+edge,stationary,19,40,0.9,dsc_space,per period,ramp to -10%,0.29,0.13
+edge,stationary,19,40,0.9,dsc_time,cumulative,+10%,0.39,0.34
+edge,stationary,19,40,0.9,dsc_time,cumulative,-10%,0.52,0.46
+edge,stationary,19,40,0.9,dsc_time,cumulative,ramp to -10%,0.29,0.2
+edge,stationary,19,40,0.9,dsc_time,per period,+10%,0.26,0.38
+edge,stationary,19,40,0.9,dsc_time,per period,-10%,0.25,0.33
+edge,stationary,19,40,0.9,dsc_time,per period,ramp to -10%,0.25,0.22
+edge,stationary,19,40,0.9,ridge_both,cumulative,+10%,0.42,0.33
+edge,stationary,19,40,0.9,ridge_both,cumulative,-10%,0.38,0.33
+edge,stationary,19,40,0.9,ridge_both,cumulative,ramp to -10%,0.16,0.05
+edge,stationary,19,40,0.9,ridge_both,per period,+10%,0.18,0.21
+edge,stationary,19,40,0.9,ridge_both,per period,-10%,0.21,0.14
+edge,stationary,19,40,0.9,ridge_both,per period,ramp to -10%,0.21,0.05
+edge,stationary,19,40,0.9,ridge_space,cumulative,+10%,0.55,0.41
+edge,stationary,19,40,0.9,ridge_space,cumulative,-10%,0.52,0.41
+edge,stationary,19,40,0.9,ridge_space,cumulative,ramp to -10%,0.27,0.13
+edge,stationary,19,40,0.9,ridge_space,per period,+10%,0.22,0.28
+edge,stationary,19,40,0.9,ridge_space,per period,-10%,0.33,0.22
+edge,stationary,19,40,0.9,ridge_space,per period,ramp to -10%,0.33,0.1
+edge,stationary,19,40,0.9,ridge_time,cumulative,+10%,0.63,0.63
+edge,stationary,19,40,0.9,ridge_time,cumulative,-10%,0.63,0.66
+edge,stationary,19,40,0.9,ridge_time,cumulative,ramp to -10%,0.35,0.23
+edge,stationary,19,40,0.9,ridge_time,per period,+10%,0.43,0.59
+edge,stationary,19,40,0.9,ridge_time,per period,-10%,0.41,0.49
+edge,stationary,19,40,0.9,ridge_time,per period,ramp to -10%,0.41,0.27
+edge,stationary,19,40,0.95,dsc_both,cumulative,+10%,0.21,0.2
+edge,stationary,19,40,0.95,dsc_both,cumulative,-10%,0.19,0.2
+edge,stationary,19,40,0.95,dsc_both,cumulative,ramp to -10%,0.08,0.04
+edge,stationary,19,40,0.95,dsc_both,per period,+10%,0.08,0.21
+edge,stationary,19,40,0.95,dsc_both,per period,-10%,0.08,0.09
+edge,stationary,19,40,0.95,dsc_both,per period,ramp to -10%,0.08,0.04
+edge,stationary,19,40,0.95,dsc_space,cumulative,+10%,0.23,0.28
+edge,stationary,19,40,0.95,dsc_space,cumulative,-10%,0.36,0.36
+edge,stationary,19,40,0.95,dsc_space,cumulative,ramp to -10%,0.22,0.15
+edge,stationary,19,40,0.95,dsc_space,per period,+10%,0.1,0.22
+edge,stationary,19,40,0.95,dsc_space,per period,-10%,0.22,0.18
+edge,stationary,19,40,0.95,dsc_space,per period,ramp to -10%,0.22,0.09
+edge,stationary,19,40,0.95,dsc_time,cumulative,+10%,0.36,0.28
+edge,stationary,19,40,0.95,dsc_time,cumulative,-10%,0.37,0.34
+edge,stationary,19,40,0.95,dsc_time,cumulative,ramp to -10%,0.21,0.16
+edge,stationary,19,40,0.95,dsc_time,per period,+10%,0.21,0.36
+edge,stationary,19,40,0.95,dsc_time,per period,-10%,0.16,0.26
+edge,stationary,19,40,0.95,dsc_time,per period,ramp to -10%,0.16,0.18
+edge,stationary,19,40,0.95,ridge_both,cumulative,+10%,0.23,0.23
+edge,stationary,19,40,0.95,ridge_both,cumulative,-10%,0.25,0.24
+edge,stationary,19,40,0.95,ridge_both,cumulative,ramp to -10%,0.1,0.02
+edge,stationary,19,40,0.95,ridge_both,per period,+10%,0.1,0.15
+edge,stationary,19,40,0.95,ridge_both,per period,-10%,0.08,0.09
+edge,stationary,19,40,0.95,ridge_both,per period,ramp to -10%,0.08,0.03
+edge,stationary,19,40,0.95,ridge_space,cumulative,+10%,0.33,0.3
+edge,stationary,19,40,0.95,ridge_space,cumulative,-10%,0.39,0.3
+edge,stationary,19,40,0.95,ridge_space,cumulative,ramp to -10%,0.16,0.06
+edge,stationary,19,40,0.95,ridge_space,per period,+10%,0.12,0.22
+edge,stationary,19,40,0.95,ridge_space,per period,-10%,0.19,0.16
+edge,stationary,19,40,0.95,ridge_space,per period,ramp to -10%,0.19,0.08
+edge,stationary,19,40,0.95,ridge_time,cumulative,+10%,0.55,0.55
+edge,stationary,19,40,0.95,ridge_time,cumulative,-10%,0.51,0.52
+edge,stationary,19,40,0.95,ridge_time,cumulative,ramp to -10%,0.27,0.13
+edge,stationary,19,40,0.95,ridge_time,per period,+10%,0.33,0.54
+edge,stationary,19,40,0.95,ridge_time,per period,-10%,0.3,0.4
+edge,stationary,19,40,0.95,ridge_time,per period,ramp to -10%,0.3,0.2
+edge,stationary,19,80,0.9,dsc_both,cumulative,+10%,0.26,0.29
+edge,stationary,19,80,0.9,dsc_both,cumulative,-10%,0.33,0.33
+edge,stationary,19,80,0.9,dsc_both,cumulative,ramp to -10%,0.22,0.09
+edge,stationary,19,80,0.9,dsc_both,per period,+10%,0.16,0.33
+edge,stationary,19,80,0.9,dsc_both,per period,-10%,0.2,0.13
+edge,stationary,19,80,0.9,dsc_both,per period,ramp to -10%,0.2,0.08
+edge,stationary,19,80,0.9,dsc_space,cumulative,+10%,0.33,0.36
+edge,stationary,19,80,0.9,dsc_space,cumulative,-10%,0.5,0.49
+edge,stationary,19,80,0.9,dsc_space,cumulative,ramp to -10%,0.33,0.16
+edge,stationary,19,80,0.9,dsc_space,per period,+10%,0.2,0.4
+edge,stationary,19,80,0.9,dsc_space,per period,-10%,0.38,0.27
+edge,stationary,19,80,0.9,dsc_space,per period,ramp to -10%,0.38,0.2
+edge,stationary,19,80,0.9,dsc_time,cumulative,+10%,0.33,0.35
+edge,stationary,19,80,0.9,dsc_time,cumulative,-10%,0.41,0.39
+edge,stationary,19,80,0.9,dsc_time,cumulative,ramp to -10%,0.37,0.24
+edge,stationary,19,80,0.9,dsc_time,per period,+10%,0.22,0.39
+edge,stationary,19,80,0.9,dsc_time,per period,-10%,0.27,0.29
+edge,stationary,19,80,0.9,dsc_time,per period,ramp to -10%,0.27,0.24
+edge,stationary,19,80,0.9,ridge_both,cumulative,+10%,0.47,0.42
+edge,stationary,19,80,0.9,ridge_both,cumulative,-10%,0.51,0.27
+edge,stationary,19,80,0.9,ridge_both,cumulative,ramp to -10%,0.1,0.04
+edge,stationary,19,80,0.9,ridge_both,per period,+10%,0.17,0.18
+edge,stationary,19,80,0.9,ridge_both,per period,-10%,0.16,0.08
+edge,stationary,19,80,0.9,ridge_both,per period,ramp to -10%,0.16,0.04
+edge,stationary,19,80,0.9,ridge_space,cumulative,+10%,0.63,0.48
+edge,stationary,19,80,0.9,ridge_space,cumulative,-10%,0.58,0.38
+edge,stationary,19,80,0.9,ridge_space,cumulative,ramp to -10%,0.21,0.07
+edge,stationary,19,80,0.9,ridge_space,per period,+10%,0.21,0.26
+edge,stationary,19,80,0.9,ridge_space,per period,-10%,0.24,0.18
+edge,stationary,19,80,0.9,ridge_space,per period,ramp to -10%,0.24,0.09
+edge,stationary,19,80,0.9,ridge_time,cumulative,+10%,0.74,0.77
+edge,stationary,19,80,0.9,ridge_time,cumulative,-10%,0.81,0.73
+edge,stationary,19,80,0.9,ridge_time,cumulative,ramp to -10%,0.34,0.22
+edge,stationary,19,80,0.9,ridge_time,per period,+10%,0.46,0.55
+edge,stationary,19,80,0.9,ridge_time,per period,-10%,0.45,0.49
+edge,stationary,19,80,0.9,ridge_time,per period,ramp to -10%,0.45,0.24
+edge,stationary,19,80,0.95,dsc_both,cumulative,+10%,0.22,0.23
+edge,stationary,19,80,0.95,dsc_both,cumulative,-10%,0.28,0.22
+edge,stationary,19,80,0.95,dsc_both,cumulative,ramp to -10%,0.11,0.04
+edge,stationary,19,80,0.95,dsc_both,per period,+10%,0.11,0.24
+edge,stationary,19,80,0.95,dsc_both,per period,-10%,0.11,0.06
+edge,stationary,19,80,0.95,dsc_both,per period,ramp to -10%,0.11,0.03
+edge,stationary,19,80,0.95,dsc_space,cumulative,+10%,0.23,0.25
+edge,stationary,19,80,0.95,dsc_space,cumulative,-10%,0.43,0.38
+edge,stationary,19,80,0.95,dsc_space,cumulative,ramp to -10%,0.25,0.09
+edge,stationary,19,80,0.95,dsc_space,per period,+10%,0.13,0.3
+edge,stationary,19,80,0.95,dsc_space,per period,-10%,0.24,0.19
+edge,stationary,19,80,0.95,dsc_space,per period,ramp to -10%,0.24,0.11
+edge,stationary,19,80,0.95,dsc_time,cumulative,+10%,0.32,0.33
+edge,stationary,19,80,0.95,dsc_time,cumulative,-10%,0.37,0.31
+edge,stationary,19,80,0.95,dsc_time,cumulative,ramp to -10%,0.27,0.17
+edge,stationary,19,80,0.95,dsc_time,per period,+10%,0.16,0.36
+edge,stationary,19,80,0.95,dsc_time,per period,-10%,0.21,0.2
+edge,stationary,19,80,0.95,dsc_time,per period,ramp to -10%,0.21,0.2
+edge,stationary,19,80,0.95,ridge_both,cumulative,+10%,0.32,0.29
+edge,stationary,19,80,0.95,ridge_both,cumulative,-10%,0.28,0.14
+edge,stationary,19,80,0.95,ridge_both,cumulative,ramp to -10%,0.04,0.02
+edge,stationary,19,80,0.95,ridge_both,per period,+10%,0.1,0.1
+edge,stationary,19,80,0.95,ridge_both,per period,-10%,0.08,0.05
+edge,stationary,19,80,0.95,ridge_both,per period,ramp to -10%,0.08,0.02
+edge,stationary,19,80,0.95,ridge_space,cumulative,+10%,0.43,0.36
+edge,stationary,19,80,0.95,ridge_space,cumulative,-10%,0.41,0.23
+edge,stationary,19,80,0.95,ridge_space,cumulative,ramp to -10%,0.13,0.03
+edge,stationary,19,80,0.95,ridge_space,per period,+10%,0.11,0.13
+edge,stationary,19,80,0.95,ridge_space,per period,-10%,0.16,0.07
+edge,stationary,19,80,0.95,ridge_space,per period,ramp to -10%,0.16,0.02
+edge,stationary,19,80,0.95,ridge_time,cumulative,+10%,0.63,0.62
+edge,stationary,19,80,0.95,ridge_time,cumulative,-10%,0.6,0.6
+edge,stationary,19,80,0.95,ridge_time,cumulative,ramp to -10%,0.23,0.11
+edge,stationary,19,80,0.95,ridge_time,per period,+10%,0.33,0.44
+edge,stationary,19,80,0.95,ridge_time,per period,-10%,0.3,0.37
+edge,stationary,19,80,0.95,ridge_time,per period,ramp to -10%,0.3,0.2
+edge,stationary,39,40,0.9,dsc_both,cumulative,+10%,0.18,0.17
+edge,stationary,39,40,0.9,dsc_both,cumulative,-10%,0.37,0.32
+edge,stationary,39,40,0.9,dsc_both,cumulative,ramp to -10%,0.19,0.06
+edge,stationary,39,40,0.9,dsc_both,per period,+10%,0.11,0.23
+edge,stationary,39,40,0.9,dsc_both,per period,-10%,0.19,0.13
+edge,stationary,39,40,0.9,dsc_both,per period,ramp to -10%,0.19,0.04
+edge,stationary,39,40,0.9,dsc_space,cumulative,+10%,0.23,0.26
+edge,stationary,39,40,0.9,dsc_space,cumulative,-10%,0.5,0.46
+edge,stationary,39,40,0.9,dsc_space,cumulative,ramp to -10%,0.32,0.13
+edge,stationary,39,40,0.9,dsc_space,per period,+10%,0.17,0.31
+edge,stationary,39,40,0.9,dsc_space,per period,-10%,0.32,0.23
+edge,stationary,39,40,0.9,dsc_space,per period,ramp to -10%,0.32,0.13
+edge,stationary,39,40,0.9,dsc_time,cumulative,+10%,0.25,0.23
+edge,stationary,39,40,0.9,dsc_time,cumulative,-10%,0.47,0.43
+edge,stationary,39,40,0.9,dsc_time,cumulative,ramp to -10%,0.31,0.18
+edge,stationary,39,40,0.9,dsc_time,per period,+10%,0.18,0.31
+edge,stationary,39,40,0.9,dsc_time,per period,-10%,0.32,0.34
+edge,stationary,39,40,0.9,dsc_time,per period,ramp to -10%,0.32,0.17
+edge,stationary,39,40,0.9,ridge_both,cumulative,+10%,0.24,0.23
+edge,stationary,39,40,0.9,ridge_both,cumulative,-10%,0.28,0.19
+edge,stationary,39,40,0.9,ridge_both,cumulative,ramp to -10%,0.07,0.02
+edge,stationary,39,40,0.9,ridge_both,per period,+10%,0.09,0.16
+edge,stationary,39,40,0.9,ridge_both,per period,-10%,0.12,0.1
+edge,stationary,39,40,0.9,ridge_both,per period,ramp to -10%,0.12,0.01
+edge,stationary,39,40,0.9,ridge_space,cumulative,+10%,0.33,0.29
+edge,stationary,39,40,0.9,ridge_space,cumulative,-10%,0.36,0.3
+edge,stationary,39,40,0.9,ridge_space,cumulative,ramp to -10%,0.11,0.05
+edge,stationary,39,40,0.9,ridge_space,per period,+10%,0.16,0.21
+edge,stationary,39,40,0.9,ridge_space,per period,-10%,0.19,0.12
+edge,stationary,39,40,0.9,ridge_space,per period,ramp to -10%,0.19,0.04
+edge,stationary,39,40,0.9,ridge_time,cumulative,+10%,0.62,0.59
+edge,stationary,39,40,0.9,ridge_time,cumulative,-10%,0.58,0.54
+edge,stationary,39,40,0.9,ridge_time,cumulative,ramp to -10%,0.29,0.17
+edge,stationary,39,40,0.9,ridge_time,per period,+10%,0.33,0.47
+edge,stationary,39,40,0.9,ridge_time,per period,-10%,0.37,0.43
+edge,stationary,39,40,0.9,ridge_time,per period,ramp to -10%,0.37,0.23
+edge,stationary,39,40,0.95,dsc_both,cumulative,+10%,0.11,0.14
+edge,stationary,39,40,0.95,dsc_both,cumulative,-10%,0.3,0.17
+edge,stationary,39,40,0.95,dsc_both,cumulative,ramp to -10%,0.13,0.03
+edge,stationary,39,40,0.95,dsc_both,per period,+10%,0.06,0.15
+edge,stationary,39,40,0.95,dsc_both,per period,-10%,0.12,0.06
+edge,stationary,39,40,0.95,dsc_both,per period,ramp to -10%,0.12,0.02
+edge,stationary,39,40,0.95,dsc_space,cumulative,+10%,0.16,0.18
+edge,stationary,39,40,0.95,dsc_space,cumulative,-10%,0.41,0.32
+edge,stationary,39,40,0.95,dsc_space,cumulative,ramp to -10%,0.23,0.1
+edge,stationary,39,40,0.95,dsc_space,per period,+10%,0.11,0.2
+edge,stationary,39,40,0.95,dsc_space,per period,-10%,0.25,0.14
+edge,stationary,39,40,0.95,dsc_space,per period,ramp to -10%,0.25,0.08
+edge,stationary,39,40,0.95,dsc_time,cumulative,+10%,0.19,0.2
+edge,stationary,39,40,0.95,dsc_time,cumulative,-10%,0.43,0.34
+edge,stationary,39,40,0.95,dsc_time,cumulative,ramp to -10%,0.22,0.14
+edge,stationary,39,40,0.95,dsc_time,per period,+10%,0.12,0.28
+edge,stationary,39,40,0.95,dsc_time,per period,-10%,0.25,0.26
+edge,stationary,39,40,0.95,dsc_time,per period,ramp to -10%,0.25,0.14
+edge,stationary,39,40,0.95,ridge_both,cumulative,+10%,0.14,0.15
+edge,stationary,39,40,0.95,ridge_both,cumulative,-10%,0.22,0.13
+edge,stationary,39,40,0.95,ridge_both,cumulative,ramp to -10%,0.04,0
+edge,stationary,39,40,0.95,ridge_both,per period,+10%,0.04,0.1
+edge,stationary,39,40,0.95,ridge_both,per period,-10%,0.06,0.04
+edge,stationary,39,40,0.95,ridge_both,per period,ramp to -10%,0.06,0
+edge,stationary,39,40,0.95,ridge_space,cumulative,+10%,0.24,0.21
+edge,stationary,39,40,0.95,ridge_space,cumulative,-10%,0.26,0.18
+edge,stationary,39,40,0.95,ridge_space,cumulative,ramp to -10%,0.06,0.02
+edge,stationary,39,40,0.95,ridge_space,per period,+10%,0.1,0.17
+edge,stationary,39,40,0.95,ridge_space,per period,-10%,0.12,0.07
+edge,stationary,39,40,0.95,ridge_space,per period,ramp to -10%,0.12,0.03
+edge,stationary,39,40,0.95,ridge_time,cumulative,+10%,0.49,0.45
+edge,stationary,39,40,0.95,ridge_time,cumulative,-10%,0.52,0.43
+edge,stationary,39,40,0.95,ridge_time,cumulative,ramp to -10%,0.22,0.15
+edge,stationary,39,40,0.95,ridge_time,per period,+10%,0.24,0.42
+edge,stationary,39,40,0.95,ridge_time,per period,-10%,0.27,0.3
+edge,stationary,39,40,0.95,ridge_time,per period,ramp to -10%,0.27,0.13
+edge,stationary,39,80,0.9,dsc_both,cumulative,+10%,0.21,0.2
+edge,stationary,39,80,0.9,dsc_both,cumulative,-10%,0.32,0.24
+edge,stationary,39,80,0.9,dsc_both,cumulative,ramp to -10%,0.17,0.12
+edge,stationary,39,80,0.9,dsc_both,per period,+10%,0.12,0.19
+edge,stationary,39,80,0.9,dsc_both,per period,-10%,0.17,0.1
+edge,stationary,39,80,0.9,dsc_both,per period,ramp to -10%,0.17,0.11
+edge,stationary,39,80,0.9,dsc_space,cumulative,+10%,0.3,0.3
+edge,stationary,39,80,0.9,dsc_space,cumulative,-10%,0.57,0.48
+edge,stationary,39,80,0.9,dsc_space,cumulative,ramp to -10%,0.32,0.25
+edge,stationary,39,80,0.9,dsc_space,per period,+10%,0.16,0.29
+edge,stationary,39,80,0.9,dsc_space,per period,-10%,0.38,0.19
+edge,stationary,39,80,0.9,dsc_space,per period,ramp to -10%,0.38,0.16
+edge,stationary,39,80,0.9,dsc_time,cumulative,+10%,0.22,0.24
+edge,stationary,39,80,0.9,dsc_time,cumulative,-10%,0.33,0.28
+edge,stationary,39,80,0.9,dsc_time,cumulative,ramp to -10%,0.18,0.14
+edge,stationary,39,80,0.9,dsc_time,per period,+10%,0.12,0.25
+edge,stationary,39,80,0.9,dsc_time,per period,-10%,0.2,0.19
+edge,stationary,39,80,0.9,dsc_time,per period,ramp to -10%,0.2,0.15
+edge,stationary,39,80,0.9,ridge_both,cumulative,+10%,0.38,0.26
+edge,stationary,39,80,0.9,ridge_both,cumulative,-10%,0.36,0.22
+edge,stationary,39,80,0.9,ridge_both,cumulative,ramp to -10%,0.09,0.04
+edge,stationary,39,80,0.9,ridge_both,per period,+10%,0.11,0.12
+edge,stationary,39,80,0.9,ridge_both,per period,-10%,0.09,0.06
+edge,stationary,39,80,0.9,ridge_both,per period,ramp to -10%,0.09,0.03
+edge,stationary,39,80,0.9,ridge_space,cumulative,+10%,0.5,0.29
+edge,stationary,39,80,0.9,ridge_space,cumulative,-10%,0.47,0.28
+edge,stationary,39,80,0.9,ridge_space,cumulative,ramp to -10%,0.13,0.04
+edge,stationary,39,80,0.9,ridge_space,per period,+10%,0.14,0.12
+edge,stationary,39,80,0.9,ridge_space,per period,-10%,0.14,0.07
+edge,stationary,39,80,0.9,ridge_space,per period,ramp to -10%,0.14,0.04
+edge,stationary,39,80,0.9,ridge_time,cumulative,+10%,0.67,0.65
+edge,stationary,39,80,0.9,ridge_time,cumulative,-10%,0.68,0.69
+edge,stationary,39,80,0.9,ridge_time,cumulative,ramp to -10%,0.31,0.18
+edge,stationary,39,80,0.9,ridge_time,per period,+10%,0.35,0.49
+edge,stationary,39,80,0.9,ridge_time,per period,-10%,0.31,0.36
+edge,stationary,39,80,0.9,ridge_time,per period,ramp to -10%,0.31,0.18
+edge,stationary,39,80,0.95,dsc_both,cumulative,+10%,0.2,0.19
+edge,stationary,39,80,0.95,dsc_both,cumulative,-10%,0.2,0.19
+edge,stationary,39,80,0.95,dsc_both,cumulative,ramp to -10%,0.07,0.07
+edge,stationary,39,80,0.95,dsc_both,per period,+10%,0.07,0.16
+edge,stationary,39,80,0.95,dsc_both,per period,-10%,0.12,0.07
+edge,stationary,39,80,0.95,dsc_both,per period,ramp to -10%,0.12,0.05
+edge,stationary,39,80,0.95,dsc_space,cumulative,+10%,0.26,0.24
+edge,stationary,39,80,0.95,dsc_space,cumulative,-10%,0.47,0.35
+edge,stationary,39,80,0.95,dsc_space,cumulative,ramp to -10%,0.24,0.15
+edge,stationary,39,80,0.95,dsc_space,per period,+10%,0.14,0.24
+edge,stationary,39,80,0.95,dsc_space,per period,-10%,0.27,0.12
+edge,stationary,39,80,0.95,dsc_space,per period,ramp to -10%,0.27,0.09
+edge,stationary,39,80,0.95,dsc_time,cumulative,+10%,0.21,0.19
+edge,stationary,39,80,0.95,dsc_time,cumulative,-10%,0.2,0.24
+edge,stationary,39,80,0.95,dsc_time,cumulative,ramp to -10%,0.1,0.09
+edge,stationary,39,80,0.95,dsc_time,per period,+10%,0.09,0.22
+edge,stationary,39,80,0.95,dsc_time,per period,-10%,0.13,0.13
+edge,stationary,39,80,0.95,dsc_time,per period,ramp to -10%,0.13,0.13
+edge,stationary,39,80,0.95,ridge_both,cumulative,+10%,0.2,0.17
+edge,stationary,39,80,0.95,ridge_both,cumulative,-10%,0.18,0.1
+edge,stationary,39,80,0.95,ridge_both,cumulative,ramp to -10%,0.05,0.03
+edge,stationary,39,80,0.95,ridge_both,per period,+10%,0.05,0.06
+edge,stationary,39,80,0.95,ridge_both,per period,-10%,0.05,0.05
+edge,stationary,39,80,0.95,ridge_both,per period,ramp to -10%,0.05,0.01
+edge,stationary,39,80,0.95,ridge_space,cumulative,+10%,0.29,0.21
+edge,stationary,39,80,0.95,ridge_space,cumulative,-10%,0.29,0.17
+edge,stationary,39,80,0.95,ridge_space,cumulative,ramp to -10%,0.08,0.03
+edge,stationary,39,80,0.95,ridge_space,per period,+10%,0.05,0.08
+edge,stationary,39,80,0.95,ridge_space,per period,-10%,0.09,0.05
+edge,stationary,39,80,0.95,ridge_space,per period,ramp to -10%,0.09,0.02
+edge,stationary,39,80,0.95,ridge_time,cumulative,+10%,0.56,0.5
+edge,stationary,39,80,0.95,ridge_time,cumulative,-10%,0.56,0.47
+edge,stationary,39,80,0.95,ridge_time,cumulative,ramp to -10%,0.21,0.08
+edge,stationary,39,80,0.95,ridge_time,per period,+10%,0.28,0.35
+edge,stationary,39,80,0.95,ridge_time,per period,-10%,0.22,0.25
+edge,stationary,39,80,0.95,ridge_time,per period,ramp to -10%,0.22,0.13
+exchangeable,random_walk,19,40,0.9,dsc_both,cumulative,+10%,0.49,0.59
+exchangeable,random_walk,19,40,0.9,dsc_both,cumulative,-10%,0.61,0.63
+exchangeable,random_walk,19,40,0.9,dsc_both,cumulative,ramp to -10%,0.33,0.17
+exchangeable,random_walk,19,40,0.9,dsc_both,per period,+10%,0.25,0.48
+exchangeable,random_walk,19,40,0.9,dsc_both,per period,-10%,0.39,0.53
+exchangeable,random_walk,19,40,0.9,dsc_both,per period,ramp to -10%,0.39,0.28
+exchangeable,random_walk,19,40,0.9,dsc_space,cumulative,+10%,0.68,0.8
+exchangeable,random_walk,19,40,0.9,dsc_space,cumulative,-10%,0.77,0.84
+exchangeable,random_walk,19,40,0.9,dsc_space,cumulative,ramp to -10%,0.56,0.39
+exchangeable,random_walk,19,40,0.9,dsc_space,per period,+10%,0.42,0.71
+exchangeable,random_walk,19,40,0.9,dsc_space,per period,-10%,0.6,0.75
+exchangeable,random_walk,19,40,0.9,dsc_space,per period,ramp to -10%,0.6,0.51
+exchangeable,random_walk,19,40,0.9,dsc_time,cumulative,+10%,0.53,0.6
+exchangeable,random_walk,19,40,0.9,dsc_time,cumulative,-10%,0.65,0.65
+exchangeable,random_walk,19,40,0.9,dsc_time,cumulative,ramp to -10%,0.39,0.25
+exchangeable,random_walk,19,40,0.9,dsc_time,per period,+10%,0.32,0.54
+exchangeable,random_walk,19,40,0.9,dsc_time,per period,-10%,0.45,0.61
+exchangeable,random_walk,19,40,0.9,dsc_time,per period,ramp to -10%,0.45,0.35
+exchangeable,random_walk,19,40,0.9,ridge_both,cumulative,+10%,0.47,0.62
+exchangeable,random_walk,19,40,0.9,ridge_both,cumulative,-10%,0.55,0.65
+exchangeable,random_walk,19,40,0.9,ridge_both,cumulative,ramp to -10%,0.32,0.13
+exchangeable,random_walk,19,40,0.9,ridge_both,per period,+10%,0.22,0.47
+exchangeable,random_walk,19,40,0.9,ridge_both,per period,-10%,0.3,0.5
+exchangeable,random_walk,19,40,0.9,ridge_both,per period,ramp to -10%,0.3,0.2
+exchangeable,random_walk,19,40,0.9,ridge_space,cumulative,+10%,0.73,0.84
+exchangeable,random_walk,19,40,0.9,ridge_space,cumulative,-10%,0.78,0.86
+exchangeable,random_walk,19,40,0.9,ridge_space,cumulative,ramp to -10%,0.59,0.4
+exchangeable,random_walk,19,40,0.9,ridge_space,per period,+10%,0.44,0.72
+exchangeable,random_walk,19,40,0.9,ridge_space,per period,-10%,0.58,0.74
+exchangeable,random_walk,19,40,0.9,ridge_space,per period,ramp to -10%,0.58,0.51
+exchangeable,random_walk,19,40,0.9,ridge_time,cumulative,+10%,0.57,0.69
+exchangeable,random_walk,19,40,0.9,ridge_time,cumulative,-10%,0.62,0.73
+exchangeable,random_walk,19,40,0.9,ridge_time,cumulative,ramp to -10%,0.37,0.25
+exchangeable,random_walk,19,40,0.9,ridge_time,per period,+10%,0.33,0.58
+exchangeable,random_walk,19,40,0.9,ridge_time,per period,-10%,0.4,0.59
+exchangeable,random_walk,19,40,0.9,ridge_time,per period,ramp to -10%,0.4,0.28
+exchangeable,random_walk,19,40,0.95,dsc_both,cumulative,+10%,0.37,0.5
+exchangeable,random_walk,19,40,0.95,dsc_both,cumulative,-10%,0.49,0.59
+exchangeable,random_walk,19,40,0.95,dsc_both,cumulative,ramp to -10%,0.21,0.12
+exchangeable,random_walk,19,40,0.95,dsc_both,per period,+10%,0.14,0.41
+exchangeable,random_walk,19,40,0.95,dsc_both,per period,-10%,0.25,0.45
+exchangeable,random_walk,19,40,0.95,dsc_both,per period,ramp to -10%,0.25,0.15
+exchangeable,random_walk,19,40,0.95,dsc_space,cumulative,+10%,0.58,0.71
+exchangeable,random_walk,19,40,0.95,dsc_space,cumulative,-10%,0.7,0.78
+exchangeable,random_walk,19,40,0.95,dsc_space,cumulative,ramp to -10%,0.46,0.3
+exchangeable,random_walk,19,40,0.95,dsc_space,per period,+10%,0.28,0.63
+exchangeable,random_walk,19,40,0.95,dsc_space,per period,-10%,0.43,0.66
+exchangeable,random_walk,19,40,0.95,dsc_space,per period,ramp to -10%,0.43,0.38
+exchangeable,random_walk,19,40,0.95,dsc_time,cumulative,+10%,0.43,0.54
+exchangeable,random_walk,19,40,0.95,dsc_time,cumulative,-10%,0.56,0.61
+exchangeable,random_walk,19,40,0.95,dsc_time,cumulative,ramp to -10%,0.3,0.15
+exchangeable,random_walk,19,40,0.95,dsc_time,per period,+10%,0.25,0.47
+exchangeable,random_walk,19,40,0.95,dsc_time,per period,-10%,0.36,0.55
+exchangeable,random_walk,19,40,0.95,dsc_time,per period,ramp to -10%,0.36,0.23
+exchangeable,random_walk,19,40,0.95,ridge_both,cumulative,+10%,0.43,0.46
+exchangeable,random_walk,19,40,0.95,ridge_both,cumulative,-10%,0.44,0.56
+exchangeable,random_walk,19,40,0.95,ridge_both,cumulative,ramp to -10%,0.21,0.06
+exchangeable,random_walk,19,40,0.95,ridge_both,per period,+10%,0.15,0.35
+exchangeable,random_walk,19,40,0.95,ridge_both,per period,-10%,0.17,0.42
+exchangeable,random_walk,19,40,0.95,ridge_both,per period,ramp to -10%,0.17,0.1
+exchangeable,random_walk,19,40,0.95,ridge_space,cumulative,+10%,0.64,0.77
+exchangeable,random_walk,19,40,0.95,ridge_space,cumulative,-10%,0.72,0.75
+exchangeable,random_walk,19,40,0.95,ridge_space,cumulative,ramp to -10%,0.47,0.28
+exchangeable,random_walk,19,40,0.95,ridge_space,per period,+10%,0.33,0.64
+exchangeable,random_walk,19,40,0.95,ridge_space,per period,-10%,0.48,0.68
+exchangeable,random_walk,19,40,0.95,ridge_space,per period,ramp to -10%,0.48,0.38
+exchangeable,random_walk,19,40,0.95,ridge_time,cumulative,+10%,0.5,0.56
+exchangeable,random_walk,19,40,0.95,ridge_time,cumulative,-10%,0.53,0.65
+exchangeable,random_walk,19,40,0.95,ridge_time,cumulative,ramp to -10%,0.28,0.15
+exchangeable,random_walk,19,40,0.95,ridge_time,per period,+10%,0.25,0.44
+exchangeable,random_walk,19,40,0.95,ridge_time,per period,-10%,0.27,0.53
+exchangeable,random_walk,19,40,0.95,ridge_time,per period,ramp to -10%,0.27,0.21
+exchangeable,random_walk,19,80,0.9,dsc_both,cumulative,+10%,0.57,0.7
+exchangeable,random_walk,19,80,0.9,dsc_both,cumulative,-10%,0.78,0.83
+exchangeable,random_walk,19,80,0.9,dsc_both,cumulative,ramp to -10%,0.46,0.29
+exchangeable,random_walk,19,80,0.9,dsc_both,per period,+10%,0.29,0.56
+exchangeable,random_walk,19,80,0.9,dsc_both,per period,-10%,0.46,0.68
+exchangeable,random_walk,19,80,0.9,dsc_both,per period,ramp to -10%,0.46,0.32
+exchangeable,random_walk,19,80,0.9,dsc_space,cumulative,+10%,0.68,0.74
+exchangeable,random_walk,19,80,0.9,dsc_space,cumulative,-10%,0.83,0.84
+exchangeable,random_walk,19,80,0.9,dsc_space,cumulative,ramp to -10%,0.57,0.47
+exchangeable,random_walk,19,80,0.9,dsc_space,per period,+10%,0.42,0.66
+exchangeable,random_walk,19,80,0.9,dsc_space,per period,-10%,0.64,0.77
+exchangeable,random_walk,19,80,0.9,dsc_space,per period,ramp to -10%,0.64,0.54
+exchangeable,random_walk,19,80,0.9,dsc_time,cumulative,+10%,0.66,0.77
+exchangeable,random_walk,19,80,0.9,dsc_time,cumulative,-10%,0.81,0.85
+exchangeable,random_walk,19,80,0.9,dsc_time,cumulative,ramp to -10%,0.59,0.39
+exchangeable,random_walk,19,80,0.9,dsc_time,per period,+10%,0.36,0.66
+exchangeable,random_walk,19,80,0.9,dsc_time,per period,-10%,0.58,0.75
+exchangeable,random_walk,19,80,0.9,dsc_time,per period,ramp to -10%,0.58,0.47
+exchangeable,random_walk,19,80,0.9,ridge_both,cumulative,+10%,0.68,0.76
+exchangeable,random_walk,19,80,0.9,ridge_both,cumulative,-10%,0.73,0.82
+exchangeable,random_walk,19,80,0.9,ridge_both,cumulative,ramp to -10%,0.39,0.22
+exchangeable,random_walk,19,80,0.9,ridge_both,per period,+10%,0.28,0.59
+exchangeable,random_walk,19,80,0.9,ridge_both,per period,-10%,0.47,0.62
+exchangeable,random_walk,19,80,0.9,ridge_both,per period,ramp to -10%,0.47,0.25
+exchangeable,random_walk,19,80,0.9,ridge_space,cumulative,+10%,0.79,0.86
+exchangeable,random_walk,19,80,0.9,ridge_space,cumulative,-10%,0.81,0.85
+exchangeable,random_walk,19,80,0.9,ridge_space,cumulative,ramp to -10%,0.61,0.48
+exchangeable,random_walk,19,80,0.9,ridge_space,per period,+10%,0.57,0.8
+exchangeable,random_walk,19,80,0.9,ridge_space,per period,-10%,0.65,0.81
+exchangeable,random_walk,19,80,0.9,ridge_space,per period,ramp to -10%,0.65,0.54
+exchangeable,random_walk,19,80,0.9,ridge_time,cumulative,+10%,0.78,0.83
+exchangeable,random_walk,19,80,0.9,ridge_time,cumulative,-10%,0.79,0.85
+exchangeable,random_walk,19,80,0.9,ridge_time,cumulative,ramp to -10%,0.45,0.29
+exchangeable,random_walk,19,80,0.9,ridge_time,per period,+10%,0.39,0.67
+exchangeable,random_walk,19,80,0.9,ridge_time,per period,-10%,0.52,0.66
+exchangeable,random_walk,19,80,0.9,ridge_time,per period,ramp to -10%,0.52,0.33
+exchangeable,random_walk,19,80,0.95,dsc_both,cumulative,+10%,0.4,0.51
+exchangeable,random_walk,19,80,0.95,dsc_both,cumulative,-10%,0.71,0.71
+exchangeable,random_walk,19,80,0.95,dsc_both,cumulative,ramp to -10%,0.28,0.18
+exchangeable,random_walk,19,80,0.95,dsc_both,per period,+10%,0.15,0.39
+exchangeable,random_walk,19,80,0.95,dsc_both,per period,-10%,0.35,0.53
+exchangeable,random_walk,19,80,0.95,dsc_both,per period,ramp to -10%,0.35,0.2
+exchangeable,random_walk,19,80,0.95,dsc_space,cumulative,+10%,0.56,0.67
+exchangeable,random_walk,19,80,0.95,dsc_space,cumulative,-10%,0.78,0.77
+exchangeable,random_walk,19,80,0.95,dsc_space,cumulative,ramp to -10%,0.48,0.34
+exchangeable,random_walk,19,80,0.95,dsc_space,per period,+10%,0.32,0.58
+exchangeable,random_walk,19,80,0.95,dsc_space,per period,-10%,0.52,0.68
+exchangeable,random_walk,19,80,0.95,dsc_space,per period,ramp to -10%,0.52,0.42
+exchangeable,random_walk,19,80,0.95,dsc_time,cumulative,+10%,0.53,0.6
+exchangeable,random_walk,19,80,0.95,dsc_time,cumulative,-10%,0.75,0.79
+exchangeable,random_walk,19,80,0.95,dsc_time,cumulative,ramp to -10%,0.38,0.29
+exchangeable,random_walk,19,80,0.95,dsc_time,per period,+10%,0.23,0.51
+exchangeable,random_walk,19,80,0.95,dsc_time,per period,-10%,0.48,0.63
+exchangeable,random_walk,19,80,0.95,dsc_time,per period,ramp to -10%,0.48,0.34
+exchangeable,random_walk,19,80,0.95,ridge_both,cumulative,+10%,0.49,0.61
+exchangeable,random_walk,19,80,0.95,ridge_both,cumulative,-10%,0.56,0.65
+exchangeable,random_walk,19,80,0.95,ridge_both,cumulative,ramp to -10%,0.25,0.08
+exchangeable,random_walk,19,80,0.95,ridge_both,per period,+10%,0.16,0.37
+exchangeable,random_walk,19,80,0.95,ridge_both,per period,-10%,0.29,0.44
+exchangeable,random_walk,19,80,0.95,ridge_both,per period,ramp to -10%,0.29,0.13
+exchangeable,random_walk,19,80,0.95,ridge_space,cumulative,+10%,0.71,0.8
+exchangeable,random_walk,19,80,0.95,ridge_space,cumulative,-10%,0.77,0.79
+exchangeable,random_walk,19,80,0.95,ridge_space,cumulative,ramp to -10%,0.51,0.37
+exchangeable,random_walk,19,80,0.95,ridge_space,per period,+10%,0.46,0.73
+exchangeable,random_walk,19,80,0.95,ridge_space,per period,-10%,0.57,0.74
+exchangeable,random_walk,19,80,0.95,ridge_space,per period,ramp to -10%,0.57,0.45
+exchangeable,random_walk,19,80,0.95,ridge_time,cumulative,+10%,0.56,0.69
+exchangeable,random_walk,19,80,0.95,ridge_time,cumulative,-10%,0.61,0.69
+exchangeable,random_walk,19,80,0.95,ridge_time,cumulative,ramp to -10%,0.31,0.13
+exchangeable,random_walk,19,80,0.95,ridge_time,per period,+10%,0.25,0.48
+exchangeable,random_walk,19,80,0.95,ridge_time,per period,-10%,0.35,0.5
+exchangeable,random_walk,19,80,0.95,ridge_time,per period,ramp to -10%,0.35,0.17
+exchangeable,random_walk,39,40,0.9,dsc_both,cumulative,+10%,0.42,0.55
+exchangeable,random_walk,39,40,0.9,dsc_both,cumulative,-10%,0.56,0.66
+exchangeable,random_walk,39,40,0.9,dsc_both,cumulative,ramp to -10%,0.27,0.11
+exchangeable,random_walk,39,40,0.9,dsc_both,per period,+10%,0.16,0.34
+exchangeable,random_walk,39,40,0.9,dsc_both,per period,-10%,0.31,0.39
+exchangeable,random_walk,39,40,0.9,dsc_both,per period,ramp to -10%,0.31,0.13
+exchangeable,random_walk,39,40,0.9,dsc_space,cumulative,+10%,0.7,0.88
+exchangeable,random_walk,39,40,0.9,dsc_space,cumulative,-10%,0.86,0.9
+exchangeable,random_walk,39,40,0.9,dsc_space,cumulative,ramp to -10%,0.62,0.43
+exchangeable,random_walk,39,40,0.9,dsc_space,per period,+10%,0.4,0.81
+exchangeable,random_walk,39,40,0.9,dsc_space,per period,-10%,0.61,0.81
+exchangeable,random_walk,39,40,0.9,dsc_space,per period,ramp to -10%,0.61,0.51
+exchangeable,random_walk,39,40,0.9,dsc_time,cumulative,+10%,0.46,0.58
+exchangeable,random_walk,39,40,0.9,dsc_time,cumulative,-10%,0.58,0.67
+exchangeable,random_walk,39,40,0.9,dsc_time,cumulative,ramp to -10%,0.33,0.13
+exchangeable,random_walk,39,40,0.9,dsc_time,per period,+10%,0.2,0.41
+exchangeable,random_walk,39,40,0.9,dsc_time,per period,-10%,0.4,0.44
+exchangeable,random_walk,39,40,0.9,dsc_time,per period,ramp to -10%,0.4,0.18
+exchangeable,random_walk,39,40,0.9,ridge_both,cumulative,+10%,0.46,0.58
+exchangeable,random_walk,39,40,0.9,ridge_both,cumulative,-10%,0.55,0.62
+exchangeable,random_walk,39,40,0.9,ridge_both,cumulative,ramp to -10%,0.27,0.14
+exchangeable,random_walk,39,40,0.9,ridge_both,per period,+10%,0.16,0.41
+exchangeable,random_walk,39,40,0.9,ridge_both,per period,-10%,0.3,0.37
+exchangeable,random_walk,39,40,0.9,ridge_both,per period,ramp to -10%,0.3,0.15
+exchangeable,random_walk,39,40,0.9,ridge_space,cumulative,+10%,0.81,0.92
+exchangeable,random_walk,39,40,0.9,ridge_space,cumulative,-10%,0.81,0.9
+exchangeable,random_walk,39,40,0.9,ridge_space,cumulative,ramp to -10%,0.59,0.39
+exchangeable,random_walk,39,40,0.9,ridge_space,per period,+10%,0.42,0.85
+exchangeable,random_walk,39,40,0.9,ridge_space,per period,-10%,0.61,0.75
+exchangeable,random_walk,39,40,0.9,ridge_space,per period,ramp to -10%,0.61,0.48
+exchangeable,random_walk,39,40,0.9,ridge_time,cumulative,+10%,0.5,0.61
+exchangeable,random_walk,39,40,0.9,ridge_time,cumulative,-10%,0.59,0.63
+exchangeable,random_walk,39,40,0.9,ridge_time,cumulative,ramp to -10%,0.3,0.16
+exchangeable,random_walk,39,40,0.9,ridge_time,per period,+10%,0.21,0.46
+exchangeable,random_walk,39,40,0.9,ridge_time,per period,-10%,0.34,0.45
+exchangeable,random_walk,39,40,0.9,ridge_time,per period,ramp to -10%,0.34,0.21
+exchangeable,random_walk,39,40,0.95,dsc_both,cumulative,+10%,0.29,0.41
+exchangeable,random_walk,39,40,0.95,dsc_both,cumulative,-10%,0.43,0.55
+exchangeable,random_walk,39,40,0.95,dsc_both,cumulative,ramp to -10%,0.17,0.08
+exchangeable,random_walk,39,40,0.95,dsc_both,per period,+10%,0.1,0.25
+exchangeable,random_walk,39,40,0.95,dsc_both,per period,-10%,0.2,0.3
+exchangeable,random_walk,39,40,0.95,dsc_both,per period,ramp to -10%,0.2,0.09
+exchangeable,random_walk,39,40,0.95,dsc_space,cumulative,+10%,0.6,0.79
+exchangeable,random_walk,39,40,0.95,dsc_space,cumulative,-10%,0.77,0.87
+exchangeable,random_walk,39,40,0.95,dsc_space,cumulative,ramp to -10%,0.46,0.32
+exchangeable,random_walk,39,40,0.95,dsc_space,per period,+10%,0.32,0.67
+exchangeable,random_walk,39,40,0.95,dsc_space,per period,-10%,0.55,0.71
+exchangeable,random_walk,39,40,0.95,dsc_space,per period,ramp to -10%,0.55,0.42
+exchangeable,random_walk,39,40,0.95,dsc_time,cumulative,+10%,0.36,0.46
+exchangeable,random_walk,39,40,0.95,dsc_time,cumulative,-10%,0.47,0.57
+exchangeable,random_walk,39,40,0.95,dsc_time,cumulative,ramp to -10%,0.25,0.11
+exchangeable,random_walk,39,40,0.95,dsc_time,per period,+10%,0.13,0.33
+exchangeable,random_walk,39,40,0.95,dsc_time,per period,-10%,0.29,0.35
+exchangeable,random_walk,39,40,0.95,dsc_time,per period,ramp to -10%,0.29,0.16
+exchangeable,random_walk,39,40,0.95,ridge_both,cumulative,+10%,0.31,0.48
+exchangeable,random_walk,39,40,0.95,ridge_both,cumulative,-10%,0.44,0.49
+exchangeable,random_walk,39,40,0.95,ridge_both,cumulative,ramp to -10%,0.14,0.08
+exchangeable,random_walk,39,40,0.95,ridge_both,per period,+10%,0.1,0.28
+exchangeable,random_walk,39,40,0.95,ridge_both,per period,-10%,0.2,0.23
+exchangeable,random_walk,39,40,0.95,ridge_both,per period,ramp to -10%,0.2,0.08
+exchangeable,random_walk,39,40,0.95,ridge_space,cumulative,+10%,0.64,0.84
+exchangeable,random_walk,39,40,0.95,ridge_space,cumulative,-10%,0.74,0.86
+exchangeable,random_walk,39,40,0.95,ridge_space,cumulative,ramp to -10%,0.49,0.34
+exchangeable,random_walk,39,40,0.95,ridge_space,per period,+10%,0.31,0.74
+exchangeable,random_walk,39,40,0.95,ridge_space,per period,-10%,0.53,0.66
+exchangeable,random_walk,39,40,0.95,ridge_space,per period,ramp to -10%,0.53,0.45
+exchangeable,random_walk,39,40,0.95,ridge_time,cumulative,+10%,0.38,0.53
+exchangeable,random_walk,39,40,0.95,ridge_time,cumulative,-10%,0.5,0.52
+exchangeable,random_walk,39,40,0.95,ridge_time,cumulative,ramp to -10%,0.16,0.1
+exchangeable,random_walk,39,40,0.95,ridge_time,per period,+10%,0.16,0.35
+exchangeable,random_walk,39,40,0.95,ridge_time,per period,-10%,0.25,0.34
+exchangeable,random_walk,39,40,0.95,ridge_time,per period,ramp to -10%,0.25,0.14
+exchangeable,random_walk,39,80,0.9,dsc_both,cumulative,+10%,0.54,0.67
+exchangeable,random_walk,39,80,0.9,dsc_both,cumulative,-10%,0.68,0.79
+exchangeable,random_walk,39,80,0.9,dsc_both,cumulative,ramp to -10%,0.39,0.26
+exchangeable,random_walk,39,80,0.9,dsc_both,per period,+10%,0.27,0.48
+exchangeable,random_walk,39,80,0.9,dsc_both,per period,-10%,0.48,0.57
+exchangeable,random_walk,39,80,0.9,dsc_both,per period,ramp to -10%,0.48,0.25
+exchangeable,random_walk,39,80,0.9,dsc_space,cumulative,+10%,0.71,0.78
+exchangeable,random_walk,39,80,0.9,dsc_space,cumulative,-10%,0.87,0.92
+exchangeable,random_walk,39,80,0.9,dsc_space,cumulative,ramp to -10%,0.65,0.49
+exchangeable,random_walk,39,80,0.9,dsc_space,per period,+10%,0.48,0.68
+exchangeable,random_walk,39,80,0.9,dsc_space,per period,-10%,0.69,0.8
+exchangeable,random_walk,39,80,0.9,dsc_space,per period,ramp to -10%,0.69,0.54
+exchangeable,random_walk,39,80,0.9,dsc_time,cumulative,+10%,0.59,0.72
+exchangeable,random_walk,39,80,0.9,dsc_time,cumulative,-10%,0.71,0.81
+exchangeable,random_walk,39,80,0.9,dsc_time,cumulative,ramp to -10%,0.47,0.32
+exchangeable,random_walk,39,80,0.9,dsc_time,per period,+10%,0.31,0.5
+exchangeable,random_walk,39,80,0.9,dsc_time,per period,-10%,0.5,0.6
+exchangeable,random_walk,39,80,0.9,dsc_time,per period,ramp to -10%,0.5,0.3
+exchangeable,random_walk,39,80,0.9,ridge_both,cumulative,+10%,0.6,0.73
+exchangeable,random_walk,39,80,0.9,ridge_both,cumulative,-10%,0.66,0.74
+exchangeable,random_walk,39,80,0.9,ridge_both,cumulative,ramp to -10%,0.4,0.24
+exchangeable,random_walk,39,80,0.9,ridge_both,per period,+10%,0.28,0.51
+exchangeable,random_walk,39,80,0.9,ridge_both,per period,-10%,0.4,0.55
+exchangeable,random_walk,39,80,0.9,ridge_both,per period,ramp to -10%,0.4,0.19
+exchangeable,random_walk,39,80,0.9,ridge_space,cumulative,+10%,0.81,0.82
+exchangeable,random_walk,39,80,0.9,ridge_space,cumulative,-10%,0.83,0.87
+exchangeable,random_walk,39,80,0.9,ridge_space,cumulative,ramp to -10%,0.68,0.51
+exchangeable,random_walk,39,80,0.9,ridge_space,per period,+10%,0.54,0.69
+exchangeable,random_walk,39,80,0.9,ridge_space,per period,-10%,0.65,0.79
+exchangeable,random_walk,39,80,0.9,ridge_space,per period,ramp to -10%,0.65,0.58
+exchangeable,random_walk,39,80,0.9,ridge_time,cumulative,+10%,0.65,0.78
+exchangeable,random_walk,39,80,0.9,ridge_time,cumulative,-10%,0.69,0.75
+exchangeable,random_walk,39,80,0.9,ridge_time,cumulative,ramp to -10%,0.43,0.29
+exchangeable,random_walk,39,80,0.9,ridge_time,per period,+10%,0.34,0.57
+exchangeable,random_walk,39,80,0.9,ridge_time,per period,-10%,0.42,0.55
+exchangeable,random_walk,39,80,0.9,ridge_time,per period,ramp to -10%,0.42,0.26
+exchangeable,random_walk,39,80,0.95,dsc_both,cumulative,+10%,0.33,0.5
+exchangeable,random_walk,39,80,0.95,dsc_both,cumulative,-10%,0.56,0.68
+exchangeable,random_walk,39,80,0.95,dsc_both,cumulative,ramp to -10%,0.24,0.1
+exchangeable,random_walk,39,80,0.95,dsc_both,per period,+10%,0.18,0.31
+exchangeable,random_walk,39,80,0.95,dsc_both,per period,-10%,0.29,0.42
+exchangeable,random_walk,39,80,0.95,dsc_both,per period,ramp to -10%,0.29,0.14
+exchangeable,random_walk,39,80,0.95,dsc_space,cumulative,+10%,0.57,0.72
+exchangeable,random_walk,39,80,0.95,dsc_space,cumulative,-10%,0.83,0.84
+exchangeable,random_walk,39,80,0.95,dsc_space,cumulative,ramp to -10%,0.48,0.32
+exchangeable,random_walk,39,80,0.95,dsc_space,per period,+10%,0.38,0.54
+exchangeable,random_walk,39,80,0.95,dsc_space,per period,-10%,0.56,0.69
+exchangeable,random_walk,39,80,0.95,dsc_space,per period,ramp to -10%,0.56,0.46
+exchangeable,random_walk,39,80,0.95,dsc_time,cumulative,+10%,0.43,0.53
+exchangeable,random_walk,39,80,0.95,dsc_time,cumulative,-10%,0.6,0.71
+exchangeable,random_walk,39,80,0.95,dsc_time,cumulative,ramp to -10%,0.32,0.17
+exchangeable,random_walk,39,80,0.95,dsc_time,per period,+10%,0.22,0.35
+exchangeable,random_walk,39,80,0.95,dsc_time,per period,-10%,0.35,0.49
+exchangeable,random_walk,39,80,0.95,dsc_time,per period,ramp to -10%,0.35,0.18
+exchangeable,random_walk,39,80,0.95,ridge_both,cumulative,+10%,0.45,0.62
+exchangeable,random_walk,39,80,0.95,ridge_both,cumulative,-10%,0.52,0.6
+exchangeable,random_walk,39,80,0.95,ridge_both,cumulative,ramp to -10%,0.25,0.09
+exchangeable,random_walk,39,80,0.95,ridge_both,per period,+10%,0.19,0.3
+exchangeable,random_walk,39,80,0.95,ridge_both,per period,-10%,0.28,0.41
+exchangeable,random_walk,39,80,0.95,ridge_both,per period,ramp to -10%,0.28,0.09
+exchangeable,random_walk,39,80,0.95,ridge_space,cumulative,+10%,0.73,0.78
+exchangeable,random_walk,39,80,0.95,ridge_space,cumulative,-10%,0.8,0.83
+exchangeable,random_walk,39,80,0.95,ridge_space,cumulative,ramp to -10%,0.53,0.41
+exchangeable,random_walk,39,80,0.95,ridge_space,per period,+10%,0.44,0.63
+exchangeable,random_walk,39,80,0.95,ridge_space,per period,-10%,0.58,0.72
+exchangeable,random_walk,39,80,0.95,ridge_space,per period,ramp to -10%,0.58,0.43
+exchangeable,random_walk,39,80,0.95,ridge_time,cumulative,+10%,0.52,0.67
+exchangeable,random_walk,39,80,0.95,ridge_time,cumulative,-10%,0.55,0.61
+exchangeable,random_walk,39,80,0.95,ridge_time,cumulative,ramp to -10%,0.3,0.12
+exchangeable,random_walk,39,80,0.95,ridge_time,per period,+10%,0.23,0.36
+exchangeable,random_walk,39,80,0.95,ridge_time,per period,-10%,0.29,0.43
+exchangeable,random_walk,39,80,0.95,ridge_time,per period,ramp to -10%,0.29,0.14
+exchangeable,stationary,19,40,0.9,dsc_both,cumulative,+10%,0.55,0.58
+exchangeable,stationary,19,40,0.9,dsc_both,cumulative,-10%,0.6,0.62
+exchangeable,stationary,19,40,0.9,dsc_both,cumulative,ramp to -10%,0.3,0.14
+exchangeable,stationary,19,40,0.9,dsc_both,per period,+10%,0.41,0.46
+exchangeable,stationary,19,40,0.9,dsc_both,per period,-10%,0.36,0.41
+exchangeable,stationary,19,40,0.9,dsc_both,per period,ramp to -10%,0.36,0.15
+exchangeable,stationary,19,40,0.9,dsc_space,cumulative,+10%,0.71,0.76
+exchangeable,stationary,19,40,0.9,dsc_space,cumulative,-10%,0.8,0.8
+exchangeable,stationary,19,40,0.9,dsc_space,cumulative,ramp to -10%,0.53,0.32
+exchangeable,stationary,19,40,0.9,dsc_space,per period,+10%,0.62,0.73
+exchangeable,stationary,19,40,0.9,dsc_space,per period,-10%,0.63,0.75
+exchangeable,stationary,19,40,0.9,dsc_space,per period,ramp to -10%,0.63,0.46
+exchangeable,stationary,19,40,0.9,dsc_time,cumulative,+10%,0.63,0.61
+exchangeable,stationary,19,40,0.9,dsc_time,cumulative,-10%,0.66,0.68
+exchangeable,stationary,19,40,0.9,dsc_time,cumulative,ramp to -10%,0.41,0.25
+exchangeable,stationary,19,40,0.9,dsc_time,per period,+10%,0.45,0.52
+exchangeable,stationary,19,40,0.9,dsc_time,per period,-10%,0.4,0.49
+exchangeable,stationary,19,40,0.9,dsc_time,per period,ramp to -10%,0.4,0.21
+exchangeable,stationary,19,40,0.9,ridge_both,cumulative,+10%,0.69,0.64
+exchangeable,stationary,19,40,0.9,ridge_both,cumulative,-10%,0.66,0.64
+exchangeable,stationary,19,40,0.9,ridge_both,cumulative,ramp to -10%,0.38,0.14
+exchangeable,stationary,19,40,0.9,ridge_both,per period,+10%,0.43,0.48
+exchangeable,stationary,19,40,0.9,ridge_both,per period,-10%,0.42,0.44
+exchangeable,stationary,19,40,0.9,ridge_both,per period,ramp to -10%,0.42,0.17
+exchangeable,stationary,19,40,0.9,ridge_space,cumulative,+10%,0.88,0.84
+exchangeable,stationary,19,40,0.9,ridge_space,cumulative,-10%,0.84,0.84
+exchangeable,stationary,19,40,0.9,ridge_space,cumulative,ramp to -10%,0.62,0.52
+exchangeable,stationary,19,40,0.9,ridge_space,per period,+10%,0.68,0.74
+exchangeable,stationary,19,40,0.9,ridge_space,per period,-10%,0.67,0.74
+exchangeable,stationary,19,40,0.9,ridge_space,per period,ramp to -10%,0.67,0.53
+exchangeable,stationary,19,40,0.9,ridge_time,cumulative,+10%,0.74,0.75
+exchangeable,stationary,19,40,0.9,ridge_time,cumulative,-10%,0.75,0.72
+exchangeable,stationary,19,40,0.9,ridge_time,cumulative,ramp to -10%,0.42,0.2
+exchangeable,stationary,19,40,0.9,ridge_time,per period,+10%,0.53,0.61
+exchangeable,stationary,19,40,0.9,ridge_time,per period,-10%,0.48,0.55
+exchangeable,stationary,19,40,0.9,ridge_time,per period,ramp to -10%,0.48,0.25
+exchangeable,stationary,19,40,0.95,dsc_both,cumulative,+10%,0.47,0.51
+exchangeable,stationary,19,40,0.95,dsc_both,cumulative,-10%,0.51,0.49
+exchangeable,stationary,19,40,0.95,dsc_both,cumulative,ramp to -10%,0.17,0.06
+exchangeable,stationary,19,40,0.95,dsc_both,per period,+10%,0.3,0.37
+exchangeable,stationary,19,40,0.95,dsc_both,per period,-10%,0.29,0.31
+exchangeable,stationary,19,40,0.95,dsc_both,per period,ramp to -10%,0.29,0.07
+exchangeable,stationary,19,40,0.95,dsc_space,cumulative,+10%,0.65,0.75
+exchangeable,stationary,19,40,0.95,dsc_space,cumulative,-10%,0.75,0.79
+exchangeable,stationary,19,40,0.95,dsc_space,cumulative,ramp to -10%,0.42,0.21
+exchangeable,stationary,19,40,0.95,dsc_space,per period,+10%,0.47,0.63
+exchangeable,stationary,19,40,0.95,dsc_space,per period,-10%,0.54,0.65
+exchangeable,stationary,19,40,0.95,dsc_space,per period,ramp to -10%,0.54,0.31
+exchangeable,stationary,19,40,0.95,dsc_time,cumulative,+10%,0.54,0.53
+exchangeable,stationary,19,40,0.95,dsc_time,cumulative,-10%,0.59,0.58
+exchangeable,stationary,19,40,0.95,dsc_time,cumulative,ramp to -10%,0.32,0.2
+exchangeable,stationary,19,40,0.95,dsc_time,per period,+10%,0.35,0.44
+exchangeable,stationary,19,40,0.95,dsc_time,per period,-10%,0.32,0.4
+exchangeable,stationary,19,40,0.95,dsc_time,per period,ramp to -10%,0.32,0.15
+exchangeable,stationary,19,40,0.95,ridge_both,cumulative,+10%,0.55,0.52
+exchangeable,stationary,19,40,0.95,ridge_both,cumulative,-10%,0.53,0.51
+exchangeable,stationary,19,40,0.95,ridge_both,cumulative,ramp to -10%,0.23,0.06
+exchangeable,stationary,19,40,0.95,ridge_both,per period,+10%,0.27,0.39
+exchangeable,stationary,19,40,0.95,ridge_both,per period,-10%,0.28,0.3
+exchangeable,stationary,19,40,0.95,ridge_both,per period,ramp to -10%,0.28,0.11
+exchangeable,stationary,19,40,0.95,ridge_space,cumulative,+10%,0.78,0.75
+exchangeable,stationary,19,40,0.95,ridge_space,cumulative,-10%,0.79,0.77
+exchangeable,stationary,19,40,0.95,ridge_space,cumulative,ramp to -10%,0.5,0.33
+exchangeable,stationary,19,40,0.95,ridge_space,per period,+10%,0.57,0.65
+exchangeable,stationary,19,40,0.95,ridge_space,per period,-10%,0.55,0.65
+exchangeable,stationary,19,40,0.95,ridge_space,per period,ramp to -10%,0.55,0.4
+exchangeable,stationary,19,40,0.95,ridge_time,cumulative,+10%,0.65,0.63
+exchangeable,stationary,19,40,0.95,ridge_time,cumulative,-10%,0.61,0.62
+exchangeable,stationary,19,40,0.95,ridge_time,cumulative,ramp to -10%,0.33,0.1
+exchangeable,stationary,19,40,0.95,ridge_time,per period,+10%,0.35,0.47
+exchangeable,stationary,19,40,0.95,ridge_time,per period,-10%,0.33,0.43
+exchangeable,stationary,19,40,0.95,ridge_time,per period,ramp to -10%,0.33,0.17
+exchangeable,stationary,19,80,0.9,dsc_both,cumulative,+10%,0.68,0.74
+exchangeable,stationary,19,80,0.9,dsc_both,cumulative,-10%,0.78,0.78
+exchangeable,stationary,19,80,0.9,dsc_both,cumulative,ramp to -10%,0.51,0.28
+exchangeable,stationary,19,80,0.9,dsc_both,per period,+10%,0.52,0.65
+exchangeable,stationary,19,80,0.9,dsc_both,per period,-10%,0.57,0.6
+exchangeable,stationary,19,80,0.9,dsc_both,per period,ramp to -10%,0.57,0.35
+exchangeable,stationary,19,80,0.9,dsc_space,cumulative,+10%,0.75,0.81
+exchangeable,stationary,19,80,0.9,dsc_space,cumulative,-10%,0.87,0.83
+exchangeable,stationary,19,80,0.9,dsc_space,cumulative,ramp to -10%,0.65,0.45
+exchangeable,stationary,19,80,0.9,dsc_space,per period,+10%,0.64,0.79
+exchangeable,stationary,19,80,0.9,dsc_space,per period,-10%,0.77,0.77
+exchangeable,stationary,19,80,0.9,dsc_space,per period,ramp to -10%,0.77,0.65
+exchangeable,stationary,19,80,0.9,dsc_time,cumulative,+10%,0.71,0.75
+exchangeable,stationary,19,80,0.9,dsc_time,cumulative,-10%,0.79,0.8
+exchangeable,stationary,19,80,0.9,dsc_time,cumulative,ramp to -10%,0.55,0.36
+exchangeable,stationary,19,80,0.9,dsc_time,per period,+10%,0.55,0.69
+exchangeable,stationary,19,80,0.9,dsc_time,per period,-10%,0.61,0.64
+exchangeable,stationary,19,80,0.9,dsc_time,per period,ramp to -10%,0.61,0.4
+exchangeable,stationary,19,80,0.9,ridge_both,cumulative,+10%,0.87,0.82
+exchangeable,stationary,19,80,0.9,ridge_both,cumulative,-10%,0.82,0.81
+exchangeable,stationary,19,80,0.9,ridge_both,cumulative,ramp to -10%,0.57,0.3
+exchangeable,stationary,19,80,0.9,ridge_both,per period,+10%,0.58,0.62
+exchangeable,stationary,19,80,0.9,ridge_both,per period,-10%,0.62,0.62
+exchangeable,stationary,19,80,0.9,ridge_both,per period,ramp to -10%,0.62,0.36
+exchangeable,stationary,19,80,0.9,ridge_space,cumulative,+10%,0.93,0.85
+exchangeable,stationary,19,80,0.9,ridge_space,cumulative,-10%,0.87,0.87
+exchangeable,stationary,19,80,0.9,ridge_space,cumulative,ramp to -10%,0.74,0.55
+exchangeable,stationary,19,80,0.9,ridge_space,per period,+10%,0.72,0.78
+exchangeable,stationary,19,80,0.9,ridge_space,per period,-10%,0.79,0.77
+exchangeable,stationary,19,80,0.9,ridge_space,per period,ramp to -10%,0.79,0.67
+exchangeable,stationary,19,80,0.9,ridge_time,cumulative,+10%,0.91,0.91
+exchangeable,stationary,19,80,0.9,ridge_time,cumulative,-10%,0.86,0.87
+exchangeable,stationary,19,80,0.9,ridge_time,cumulative,ramp to -10%,0.6,0.43
+exchangeable,stationary,19,80,0.9,ridge_time,per period,+10%,0.66,0.74
+exchangeable,stationary,19,80,0.9,ridge_time,per period,-10%,0.69,0.71
+exchangeable,stationary,19,80,0.9,ridge_time,per period,ramp to -10%,0.69,0.45
+exchangeable,stationary,19,80,0.95,dsc_both,cumulative,+10%,0.59,0.66
+exchangeable,stationary,19,80,0.95,dsc_both,cumulative,-10%,0.71,0.68
+exchangeable,stationary,19,80,0.95,dsc_both,cumulative,ramp to -10%,0.34,0.16
+exchangeable,stationary,19,80,0.95,dsc_both,per period,+10%,0.4,0.49
+exchangeable,stationary,19,80,0.95,dsc_both,per period,-10%,0.47,0.46
+exchangeable,stationary,19,80,0.95,dsc_both,per period,ramp to -10%,0.47,0.24
+exchangeable,stationary,19,80,0.95,dsc_space,cumulative,+10%,0.7,0.76
+exchangeable,stationary,19,80,0.95,dsc_space,cumulative,-10%,0.81,0.77
+exchangeable,stationary,19,80,0.95,dsc_space,cumulative,ramp to -10%,0.54,0.37
+exchangeable,stationary,19,80,0.95,dsc_space,per period,+10%,0.56,0.69
+exchangeable,stationary,19,80,0.95,dsc_space,per period,-10%,0.68,0.7
+exchangeable,stationary,19,80,0.95,dsc_space,per period,ramp to -10%,0.68,0.5
+exchangeable,stationary,19,80,0.95,dsc_time,cumulative,+10%,0.63,0.7
+exchangeable,stationary,19,80,0.95,dsc_time,cumulative,-10%,0.74,0.73
+exchangeable,stationary,19,80,0.95,dsc_time,cumulative,ramp to -10%,0.43,0.27
+exchangeable,stationary,19,80,0.95,dsc_time,per period,+10%,0.46,0.56
+exchangeable,stationary,19,80,0.95,dsc_time,per period,-10%,0.51,0.53
+exchangeable,stationary,19,80,0.95,dsc_time,per period,ramp to -10%,0.51,0.33
+exchangeable,stationary,19,80,0.95,ridge_both,cumulative,+10%,0.7,0.68
+exchangeable,stationary,19,80,0.95,ridge_both,cumulative,-10%,0.72,0.69
+exchangeable,stationary,19,80,0.95,ridge_both,cumulative,ramp to -10%,0.37,0.14
+exchangeable,stationary,19,80,0.95,ridge_both,per period,+10%,0.42,0.49
+exchangeable,stationary,19,80,0.95,ridge_both,per period,-10%,0.44,0.4
+exchangeable,stationary,19,80,0.95,ridge_both,per period,ramp to -10%,0.44,0.21
+exchangeable,stationary,19,80,0.95,ridge_space,cumulative,+10%,0.88,0.83
+exchangeable,stationary,19,80,0.95,ridge_space,cumulative,-10%,0.86,0.82
+exchangeable,stationary,19,80,0.95,ridge_space,cumulative,ramp to -10%,0.66,0.39
+exchangeable,stationary,19,80,0.95,ridge_space,per period,+10%,0.61,0.71
+exchangeable,stationary,19,80,0.95,ridge_space,per period,-10%,0.68,0.65
+exchangeable,stationary,19,80,0.95,ridge_space,per period,ramp to -10%,0.68,0.51
+exchangeable,stationary,19,80,0.95,ridge_time,cumulative,+10%,0.75,0.78
+exchangeable,stationary,19,80,0.95,ridge_time,cumulative,-10%,0.74,0.76
+exchangeable,stationary,19,80,0.95,ridge_time,cumulative,ramp to -10%,0.43,0.28
+exchangeable,stationary,19,80,0.95,ridge_time,per period,+10%,0.52,0.63
+exchangeable,stationary,19,80,0.95,ridge_time,per period,-10%,0.53,0.53
+exchangeable,stationary,19,80,0.95,ridge_time,per period,ramp to -10%,0.53,0.34
+exchangeable,stationary,39,40,0.9,dsc_both,cumulative,+10%,0.73,0.76
+exchangeable,stationary,39,40,0.9,dsc_both,cumulative,-10%,0.77,0.78
+exchangeable,stationary,39,40,0.9,dsc_both,cumulative,ramp to -10%,0.4,0.16
+exchangeable,stationary,39,40,0.9,dsc_both,per period,+10%,0.47,0.65
+exchangeable,stationary,39,40,0.9,dsc_both,per period,-10%,0.48,0.59
+exchangeable,stationary,39,40,0.9,dsc_both,per period,ramp to -10%,0.48,0.24
+exchangeable,stationary,39,40,0.9,dsc_space,cumulative,+10%,0.92,0.89
+exchangeable,stationary,39,40,0.9,dsc_space,cumulative,-10%,0.91,0.91
+exchangeable,stationary,39,40,0.9,dsc_space,cumulative,ramp to -10%,0.7,0.51
+exchangeable,stationary,39,40,0.9,dsc_space,per period,+10%,0.75,0.86
+exchangeable,stationary,39,40,0.9,dsc_space,per period,-10%,0.75,0.85
+exchangeable,stationary,39,40,0.9,dsc_space,per period,ramp to -10%,0.75,0.6
+exchangeable,stationary,39,40,0.9,dsc_time,cumulative,+10%,0.75,0.77
+exchangeable,stationary,39,40,0.9,dsc_time,cumulative,-10%,0.79,0.8
+exchangeable,stationary,39,40,0.9,dsc_time,cumulative,ramp to -10%,0.45,0.22
+exchangeable,stationary,39,40,0.9,dsc_time,per period,+10%,0.47,0.69
+exchangeable,stationary,39,40,0.9,dsc_time,per period,-10%,0.54,0.65
+exchangeable,stationary,39,40,0.9,dsc_time,per period,ramp to -10%,0.54,0.32
+exchangeable,stationary,39,40,0.9,ridge_both,cumulative,+10%,0.82,0.77
+exchangeable,stationary,39,40,0.9,ridge_both,cumulative,-10%,0.78,0.76
+exchangeable,stationary,39,40,0.9,ridge_both,cumulative,ramp to -10%,0.39,0.18
+exchangeable,stationary,39,40,0.9,ridge_both,per period,+10%,0.51,0.66
+exchangeable,stationary,39,40,0.9,ridge_both,per period,-10%,0.48,0.59
+exchangeable,stationary,39,40,0.9,ridge_both,per period,ramp to -10%,0.48,0.27
+exchangeable,stationary,39,40,0.9,ridge_space,cumulative,+10%,0.96,0.93
+exchangeable,stationary,39,40,0.9,ridge_space,cumulative,-10%,0.94,0.92
+exchangeable,stationary,39,40,0.9,ridge_space,cumulative,ramp to -10%,0.76,0.54
+exchangeable,stationary,39,40,0.9,ridge_space,per period,+10%,0.81,0.87
+exchangeable,stationary,39,40,0.9,ridge_space,per period,-10%,0.76,0.83
+exchangeable,stationary,39,40,0.9,ridge_space,per period,ramp to -10%,0.76,0.59
+exchangeable,stationary,39,40,0.9,ridge_time,cumulative,+10%,0.84,0.84
+exchangeable,stationary,39,40,0.9,ridge_time,cumulative,-10%,0.81,0.81
+exchangeable,stationary,39,40,0.9,ridge_time,cumulative,ramp to -10%,0.45,0.27
+exchangeable,stationary,39,40,0.9,ridge_time,per period,+10%,0.58,0.73
+exchangeable,stationary,39,40,0.9,ridge_time,per period,-10%,0.57,0.67
+exchangeable,stationary,39,40,0.9,ridge_time,per period,ramp to -10%,0.57,0.38
+exchangeable,stationary,39,40,0.95,dsc_both,cumulative,+10%,0.63,0.67
+exchangeable,stationary,39,40,0.95,dsc_both,cumulative,-10%,0.7,0.67
+exchangeable,stationary,39,40,0.95,dsc_both,cumulative,ramp to -10%,0.28,0.08
+exchangeable,stationary,39,40,0.95,dsc_both,per period,+10%,0.36,0.53
+exchangeable,stationary,39,40,0.95,dsc_both,per period,-10%,0.34,0.48
+exchangeable,stationary,39,40,0.95,dsc_both,per period,ramp to -10%,0.34,0.15
+exchangeable,stationary,39,40,0.95,dsc_space,cumulative,+10%,0.89,0.86
+exchangeable,stationary,39,40,0.95,dsc_space,cumulative,-10%,0.9,0.87
+exchangeable,stationary,39,40,0.95,dsc_space,cumulative,ramp to -10%,0.58,0.37
+exchangeable,stationary,39,40,0.95,dsc_space,per period,+10%,0.61,0.83
+exchangeable,stationary,39,40,0.95,dsc_space,per period,-10%,0.71,0.83
+exchangeable,stationary,39,40,0.95,dsc_space,per period,ramp to -10%,0.71,0.49
+exchangeable,stationary,39,40,0.95,dsc_time,cumulative,+10%,0.66,0.7
+exchangeable,stationary,39,40,0.95,dsc_time,cumulative,-10%,0.72,0.7
+exchangeable,stationary,39,40,0.95,dsc_time,cumulative,ramp to -10%,0.37,0.13
+exchangeable,stationary,39,40,0.95,dsc_time,per period,+10%,0.4,0.59
+exchangeable,stationary,39,40,0.95,dsc_time,per period,-10%,0.4,0.55
+exchangeable,stationary,39,40,0.95,dsc_time,per period,ramp to -10%,0.4,0.22
+exchangeable,stationary,39,40,0.95,ridge_both,cumulative,+10%,0.68,0.66
+exchangeable,stationary,39,40,0.95,ridge_both,cumulative,-10%,0.72,0.66
+exchangeable,stationary,39,40,0.95,ridge_both,cumulative,ramp to -10%,0.26,0.1
+exchangeable,stationary,39,40,0.95,ridge_both,per period,+10%,0.36,0.53
+exchangeable,stationary,39,40,0.95,ridge_both,per period,-10%,0.31,0.45
+exchangeable,stationary,39,40,0.95,ridge_both,per period,ramp to -10%,0.31,0.14
+exchangeable,stationary,39,40,0.95,ridge_space,cumulative,+10%,0.9,0.89
+exchangeable,stationary,39,40,0.95,ridge_space,cumulative,-10%,0.92,0.87
+exchangeable,stationary,39,40,0.95,ridge_space,cumulative,ramp to -10%,0.58,0.4
+exchangeable,stationary,39,40,0.95,ridge_space,per period,+10%,0.71,0.82
+exchangeable,stationary,39,40,0.95,ridge_space,per period,-10%,0.68,0.75
+exchangeable,stationary,39,40,0.95,ridge_space,per period,ramp to -10%,0.68,0.44
+exchangeable,stationary,39,40,0.95,ridge_time,cumulative,+10%,0.74,0.74
+exchangeable,stationary,39,40,0.95,ridge_time,cumulative,-10%,0.76,0.73
+exchangeable,stationary,39,40,0.95,ridge_time,cumulative,ramp to -10%,0.35,0.18
+exchangeable,stationary,39,40,0.95,ridge_time,per period,+10%,0.44,0.61
+exchangeable,stationary,39,40,0.95,ridge_time,per period,-10%,0.41,0.58
+exchangeable,stationary,39,40,0.95,ridge_time,per period,ramp to -10%,0.41,0.26
+exchangeable,stationary,39,80,0.9,dsc_both,cumulative,+10%,0.8,0.86
+exchangeable,stationary,39,80,0.9,dsc_both,cumulative,-10%,0.85,0.83
+exchangeable,stationary,39,80,0.9,dsc_both,cumulative,ramp to -10%,0.52,0.3
+exchangeable,stationary,39,80,0.9,dsc_both,per period,+10%,0.6,0.67
+exchangeable,stationary,39,80,0.9,dsc_both,per period,-10%,0.65,0.69
+exchangeable,stationary,39,80,0.9,dsc_both,per period,ramp to -10%,0.65,0.35
+exchangeable,stationary,39,80,0.9,dsc_space,cumulative,+10%,0.87,0.91
+exchangeable,stationary,39,80,0.9,dsc_space,cumulative,-10%,0.94,0.91
+exchangeable,stationary,39,80,0.9,dsc_space,cumulative,ramp to -10%,0.77,0.64
+exchangeable,stationary,39,80,0.9,dsc_space,per period,+10%,0.79,0.86
+exchangeable,stationary,39,80,0.9,dsc_space,per period,-10%,0.9,0.86
+exchangeable,stationary,39,80,0.9,dsc_space,per period,ramp to -10%,0.9,0.76
+exchangeable,stationary,39,80,0.9,dsc_time,cumulative,+10%,0.8,0.87
+exchangeable,stationary,39,80,0.9,dsc_time,cumulative,-10%,0.86,0.86
+exchangeable,stationary,39,80,0.9,dsc_time,cumulative,ramp to -10%,0.58,0.36
+exchangeable,stationary,39,80,0.9,dsc_time,per period,+10%,0.61,0.7
+exchangeable,stationary,39,80,0.9,dsc_time,per period,-10%,0.65,0.71
+exchangeable,stationary,39,80,0.9,dsc_time,per period,ramp to -10%,0.65,0.37
+exchangeable,stationary,39,80,0.9,ridge_both,cumulative,+10%,0.88,0.86
+exchangeable,stationary,39,80,0.9,ridge_both,cumulative,-10%,0.89,0.87
+exchangeable,stationary,39,80,0.9,ridge_both,cumulative,ramp to -10%,0.57,0.26
+exchangeable,stationary,39,80,0.9,ridge_both,per period,+10%,0.61,0.66
+exchangeable,stationary,39,80,0.9,ridge_both,per period,-10%,0.64,0.69
+exchangeable,stationary,39,80,0.9,ridge_both,per period,ramp to -10%,0.64,0.36
+exchangeable,stationary,39,80,0.9,ridge_space,cumulative,+10%,0.96,0.92
+exchangeable,stationary,39,80,0.9,ridge_space,cumulative,-10%,0.95,0.92
+exchangeable,stationary,39,80,0.9,ridge_space,cumulative,ramp to -10%,0.84,0.58
+exchangeable,stationary,39,80,0.9,ridge_space,per period,+10%,0.82,0.84
+exchangeable,stationary,39,80,0.9,ridge_space,per period,-10%,0.86,0.84
+exchangeable,stationary,39,80,0.9,ridge_space,per period,ramp to -10%,0.86,0.73
+exchangeable,stationary,39,80,0.9,ridge_time,cumulative,+10%,0.91,0.91
+exchangeable,stationary,39,80,0.9,ridge_time,cumulative,-10%,0.92,0.93
+exchangeable,stationary,39,80,0.9,ridge_time,cumulative,ramp to -10%,0.63,0.36
+exchangeable,stationary,39,80,0.9,ridge_time,per period,+10%,0.65,0.75
+exchangeable,stationary,39,80,0.9,ridge_time,per period,-10%,0.69,0.78
+exchangeable,stationary,39,80,0.9,ridge_time,per period,ramp to -10%,0.69,0.44
+exchangeable,stationary,39,80,0.95,dsc_both,cumulative,+10%,0.7,0.7
+exchangeable,stationary,39,80,0.95,dsc_both,cumulative,-10%,0.75,0.74
+exchangeable,stationary,39,80,0.95,dsc_both,cumulative,ramp to -10%,0.37,0.15
+exchangeable,stationary,39,80,0.95,dsc_both,per period,+10%,0.43,0.51
+exchangeable,stationary,39,80,0.95,dsc_both,per period,-10%,0.47,0.48
+exchangeable,stationary,39,80,0.95,dsc_both,per period,ramp to -10%,0.47,0.16
+exchangeable,stationary,39,80,0.95,dsc_space,cumulative,+10%,0.86,0.87
+exchangeable,stationary,39,80,0.95,dsc_space,cumulative,-10%,0.93,0.9
+exchangeable,stationary,39,80,0.95,dsc_space,cumulative,ramp to -10%,0.7,0.52
+exchangeable,stationary,39,80,0.95,dsc_space,per period,+10%,0.75,0.81
+exchangeable,stationary,39,80,0.95,dsc_space,per period,-10%,0.85,0.8
+exchangeable,stationary,39,80,0.95,dsc_space,per period,ramp to -10%,0.85,0.61
+exchangeable,stationary,39,80,0.95,dsc_time,cumulative,+10%,0.7,0.72
+exchangeable,stationary,39,80,0.95,dsc_time,cumulative,-10%,0.76,0.78
+exchangeable,stationary,39,80,0.95,dsc_time,cumulative,ramp to -10%,0.43,0.19
+exchangeable,stationary,39,80,0.95,dsc_time,per period,+10%,0.43,0.58
+exchangeable,stationary,39,80,0.95,dsc_time,per period,-10%,0.49,0.51
+exchangeable,stationary,39,80,0.95,dsc_time,per period,ramp to -10%,0.49,0.2
+exchangeable,stationary,39,80,0.95,ridge_both,cumulative,+10%,0.77,0.72
+exchangeable,stationary,39,80,0.95,ridge_both,cumulative,-10%,0.8,0.78
+exchangeable,stationary,39,80,0.95,ridge_both,cumulative,ramp to -10%,0.33,0.15
+exchangeable,stationary,39,80,0.95,ridge_both,per period,+10%,0.45,0.44
+exchangeable,stationary,39,80,0.95,ridge_both,per period,-10%,0.5,0.46
+exchangeable,stationary,39,80,0.95,ridge_both,per period,ramp to -10%,0.5,0.18
+exchangeable,stationary,39,80,0.95,ridge_space,cumulative,+10%,0.89,0.87
+exchangeable,stationary,39,80,0.95,ridge_space,cumulative,-10%,0.92,0.88
+exchangeable,stationary,39,80,0.95,ridge_space,cumulative,ramp to -10%,0.69,0.5
+exchangeable,stationary,39,80,0.95,ridge_space,per period,+10%,0.75,0.77
+exchangeable,stationary,39,80,0.95,ridge_space,per period,-10%,0.8,0.78
+exchangeable,stationary,39,80,0.95,ridge_space,per period,ramp to -10%,0.8,0.63
+exchangeable,stationary,39,80,0.95,ridge_time,cumulative,+10%,0.84,0.81
+exchangeable,stationary,39,80,0.95,ridge_time,cumulative,-10%,0.84,0.86
+exchangeable,stationary,39,80,0.95,ridge_time,cumulative,ramp to -10%,0.41,0.19
+exchangeable,stationary,39,80,0.95,ridge_time,per period,+10%,0.48,0.55
+exchangeable,stationary,39,80,0.95,ridge_time,per period,-10%,0.54,0.58
+exchangeable,stationary,39,80,0.95,ridge_time,per period,ramp to -10%,0.54,0.25
+outside,random_walk,19,40,0.9,dsc_both,cumulative,+10%,0.35,0.23
+outside,random_walk,19,40,0.9,dsc_both,cumulative,-10%,0.09,0.04
+outside,random_walk,19,40,0.9,dsc_both,cumulative,ramp to -10%,0.12,0.11
+outside,random_walk,19,40,0.9,dsc_both,per period,+10%,0.28,0.23
+outside,random_walk,19,40,0.9,dsc_both,per period,-10%,0.11,0.09
+outside,random_walk,19,40,0.9,dsc_both,per period,ramp to -10%,0.11,0.14
+outside,random_walk,19,40,0.9,dsc_space,cumulative,+10%,0.68,0.55
+outside,random_walk,19,40,0.9,dsc_space,cumulative,-10%,0.32,0.17
+outside,random_walk,19,40,0.9,dsc_space,cumulative,ramp to -10%,0.37,0.28
+outside,random_walk,19,40,0.9,dsc_space,per period,+10%,0.6,0.49
+outside,random_walk,19,40,0.9,dsc_space,per period,-10%,0.28,0.17
+outside,random_walk,19,40,0.9,dsc_space,per period,ramp to -10%,0.28,0.22
+outside,random_walk,19,40,0.9,dsc_time,cumulative,+10%,0.35,0.29
+outside,random_walk,19,40,0.9,dsc_time,cumulative,-10%,0.13,0.13
+outside,random_walk,19,40,0.9,dsc_time,cumulative,ramp to -10%,0.18,0.18
+outside,random_walk,19,40,0.9,dsc_time,per period,+10%,0.28,0.29
+outside,random_walk,19,40,0.9,dsc_time,per period,-10%,0.15,0.18
+outside,random_walk,19,40,0.9,dsc_time,per period,ramp to -10%,0.15,0.19
+outside,random_walk,19,40,0.9,ridge_both,cumulative,+10%,0.22,0.15
+outside,random_walk,19,40,0.9,ridge_both,cumulative,-10%,0.03,0.04
+outside,random_walk,19,40,0.9,ridge_both,cumulative,ramp to -10%,0.02,0.02
+outside,random_walk,19,40,0.9,ridge_both,per period,+10%,0.18,0.14
+outside,random_walk,19,40,0.9,ridge_both,per period,-10%,0.03,0.03
+outside,random_walk,19,40,0.9,ridge_both,per period,ramp to -10%,0.03,0.02
+outside,random_walk,19,40,0.9,ridge_space,cumulative,+10%,0.31,0.19
+outside,random_walk,19,40,0.9,ridge_space,cumulative,-10%,0.04,0.06
+outside,random_walk,19,40,0.9,ridge_space,cumulative,ramp to -10%,0.05,0.02
+outside,random_walk,19,40,0.9,ridge_space,per period,+10%,0.28,0.17
+outside,random_walk,19,40,0.9,ridge_space,per period,-10%,0.06,0.04
+outside,random_walk,19,40,0.9,ridge_space,per period,ramp to -10%,0.06,0.02
+outside,random_walk,19,40,0.9,ridge_time,cumulative,+10%,0.38,0.39
+outside,random_walk,19,40,0.9,ridge_time,cumulative,-10%,0.13,0.19
+outside,random_walk,19,40,0.9,ridge_time,cumulative,ramp to -10%,0.09,0.09
+outside,random_walk,19,40,0.9,ridge_time,per period,+10%,0.27,0.32
+outside,random_walk,19,40,0.9,ridge_time,per period,-10%,0.13,0.16
+outside,random_walk,19,40,0.9,ridge_time,per period,ramp to -10%,0.13,0.14
+outside,random_walk,19,40,0.95,dsc_both,cumulative,+10%,0.28,0.18
+outside,random_walk,19,40,0.95,dsc_both,cumulative,-10%,0.04,0.03
+outside,random_walk,19,40,0.95,dsc_both,cumulative,ramp to -10%,0.1,0.07
+outside,random_walk,19,40,0.95,dsc_both,per period,+10%,0.23,0.22
+outside,random_walk,19,40,0.95,dsc_both,per period,-10%,0.05,0.06
+outside,random_walk,19,40,0.95,dsc_both,per period,ramp to -10%,0.05,0.07
+outside,random_walk,19,40,0.95,dsc_space,cumulative,+10%,0.58,0.41
+outside,random_walk,19,40,0.95,dsc_space,cumulative,-10%,0.15,0.05
+outside,random_walk,19,40,0.95,dsc_space,cumulative,ramp to -10%,0.23,0.16
+outside,random_walk,19,40,0.95,dsc_space,per period,+10%,0.43,0.4
+outside,random_walk,19,40,0.95,dsc_space,per period,-10%,0.14,0.09
+outside,random_walk,19,40,0.95,dsc_space,per period,ramp to -10%,0.14,0.09
+outside,random_walk,19,40,0.95,dsc_time,cumulative,+10%,0.31,0.23
+outside,random_walk,19,40,0.95,dsc_time,cumulative,-10%,0.11,0.12
+outside,random_walk,19,40,0.95,dsc_time,cumulative,ramp to -10%,0.18,0.15
+outside,random_walk,19,40,0.95,dsc_time,per period,+10%,0.26,0.28
+outside,random_walk,19,40,0.95,dsc_time,per period,-10%,0.11,0.17
+outside,random_walk,19,40,0.95,dsc_time,per period,ramp to -10%,0.11,0.19
+outside,random_walk,19,40,0.95,ridge_both,cumulative,+10%,0.15,0.11
+outside,random_walk,19,40,0.95,ridge_both,cumulative,-10%,0.02,0.01
+outside,random_walk,19,40,0.95,ridge_both,cumulative,ramp to -10%,0.02,0.01
+outside,random_walk,19,40,0.95,ridge_both,per period,+10%,0.12,0.12
+outside,random_walk,19,40,0.95,ridge_both,per period,-10%,0.01,0.02
+outside,random_walk,19,40,0.95,ridge_both,per period,ramp to -10%,0.01,0.01
+outside,random_walk,19,40,0.95,ridge_space,cumulative,+10%,0.2,0.13
+outside,random_walk,19,40,0.95,ridge_space,cumulative,-10%,0.03,0.02
+outside,random_walk,19,40,0.95,ridge_space,cumulative,ramp to -10%,0.03,0.02
+outside,random_walk,19,40,0.95,ridge_space,per period,+10%,0.14,0.14
+outside,random_walk,19,40,0.95,ridge_space,per period,-10%,0.01,0.02
+outside,random_walk,19,40,0.95,ridge_space,per period,ramp to -10%,0.01,0.01
+outside,random_walk,19,40,0.95,ridge_time,cumulative,+10%,0.32,0.3
+outside,random_walk,19,40,0.95,ridge_time,cumulative,-10%,0.1,0.13
+outside,random_walk,19,40,0.95,ridge_time,cumulative,ramp to -10%,0.09,0.06
+outside,random_walk,19,40,0.95,ridge_time,per period,+10%,0.26,0.31
+outside,random_walk,19,40,0.95,ridge_time,per period,-10%,0.08,0.14
+outside,random_walk,19,40,0.95,ridge_time,per period,ramp to -10%,0.08,0.12
+outside,random_walk,19,80,0.9,dsc_both,cumulative,+10%,0.31,0.27
+outside,random_walk,19,80,0.9,dsc_both,cumulative,-10%,0.1,0.03
+outside,random_walk,19,80,0.9,dsc_both,cumulative,ramp to -10%,0.14,0.11
+outside,random_walk,19,80,0.9,dsc_both,per period,+10%,0.23,0.23
+outside,random_walk,19,80,0.9,dsc_both,per period,-10%,0.11,0.05
+outside,random_walk,19,80,0.9,dsc_both,per period,ramp to -10%,0.11,0.07
+outside,random_walk,19,80,0.9,dsc_space,cumulative,+10%,0.68,0.63
+outside,random_walk,19,80,0.9,dsc_space,cumulative,-10%,0.37,0.24
+outside,random_walk,19,80,0.9,dsc_space,cumulative,ramp to -10%,0.44,0.41
+outside,random_walk,19,80,0.9,dsc_space,per period,+10%,0.54,0.46
+outside,random_walk,19,80,0.9,dsc_space,per period,-10%,0.29,0.12
+outside,random_walk,19,80,0.9,dsc_space,per period,ramp to -10%,0.29,0.19
+outside,random_walk,19,80,0.9,dsc_time,cumulative,+10%,0.32,0.3
+outside,random_walk,19,80,0.9,dsc_time,cumulative,-10%,0.11,0.06
+outside,random_walk,19,80,0.9,dsc_time,cumulative,ramp to -10%,0.17,0.13
+outside,random_walk,19,80,0.9,dsc_time,per period,+10%,0.27,0.27
+outside,random_walk,19,80,0.9,dsc_time,per period,-10%,0.13,0.09
+outside,random_walk,19,80,0.9,dsc_time,per period,ramp to -10%,0.13,0.12
+outside,random_walk,19,80,0.9,ridge_both,cumulative,+10%,0.16,0.1
+outside,random_walk,19,80,0.9,ridge_both,cumulative,-10%,0,0
+outside,random_walk,19,80,0.9,ridge_both,cumulative,ramp to -10%,0.01,0.01
+outside,random_walk,19,80,0.9,ridge_both,per period,+10%,0.15,0.1
+outside,random_walk,19,80,0.9,ridge_both,per period,-10%,0.04,0.01
+outside,random_walk,19,80,0.9,ridge_both,per period,ramp to -10%,0.04,0.02
+outside,random_walk,19,80,0.9,ridge_space,cumulative,+10%,0.2,0.14
+outside,random_walk,19,80,0.9,ridge_space,cumulative,-10%,0.03,0.02
+outside,random_walk,19,80,0.9,ridge_space,cumulative,ramp to -10%,0.03,0.01
+outside,random_walk,19,80,0.9,ridge_space,per period,+10%,0.2,0.1
+outside,random_walk,19,80,0.9,ridge_space,per period,-10%,0.06,0.02
+outside,random_walk,19,80,0.9,ridge_space,per period,ramp to -10%,0.06,0.02
+outside,random_walk,19,80,0.9,ridge_time,cumulative,+10%,0.28,0.29
+outside,random_walk,19,80,0.9,ridge_time,cumulative,-10%,0.06,0.07
+outside,random_walk,19,80,0.9,ridge_time,cumulative,ramp to -10%,0.07,0.07
+outside,random_walk,19,80,0.9,ridge_time,per period,+10%,0.26,0.22
+outside,random_walk,19,80,0.9,ridge_time,per period,-10%,0.07,0.05
+outside,random_walk,19,80,0.9,ridge_time,per period,ramp to -10%,0.07,0.07
+outside,random_walk,19,80,0.95,dsc_both,cumulative,+10%,0.2,0.17
+outside,random_walk,19,80,0.95,dsc_both,cumulative,-10%,0.05,0.01
+outside,random_walk,19,80,0.95,dsc_both,cumulative,ramp to -10%,0.08,0.05
+outside,random_walk,19,80,0.95,dsc_both,per period,+10%,0.17,0.16
+outside,random_walk,19,80,0.95,dsc_both,per period,-10%,0.07,0.02
+outside,random_walk,19,80,0.95,dsc_both,per period,ramp to -10%,0.07,0.06
+outside,random_walk,19,80,0.95,dsc_space,cumulative,+10%,0.55,0.51
+outside,random_walk,19,80,0.95,dsc_space,cumulative,-10%,0.21,0.09
+outside,random_walk,19,80,0.95,dsc_space,cumulative,ramp to -10%,0.26,0.2
+outside,random_walk,19,80,0.95,dsc_space,per period,+10%,0.39,0.29
+outside,random_walk,19,80,0.95,dsc_space,per period,-10%,0.17,0.08
+outside,random_walk,19,80,0.95,dsc_space,per period,ramp to -10%,0.17,0.13
+outside,random_walk,19,80,0.95,dsc_time,cumulative,+10%,0.25,0.18
+outside,random_walk,19,80,0.95,dsc_time,cumulative,-10%,0.08,0.05
+outside,random_walk,19,80,0.95,dsc_time,cumulative,ramp to -10%,0.1,0.1
+outside,random_walk,19,80,0.95,dsc_time,per period,+10%,0.19,0.21
+outside,random_walk,19,80,0.95,dsc_time,per period,-10%,0.1,0.06
+outside,random_walk,19,80,0.95,dsc_time,per period,ramp to -10%,0.1,0.1
+outside,random_walk,19,80,0.95,ridge_both,cumulative,+10%,0.11,0.08
+outside,random_walk,19,80,0.95,ridge_both,cumulative,-10%,0,0
+outside,random_walk,19,80,0.95,ridge_both,cumulative,ramp to -10%,0,0.01
+outside,random_walk,19,80,0.95,ridge_both,per period,+10%,0.1,0.08
+outside,random_walk,19,80,0.95,ridge_both,per period,-10%,0.01,0
+outside,random_walk,19,80,0.95,ridge_both,per period,ramp to -10%,0.01,0.02
+outside,random_walk,19,80,0.95,ridge_space,cumulative,+10%,0.14,0.09
+outside,random_walk,19,80,0.95,ridge_space,cumulative,-10%,0.02,0.01
+outside,random_walk,19,80,0.95,ridge_space,cumulative,ramp to -10%,0.01,0.01
+outside,random_walk,19,80,0.95,ridge_space,per period,+10%,0.16,0.08
+outside,random_walk,19,80,0.95,ridge_space,per period,-10%,0.02,0.01
+outside,random_walk,19,80,0.95,ridge_space,per period,ramp to -10%,0.02,0.02
+outside,random_walk,19,80,0.95,ridge_time,cumulative,+10%,0.22,0.2
+outside,random_walk,19,80,0.95,ridge_time,cumulative,-10%,0.04,0.04
+outside,random_walk,19,80,0.95,ridge_time,cumulative,ramp to -10%,0.06,0.05
+outside,random_walk,19,80,0.95,ridge_time,per period,+10%,0.19,0.18
+outside,random_walk,19,80,0.95,ridge_time,per period,-10%,0.05,0.04
+outside,random_walk,19,80,0.95,ridge_time,per period,ramp to -10%,0.05,0.06
+outside,random_walk,39,40,0.9,dsc_both,cumulative,+10%,0.24,0.26
+outside,random_walk,39,40,0.9,dsc_both,cumulative,-10%,0.11,0.07
+outside,random_walk,39,40,0.9,dsc_both,cumulative,ramp to -10%,0.13,0.12
+outside,random_walk,39,40,0.9,dsc_both,per period,+10%,0.2,0.18
+outside,random_walk,39,40,0.9,dsc_both,per period,-10%,0.13,0.06
+outside,random_walk,39,40,0.9,dsc_both,per period,ramp to -10%,0.13,0.11
+outside,random_walk,39,40,0.9,dsc_space,cumulative,+10%,0.6,0.59
+outside,random_walk,39,40,0.9,dsc_space,cumulative,-10%,0.27,0.15
+outside,random_walk,39,40,0.9,dsc_space,cumulative,ramp to -10%,0.36,0.23
+outside,random_walk,39,40,0.9,dsc_space,per period,+10%,0.43,0.41
+outside,random_walk,39,40,0.9,dsc_space,per period,-10%,0.24,0.11
+outside,random_walk,39,40,0.9,dsc_space,per period,ramp to -10%,0.24,0.18
+outside,random_walk,39,40,0.9,dsc_time,cumulative,+10%,0.28,0.29
+outside,random_walk,39,40,0.9,dsc_time,cumulative,-10%,0.13,0.15
+outside,random_walk,39,40,0.9,dsc_time,cumulative,ramp to -10%,0.16,0.19
+outside,random_walk,39,40,0.9,dsc_time,per period,+10%,0.22,0.21
+outside,random_walk,39,40,0.9,dsc_time,per period,-10%,0.16,0.15
+outside,random_walk,39,40,0.9,dsc_time,per period,ramp to -10%,0.16,0.16
+outside,random_walk,39,40,0.9,ridge_both,cumulative,+10%,0.13,0.08
+outside,random_walk,39,40,0.9,ridge_both,cumulative,-10%,0.02,0
+outside,random_walk,39,40,0.9,ridge_both,cumulative,ramp to -10%,0.03,0.04
+outside,random_walk,39,40,0.9,ridge_both,per period,+10%,0.14,0.08
+outside,random_walk,39,40,0.9,ridge_both,per period,-10%,0.01,0.01
+outside,random_walk,39,40,0.9,ridge_both,per period,ramp to -10%,0.01,0.03
+outside,random_walk,39,40,0.9,ridge_space,cumulative,+10%,0.22,0.14
+outside,random_walk,39,40,0.9,ridge_space,cumulative,-10%,0.04,0.01
+outside,random_walk,39,40,0.9,ridge_space,cumulative,ramp to -10%,0.05,0.04
+outside,random_walk,39,40,0.9,ridge_space,per period,+10%,0.18,0.13
+outside,random_walk,39,40,0.9,ridge_space,per period,-10%,0.03,0.02
+outside,random_walk,39,40,0.9,ridge_space,per period,ramp to -10%,0.03,0.04
+outside,random_walk,39,40,0.9,ridge_time,cumulative,+10%,0.26,0.28
+outside,random_walk,39,40,0.9,ridge_time,cumulative,-10%,0.13,0.16
+outside,random_walk,39,40,0.9,ridge_time,cumulative,ramp to -10%,0.12,0.13
+outside,random_walk,39,40,0.9,ridge_time,per period,+10%,0.24,0.25
+outside,random_walk,39,40,0.9,ridge_time,per period,-10%,0.11,0.14
+outside,random_walk,39,40,0.9,ridge_time,per period,ramp to -10%,0.11,0.12
+outside,random_walk,39,40,0.95,dsc_both,cumulative,+10%,0.21,0.16
+outside,random_walk,39,40,0.95,dsc_both,cumulative,-10%,0.06,0.02
+outside,random_walk,39,40,0.95,dsc_both,cumulative,ramp to -10%,0.08,0.09
+outside,random_walk,39,40,0.95,dsc_both,per period,+10%,0.16,0.15
+outside,random_walk,39,40,0.95,dsc_both,per period,-10%,0.05,0.04
+outside,random_walk,39,40,0.95,dsc_both,per period,ramp to -10%,0.05,0.07
+outside,random_walk,39,40,0.95,dsc_space,cumulative,+10%,0.46,0.37
+outside,random_walk,39,40,0.95,dsc_space,cumulative,-10%,0.16,0.07
+outside,random_walk,39,40,0.95,dsc_space,cumulative,ramp to -10%,0.22,0.17
+outside,random_walk,39,40,0.95,dsc_space,per period,+10%,0.31,0.28
+outside,random_walk,39,40,0.95,dsc_space,per period,-10%,0.12,0.07
+outside,random_walk,39,40,0.95,dsc_space,per period,ramp to -10%,0.12,0.11
+outside,random_walk,39,40,0.95,dsc_time,cumulative,+10%,0.22,0.24
+outside,random_walk,39,40,0.95,dsc_time,cumulative,-10%,0.11,0.1
+outside,random_walk,39,40,0.95,dsc_time,cumulative,ramp to -10%,0.12,0.16
+outside,random_walk,39,40,0.95,dsc_time,per period,+10%,0.18,0.18
+outside,random_walk,39,40,0.95,dsc_time,per period,-10%,0.13,0.12
+outside,random_walk,39,40,0.95,dsc_time,per period,ramp to -10%,0.13,0.14
+outside,random_walk,39,40,0.95,ridge_both,cumulative,+10%,0.09,0.06
+outside,random_walk,39,40,0.95,ridge_both,cumulative,-10%,0.01,0
+outside,random_walk,39,40,0.95,ridge_both,cumulative,ramp to -10%,0,0.01
+outside,random_walk,39,40,0.95,ridge_both,per period,+10%,0.1,0.06
+outside,random_walk,39,40,0.95,ridge_both,per period,-10%,0,0
+outside,random_walk,39,40,0.95,ridge_both,per period,ramp to -10%,0,0.02
+outside,random_walk,39,40,0.95,ridge_space,cumulative,+10%,0.15,0.1
+outside,random_walk,39,40,0.95,ridge_space,cumulative,-10%,0.02,0
+outside,random_walk,39,40,0.95,ridge_space,cumulative,ramp to -10%,0.03,0.01
+outside,random_walk,39,40,0.95,ridge_space,per period,+10%,0.12,0.09
+outside,random_walk,39,40,0.95,ridge_space,per period,-10%,0.02,0.01
+outside,random_walk,39,40,0.95,ridge_space,per period,ramp to -10%,0.02,0.03
+outside,random_walk,39,40,0.95,ridge_time,cumulative,+10%,0.23,0.2
+outside,random_walk,39,40,0.95,ridge_time,cumulative,-10%,0.12,0.13
+outside,random_walk,39,40,0.95,ridge_time,cumulative,ramp to -10%,0.1,0.09
+outside,random_walk,39,40,0.95,ridge_time,per period,+10%,0.21,0.21
+outside,random_walk,39,40,0.95,ridge_time,per period,-10%,0.09,0.11
+outside,random_walk,39,40,0.95,ridge_time,per period,ramp to -10%,0.09,0.08
+outside,random_walk,39,80,0.9,dsc_both,cumulative,+10%,0.15,0.21
+outside,random_walk,39,80,0.9,dsc_both,cumulative,-10%,0.09,0.09
+outside,random_walk,39,80,0.9,dsc_both,cumulative,ramp to -10%,0.09,0.08
+outside,random_walk,39,80,0.9,dsc_both,per period,+10%,0.15,0.14
+outside,random_walk,39,80,0.9,dsc_both,per period,-10%,0.08,0.06
+outside,random_walk,39,80,0.9,dsc_both,per period,ramp to -10%,0.08,0.08
+outside,random_walk,39,80,0.9,dsc_space,cumulative,+10%,0.63,0.56
+outside,random_walk,39,80,0.9,dsc_space,cumulative,-10%,0.43,0.23
+outside,random_walk,39,80,0.9,dsc_space,cumulative,ramp to -10%,0.47,0.42
+outside,random_walk,39,80,0.9,dsc_space,per period,+10%,0.48,0.31
+outside,random_walk,39,80,0.9,dsc_space,per period,-10%,0.24,0.13
+outside,random_walk,39,80,0.9,dsc_space,per period,ramp to -10%,0.24,0.16
+outside,random_walk,39,80,0.9,dsc_time,cumulative,+10%,0.15,0.22
+outside,random_walk,39,80,0.9,dsc_time,cumulative,-10%,0.1,0.1
+outside,random_walk,39,80,0.9,dsc_time,cumulative,ramp to -10%,0.1,0.08
+outside,random_walk,39,80,0.9,dsc_time,per period,+10%,0.15,0.14
+outside,random_walk,39,80,0.9,dsc_time,per period,-10%,0.11,0.08
+outside,random_walk,39,80,0.9,dsc_time,per period,ramp to -10%,0.11,0.09
+outside,random_walk,39,80,0.9,ridge_both,cumulative,+10%,0.11,0.1
+outside,random_walk,39,80,0.9,ridge_both,cumulative,-10%,0.04,0.03
+outside,random_walk,39,80,0.9,ridge_both,cumulative,ramp to -10%,0.05,0.05
+outside,random_walk,39,80,0.9,ridge_both,per period,+10%,0.1,0.09
+outside,random_walk,39,80,0.9,ridge_both,per period,-10%,0.05,0.02
+outside,random_walk,39,80,0.9,ridge_both,per period,ramp to -10%,0.05,0.04
+outside,random_walk,39,80,0.9,ridge_space,cumulative,+10%,0.14,0.12
+outside,random_walk,39,80,0.9,ridge_space,cumulative,-10%,0.07,0.05
+outside,random_walk,39,80,0.9,ridge_space,cumulative,ramp to -10%,0.07,0.05
+outside,random_walk,39,80,0.9,ridge_space,per period,+10%,0.12,0.11
+outside,random_walk,39,80,0.9,ridge_space,per period,-10%,0.06,0.04
+outside,random_walk,39,80,0.9,ridge_space,per period,ramp to -10%,0.06,0.05
+outside,random_walk,39,80,0.9,ridge_time,cumulative,+10%,0.19,0.22
+outside,random_walk,39,80,0.9,ridge_time,cumulative,-10%,0.08,0.11
+outside,random_walk,39,80,0.9,ridge_time,cumulative,ramp to -10%,0.08,0.06
+outside,random_walk,39,80,0.9,ridge_time,per period,+10%,0.17,0.18
+outside,random_walk,39,80,0.9,ridge_time,per period,-10%,0.11,0.06
+outside,random_walk,39,80,0.9,ridge_time,per period,ramp to -10%,0.11,0.05
+outside,random_walk,39,80,0.95,dsc_both,cumulative,+10%,0.13,0.14
+outside,random_walk,39,80,0.95,dsc_both,cumulative,-10%,0.08,0.05
+outside,random_walk,39,80,0.95,dsc_both,cumulative,ramp to -10%,0.08,0.07
+outside,random_walk,39,80,0.95,dsc_both,per period,+10%,0.11,0.1
+outside,random_walk,39,80,0.95,dsc_both,per period,-10%,0.06,0.06
+outside,random_walk,39,80,0.95,dsc_both,per period,ramp to -10%,0.06,0.06
+outside,random_walk,39,80,0.95,dsc_space,cumulative,+10%,0.53,0.42
+outside,random_walk,39,80,0.95,dsc_space,cumulative,-10%,0.24,0.14
+outside,random_walk,39,80,0.95,dsc_space,cumulative,ramp to -10%,0.31,0.15
+outside,random_walk,39,80,0.95,dsc_space,per period,+10%,0.36,0.19
+outside,random_walk,39,80,0.95,dsc_space,per period,-10%,0.19,0.1
+outside,random_walk,39,80,0.95,dsc_space,per period,ramp to -10%,0.19,0.12
+outside,random_walk,39,80,0.95,dsc_time,cumulative,+10%,0.13,0.17
+outside,random_walk,39,80,0.95,dsc_time,cumulative,-10%,0.09,0.07
+outside,random_walk,39,80,0.95,dsc_time,cumulative,ramp to -10%,0.08,0.07
+outside,random_walk,39,80,0.95,dsc_time,per period,+10%,0.12,0.11
+outside,random_walk,39,80,0.95,dsc_time,per period,-10%,0.07,0.06
+outside,random_walk,39,80,0.95,dsc_time,per period,ramp to -10%,0.07,0.07
+outside,random_walk,39,80,0.95,ridge_both,cumulative,+10%,0.1,0.07
+outside,random_walk,39,80,0.95,ridge_both,cumulative,-10%,0.03,0.02
+outside,random_walk,39,80,0.95,ridge_both,cumulative,ramp to -10%,0.03,0.01
+outside,random_walk,39,80,0.95,ridge_both,per period,+10%,0.08,0.06
+outside,random_walk,39,80,0.95,ridge_both,per period,-10%,0.02,0.02
+outside,random_walk,39,80,0.95,ridge_both,per period,ramp to -10%,0.02,0.02
+outside,random_walk,39,80,0.95,ridge_space,cumulative,+10%,0.12,0.09
+outside,random_walk,39,80,0.95,ridge_space,cumulative,-10%,0.06,0.03
+outside,random_walk,39,80,0.95,ridge_space,cumulative,ramp to -10%,0.04,0.02
+outside,random_walk,39,80,0.95,ridge_space,per period,+10%,0.1,0.09
+outside,random_walk,39,80,0.95,ridge_space,per period,-10%,0.03,0.03
+outside,random_walk,39,80,0.95,ridge_space,per period,ramp to -10%,0.03,0.02
+outside,random_walk,39,80,0.95,ridge_time,cumulative,+10%,0.15,0.14
+outside,random_walk,39,80,0.95,ridge_time,cumulative,-10%,0.06,0.06
+outside,random_walk,39,80,0.95,ridge_time,cumulative,ramp to -10%,0.05,0.05
+outside,random_walk,39,80,0.95,ridge_time,per period,+10%,0.14,0.14
+outside,random_walk,39,80,0.95,ridge_time,per period,-10%,0.07,0.05
+outside,random_walk,39,80,0.95,ridge_time,per period,ramp to -10%,0.07,0.05
+outside,stationary,19,40,0.9,dsc_both,cumulative,+10%,0.12,0.08
+outside,stationary,19,40,0.9,dsc_both,cumulative,-10%,0.17,0.13
+outside,stationary,19,40,0.9,dsc_both,cumulative,ramp to -10%,0.11,0.06
+outside,stationary,19,40,0.9,dsc_both,per period,+10%,0.1,0.1
+outside,stationary,19,40,0.9,dsc_both,per period,-10%,0.06,0.05
+outside,stationary,19,40,0.9,dsc_both,per period,ramp to -10%,0.06,0.05
+outside,stationary,19,40,0.9,dsc_space,cumulative,+10%,0.12,0.16
+outside,stationary,19,40,0.9,dsc_space,cumulative,-10%,0.2,0.21
+outside,stationary,19,40,0.9,dsc_space,cumulative,ramp to -10%,0.14,0.1
+outside,stationary,19,40,0.9,dsc_space,per period,+10%,0.1,0.19
+outside,stationary,19,40,0.9,dsc_space,per period,-10%,0.16,0.08
+outside,stationary,19,40,0.9,dsc_space,per period,ramp to -10%,0.16,0.09
+outside,stationary,19,40,0.9,dsc_time,cumulative,+10%,0.22,0.15
+outside,stationary,19,40,0.9,dsc_time,cumulative,-10%,0.35,0.27
+outside,stationary,19,40,0.9,dsc_time,cumulative,ramp to -10%,0.29,0.21
+outside,stationary,19,40,0.9,dsc_time,per period,+10%,0.16,0.22
+outside,stationary,19,40,0.9,dsc_time,per period,-10%,0.2,0.2
+outside,stationary,19,40,0.9,dsc_time,per period,ramp to -10%,0.2,0.16
+outside,stationary,19,40,0.9,ridge_both,cumulative,+10%,0.16,0.11
+outside,stationary,19,40,0.9,ridge_both,cumulative,-10%,0.05,0.04
+outside,stationary,19,40,0.9,ridge_both,cumulative,ramp to -10%,0.02,0
+outside,stationary,19,40,0.9,ridge_both,per period,+10%,0.07,0.05
+outside,stationary,19,40,0.9,ridge_both,per period,-10%,0.01,0
+outside,stationary,19,40,0.9,ridge_both,per period,ramp to -10%,0.01,0.01
+outside,stationary,19,40,0.9,ridge_space,cumulative,+10%,0.18,0.13
+outside,stationary,19,40,0.9,ridge_space,cumulative,-10%,0.08,0.08
+outside,stationary,19,40,0.9,ridge_space,cumulative,ramp to -10%,0.03,0
+outside,stationary,19,40,0.9,ridge_space,per period,+10%,0.07,0.05
+outside,stationary,19,40,0.9,ridge_space,per period,-10%,0.04,0.03
+outside,stationary,19,40,0.9,ridge_space,per period,ramp to -10%,0.04,0.03
+outside,stationary,19,40,0.9,ridge_time,cumulative,+10%,0.37,0.34
+outside,stationary,19,40,0.9,ridge_time,cumulative,-10%,0.39,0.36
+outside,stationary,19,40,0.9,ridge_time,cumulative,ramp to -10%,0.17,0.14
+outside,stationary,19,40,0.9,ridge_time,per period,+10%,0.21,0.3
+outside,stationary,19,40,0.9,ridge_time,per period,-10%,0.16,0.24
+outside,stationary,19,40,0.9,ridge_time,per period,ramp to -10%,0.16,0.16
+outside,stationary,19,40,0.95,dsc_both,cumulative,+10%,0.12,0.07
+outside,stationary,19,40,0.95,dsc_both,cumulative,-10%,0.13,0.06
+outside,stationary,19,40,0.95,dsc_both,cumulative,ramp to -10%,0.04,0.02
+outside,stationary,19,40,0.95,dsc_both,per period,+10%,0.08,0.09
+outside,stationary,19,40,0.95,dsc_both,per period,-10%,0.04,0.03
+outside,stationary,19,40,0.95,dsc_both,per period,ramp to -10%,0.04,0.03
+outside,stationary,19,40,0.95,dsc_space,cumulative,+10%,0.12,0.12
+outside,stationary,19,40,0.95,dsc_space,cumulative,-10%,0.13,0.08
+outside,stationary,19,40,0.95,dsc_space,cumulative,ramp to -10%,0.05,0.03
+outside,stationary,19,40,0.95,dsc_space,per period,+10%,0.08,0.16
+outside,stationary,19,40,0.95,dsc_space,per period,-10%,0.09,0.04
+outside,stationary,19,40,0.95,dsc_space,per period,ramp to -10%,0.09,0.06
+outside,stationary,19,40,0.95,dsc_time,cumulative,+10%,0.2,0.15
+outside,stationary,19,40,0.95,dsc_time,cumulative,-10%,0.31,0.23
+outside,stationary,19,40,0.95,dsc_time,cumulative,ramp to -10%,0.23,0.14
+outside,stationary,19,40,0.95,dsc_time,per period,+10%,0.15,0.19
+outside,stationary,19,40,0.95,dsc_time,per period,-10%,0.12,0.15
+outside,stationary,19,40,0.95,dsc_time,per period,ramp to -10%,0.12,0.11
+outside,stationary,19,40,0.95,ridge_both,cumulative,+10%,0.09,0.03
+outside,stationary,19,40,0.95,ridge_both,cumulative,-10%,0.03,0.01
+outside,stationary,19,40,0.95,ridge_both,cumulative,ramp to -10%,0.01,0
+outside,stationary,19,40,0.95,ridge_both,per period,+10%,0.03,0.04
+outside,stationary,19,40,0.95,ridge_both,per period,-10%,0.01,0
+outside,stationary,19,40,0.95,ridge_both,per period,ramp to -10%,0.01,0
+outside,stationary,19,40,0.95,ridge_space,cumulative,+10%,0.11,0.04
+outside,stationary,19,40,0.95,ridge_space,cumulative,-10%,0.04,0.02
+outside,stationary,19,40,0.95,ridge_space,cumulative,ramp to -10%,0.02,0
+outside,stationary,19,40,0.95,ridge_space,per period,+10%,0.03,0.04
+outside,stationary,19,40,0.95,ridge_space,per period,-10%,0.03,0.01
+outside,stationary,19,40,0.95,ridge_space,per period,ramp to -10%,0.03,0
+outside,stationary,19,40,0.95,ridge_time,cumulative,+10%,0.33,0.27
+outside,stationary,19,40,0.95,ridge_time,cumulative,-10%,0.32,0.23
+outside,stationary,19,40,0.95,ridge_time,cumulative,ramp to -10%,0.14,0.09
+outside,stationary,19,40,0.95,ridge_time,per period,+10%,0.16,0.26
+outside,stationary,19,40,0.95,ridge_time,per period,-10%,0.12,0.18
+outside,stationary,19,40,0.95,ridge_time,per period,ramp to -10%,0.12,0.12
+outside,stationary,19,80,0.9,dsc_both,cumulative,+10%,0.14,0.13
+outside,stationary,19,80,0.9,dsc_both,cumulative,-10%,0.15,0.09
+outside,stationary,19,80,0.9,dsc_both,cumulative,ramp to -10%,0.09,0.04
+outside,stationary,19,80,0.9,dsc_both,per period,+10%,0.08,0.15
+outside,stationary,19,80,0.9,dsc_both,per period,-10%,0.06,0.04
+outside,stationary,19,80,0.9,dsc_both,per period,ramp to -10%,0.06,0.04
+outside,stationary,19,80,0.9,dsc_space,cumulative,+10%,0.15,0.14
+outside,stationary,19,80,0.9,dsc_space,cumulative,-10%,0.21,0.19
+outside,stationary,19,80,0.9,dsc_space,cumulative,ramp to -10%,0.13,0.1
+outside,stationary,19,80,0.9,dsc_space,per period,+10%,0.11,0.22
+outside,stationary,19,80,0.9,dsc_space,per period,-10%,0.07,0.04
+outside,stationary,19,80,0.9,dsc_space,per period,ramp to -10%,0.07,0.04
+outside,stationary,19,80,0.9,dsc_time,cumulative,+10%,0.22,0.24
+outside,stationary,19,80,0.9,dsc_time,cumulative,-10%,0.28,0.26
+outside,stationary,19,80,0.9,dsc_time,cumulative,ramp to -10%,0.25,0.17
+outside,stationary,19,80,0.9,dsc_time,per period,+10%,0.13,0.34
+outside,stationary,19,80,0.9,dsc_time,per period,-10%,0.16,0.17
+outside,stationary,19,80,0.9,dsc_time,per period,ramp to -10%,0.16,0.17
+outside,stationary,19,80,0.9,ridge_both,cumulative,+10%,0.14,0.07
+outside,stationary,19,80,0.9,ridge_both,cumulative,-10%,0.02,0
+outside,stationary,19,80,0.9,ridge_both,cumulative,ramp to -10%,0,0
+outside,stationary,19,80,0.9,ridge_both,per period,+10%,0.04,0.05
+outside,stationary,19,80,0.9,ridge_both,per period,-10%,0.01,0
+outside,stationary,19,80,0.9,ridge_both,per period,ramp to -10%,0.01,0
+outside,stationary,19,80,0.9,ridge_space,cumulative,+10%,0.14,0.07
+outside,stationary,19,80,0.9,ridge_space,cumulative,-10%,0.06,0.02
+outside,stationary,19,80,0.9,ridge_space,cumulative,ramp to -10%,0,0
+outside,stationary,19,80,0.9,ridge_space,per period,+10%,0.06,0.05
+outside,stationary,19,80,0.9,ridge_space,per period,-10%,0.02,0
+outside,stationary,19,80,0.9,ridge_space,per period,ramp to -10%,0.02,0
+outside,stationary,19,80,0.9,ridge_time,cumulative,+10%,0.59,0.48
+outside,stationary,19,80,0.9,ridge_time,cumulative,-10%,0.4,0.37
+outside,stationary,19,80,0.9,ridge_time,cumulative,ramp to -10%,0.1,0.11
+outside,stationary,19,80,0.9,ridge_time,per period,+10%,0.27,0.38
+outside,stationary,19,80,0.9,ridge_time,per period,-10%,0.13,0.19
+outside,stationary,19,80,0.9,ridge_time,per period,ramp to -10%,0.13,0.13
+outside,stationary,19,80,0.95,dsc_both,cumulative,+10%,0.08,0.08
+outside,stationary,19,80,0.95,dsc_both,cumulative,-10%,0.08,0.02
+outside,stationary,19,80,0.95,dsc_both,cumulative,ramp to -10%,0.03,0.03
+outside,stationary,19,80,0.95,dsc_both,per period,+10%,0.07,0.09
+outside,stationary,19,80,0.95,dsc_both,per period,-10%,0.01,0
+outside,stationary,19,80,0.95,dsc_both,per period,ramp to -10%,0.01,0.03
+outside,stationary,19,80,0.95,dsc_space,cumulative,+10%,0.1,0.1
+outside,stationary,19,80,0.95,dsc_space,cumulative,-10%,0.14,0.06
+outside,stationary,19,80,0.95,dsc_space,cumulative,ramp to -10%,0.05,0.03
+outside,stationary,19,80,0.95,dsc_space,per period,+10%,0.09,0.12
+outside,stationary,19,80,0.95,dsc_space,per period,-10%,0.01,0
+outside,stationary,19,80,0.95,dsc_space,per period,ramp to -10%,0.01,0.03
+outside,stationary,19,80,0.95,dsc_time,cumulative,+10%,0.17,0.19
+outside,stationary,19,80,0.95,dsc_time,cumulative,-10%,0.21,0.17
+outside,stationary,19,80,0.95,dsc_time,cumulative,ramp to -10%,0.16,0.12
+outside,stationary,19,80,0.95,dsc_time,per period,+10%,0.11,0.23
+outside,stationary,19,80,0.95,dsc_time,per period,-10%,0.1,0.14
+outside,stationary,19,80,0.95,dsc_time,per period,ramp to -10%,0.1,0.15
+outside,stationary,19,80,0.95,ridge_both,cumulative,+10%,0.05,0.02
+outside,stationary,19,80,0.95,ridge_both,cumulative,-10%,0,0
+outside,stationary,19,80,0.95,ridge_both,cumulative,ramp to -10%,0,0
+outside,stationary,19,80,0.95,ridge_both,per period,+10%,0.02,0.02
+outside,stationary,19,80,0.95,ridge_both,per period,-10%,0,0
+outside,stationary,19,80,0.95,ridge_both,per period,ramp to -10%,0,0
+outside,stationary,19,80,0.95,ridge_space,cumulative,+10%,0.06,0.02
+outside,stationary,19,80,0.95,ridge_space,cumulative,-10%,0.01,0
+outside,stationary,19,80,0.95,ridge_space,cumulative,ramp to -10%,0,0
+outside,stationary,19,80,0.95,ridge_space,per period,+10%,0.03,0.02
+outside,stationary,19,80,0.95,ridge_space,per period,-10%,0.01,0
+outside,stationary,19,80,0.95,ridge_space,per period,ramp to -10%,0.01,0
+outside,stationary,19,80,0.95,ridge_time,cumulative,+10%,0.46,0.33
+outside,stationary,19,80,0.95,ridge_time,cumulative,-10%,0.24,0.19
+outside,stationary,19,80,0.95,ridge_time,cumulative,ramp to -10%,0.08,0.07
+outside,stationary,19,80,0.95,ridge_time,per period,+10%,0.17,0.33
+outside,stationary,19,80,0.95,ridge_time,per period,-10%,0.06,0.13
+outside,stationary,19,80,0.95,ridge_time,per period,ramp to -10%,0.06,0.1
+outside,stationary,39,40,0.9,dsc_both,cumulative,+10%,0.08,0.07
+outside,stationary,39,40,0.9,dsc_both,cumulative,-10%,0.08,0.06
+outside,stationary,39,40,0.9,dsc_both,cumulative,ramp to -10%,0.03,0.04
+outside,stationary,39,40,0.9,dsc_both,per period,+10%,0.09,0.08
+outside,stationary,39,40,0.9,dsc_both,per period,-10%,0.01,0.02
+outside,stationary,39,40,0.9,dsc_both,per period,ramp to -10%,0.01,0.02
+outside,stationary,39,40,0.9,dsc_space,cumulative,+10%,0.12,0.09
+outside,stationary,39,40,0.9,dsc_space,cumulative,-10%,0.15,0.14
+outside,stationary,39,40,0.9,dsc_space,cumulative,ramp to -10%,0.12,0.11
+outside,stationary,39,40,0.9,dsc_space,per period,+10%,0.1,0.14
+outside,stationary,39,40,0.9,dsc_space,per period,-10%,0.09,0.06
+outside,stationary,39,40,0.9,dsc_space,per period,ramp to -10%,0.09,0.05
+outside,stationary,39,40,0.9,dsc_time,cumulative,+10%,0.16,0.14
+outside,stationary,39,40,0.9,dsc_time,cumulative,-10%,0.21,0.23
+outside,stationary,39,40,0.9,dsc_time,cumulative,ramp to -10%,0.19,0.14
+outside,stationary,39,40,0.9,dsc_time,per period,+10%,0.15,0.21
+outside,stationary,39,40,0.9,dsc_time,per period,-10%,0.08,0.19
+outside,stationary,39,40,0.9,dsc_time,per period,ramp to -10%,0.08,0.11
+outside,stationary,39,40,0.9,ridge_both,cumulative,+10%,0.06,0.03
+outside,stationary,39,40,0.9,ridge_both,cumulative,-10%,0.02,0.01
+outside,stationary,39,40,0.9,ridge_both,cumulative,ramp to -10%,0,0
+outside,stationary,39,40,0.9,ridge_both,per period,+10%,0.02,0.01
+outside,stationary,39,40,0.9,ridge_both,per period,-10%,0.01,0
+outside,stationary,39,40,0.9,ridge_both,per period,ramp to -10%,0.01,0
+outside,stationary,39,40,0.9,ridge_space,cumulative,+10%,0.08,0.04
+outside,stationary,39,40,0.9,ridge_space,cumulative,-10%,0.05,0.02
+outside,stationary,39,40,0.9,ridge_space,cumulative,ramp to -10%,0,0
+outside,stationary,39,40,0.9,ridge_space,per period,+10%,0.03,0.02
+outside,stationary,39,40,0.9,ridge_space,per period,-10%,0.01,0
+outside,stationary,39,40,0.9,ridge_space,per period,ramp to -10%,0.01,0
+outside,stationary,39,40,0.9,ridge_time,cumulative,+10%,0.33,0.25
+outside,stationary,39,40,0.9,ridge_time,cumulative,-10%,0.22,0.3
+outside,stationary,39,40,0.9,ridge_time,cumulative,ramp to -10%,0.11,0.14
+outside,stationary,39,40,0.9,ridge_time,per period,+10%,0.22,0.29
+outside,stationary,39,40,0.9,ridge_time,per period,-10%,0.17,0.23
+outside,stationary,39,40,0.9,ridge_time,per period,ramp to -10%,0.17,0.18
+outside,stationary,39,40,0.95,dsc_both,cumulative,+10%,0.04,0.04
+outside,stationary,39,40,0.95,dsc_both,cumulative,-10%,0.03,0.03
+outside,stationary,39,40,0.95,dsc_both,cumulative,ramp to -10%,0.01,0.01
+outside,stationary,39,40,0.95,dsc_both,per period,+10%,0.06,0.05
+outside,stationary,39,40,0.95,dsc_both,per period,-10%,0,0
+outside,stationary,39,40,0.95,dsc_both,per period,ramp to -10%,0,0.02
+outside,stationary,39,40,0.95,dsc_space,cumulative,+10%,0.06,0.06
+outside,stationary,39,40,0.95,dsc_space,cumulative,-10%,0.1,0.09
+outside,stationary,39,40,0.95,dsc_space,cumulative,ramp to -10%,0.05,0.02
+outside,stationary,39,40,0.95,dsc_space,per period,+10%,0.06,0.08
+outside,stationary,39,40,0.95,dsc_space,per period,-10%,0.03,0.01
+outside,stationary,39,40,0.95,dsc_space,per period,ramp to -10%,0.03,0.02
+outside,stationary,39,40,0.95,dsc_time,cumulative,+10%,0.13,0.11
+outside,stationary,39,40,0.95,dsc_time,cumulative,-10%,0.19,0.14
+outside,stationary,39,40,0.95,dsc_time,cumulative,ramp to -10%,0.15,0.09
+outside,stationary,39,40,0.95,dsc_time,per period,+10%,0.14,0.17
+outside,stationary,39,40,0.95,dsc_time,per period,-10%,0.03,0.16
+outside,stationary,39,40,0.95,dsc_time,per period,ramp to -10%,0.03,0.1
+outside,stationary,39,40,0.95,ridge_both,cumulative,+10%,0.01,0.01
+outside,stationary,39,40,0.95,ridge_both,cumulative,-10%,0.02,0
+outside,stationary,39,40,0.95,ridge_both,cumulative,ramp to -10%,0,0
+outside,stationary,39,40,0.95,ridge_both,per period,+10%,0,0.01
+outside,stationary,39,40,0.95,ridge_both,per period,-10%,0,0
+outside,stationary,39,40,0.95,ridge_both,per period,ramp to -10%,0,0
+outside,stationary,39,40,0.95,ridge_space,cumulative,+10%,0.02,0.01
+outside,stationary,39,40,0.95,ridge_space,cumulative,-10%,0.03,0
+outside,stationary,39,40,0.95,ridge_space,cumulative,ramp to -10%,0,0
+outside,stationary,39,40,0.95,ridge_space,per period,+10%,0,0.01
+outside,stationary,39,40,0.95,ridge_space,per period,-10%,0,0
+outside,stationary,39,40,0.95,ridge_space,per period,ramp to -10%,0,0
+outside,stationary,39,40,0.95,ridge_time,cumulative,+10%,0.25,0.2
+outside,stationary,39,40,0.95,ridge_time,cumulative,-10%,0.17,0.22
+outside,stationary,39,40,0.95,ridge_time,cumulative,ramp to -10%,0.07,0.07
+outside,stationary,39,40,0.95,ridge_time,per period,+10%,0.2,0.25
+outside,stationary,39,40,0.95,ridge_time,per period,-10%,0.12,0.14
+outside,stationary,39,40,0.95,ridge_time,per period,ramp to -10%,0.12,0.1
+outside,stationary,39,80,0.9,dsc_both,cumulative,+10%,0.08,0.12
+outside,stationary,39,80,0.9,dsc_both,cumulative,-10%,0.12,0.07
+outside,stationary,39,80,0.9,dsc_both,cumulative,ramp to -10%,0.06,0.07
+outside,stationary,39,80,0.9,dsc_both,per period,+10%,0.09,0.16
+outside,stationary,39,80,0.9,dsc_both,per period,-10%,0.07,0.05
+outside,stationary,39,80,0.9,dsc_both,per period,ramp to -10%,0.07,0.06
+outside,stationary,39,80,0.9,dsc_space,cumulative,+10%,0.09,0.15
+outside,stationary,39,80,0.9,dsc_space,cumulative,-10%,0.21,0.14
+outside,stationary,39,80,0.9,dsc_space,cumulative,ramp to -10%,0.12,0.11
+outside,stationary,39,80,0.9,dsc_space,per period,+10%,0.11,0.2
+outside,stationary,39,80,0.9,dsc_space,per period,-10%,0.09,0.06
+outside,stationary,39,80,0.9,dsc_space,per period,ramp to -10%,0.09,0.07
+outside,stationary,39,80,0.9,dsc_time,cumulative,+10%,0.12,0.21
+outside,stationary,39,80,0.9,dsc_time,cumulative,-10%,0.22,0.25
+outside,stationary,39,80,0.9,dsc_time,cumulative,ramp to -10%,0.15,0.15
+outside,stationary,39,80,0.9,dsc_time,per period,+10%,0.14,0.23
+outside,stationary,39,80,0.9,dsc_time,per period,-10%,0.15,0.15
+outside,stationary,39,80,0.9,dsc_time,per period,ramp to -10%,0.15,0.15
+outside,stationary,39,80,0.9,ridge_both,cumulative,+10%,0.09,0.05
+outside,stationary,39,80,0.9,ridge_both,cumulative,-10%,0.02,0
+outside,stationary,39,80,0.9,ridge_both,cumulative,ramp to -10%,0,0
+outside,stationary,39,80,0.9,ridge_both,per period,+10%,0.04,0.07
+outside,stationary,39,80,0.9,ridge_both,per period,-10%,0,0
+outside,stationary,39,80,0.9,ridge_both,per period,ramp to -10%,0,0
+outside,stationary,39,80,0.9,ridge_space,cumulative,+10%,0.1,0.05
+outside,stationary,39,80,0.9,ridge_space,cumulative,-10%,0.03,0
+outside,stationary,39,80,0.9,ridge_space,cumulative,ramp to -10%,0,0
+outside,stationary,39,80,0.9,ridge_space,per period,+10%,0.06,0.08
+outside,stationary,39,80,0.9,ridge_space,per period,-10%,0,0
+outside,stationary,39,80,0.9,ridge_space,per period,ramp to -10%,0,0
+outside,stationary,39,80,0.9,ridge_time,cumulative,+10%,0.44,0.44
+outside,stationary,39,80,0.9,ridge_time,cumulative,-10%,0.32,0.34
+outside,stationary,39,80,0.9,ridge_time,cumulative,ramp to -10%,0.14,0.1
+outside,stationary,39,80,0.9,ridge_time,per period,+10%,0.23,0.35
+outside,stationary,39,80,0.9,ridge_time,per period,-10%,0.18,0.17
+outside,stationary,39,80,0.9,ridge_time,per period,ramp to -10%,0.18,0.15
+outside,stationary,39,80,0.95,dsc_both,cumulative,+10%,0.05,0.09
+outside,stationary,39,80,0.95,dsc_both,cumulative,-10%,0.06,0.03
+outside,stationary,39,80,0.95,dsc_both,cumulative,ramp to -10%,0.04,0.02
+outside,stationary,39,80,0.95,dsc_both,per period,+10%,0.06,0.1
+outside,stationary,39,80,0.95,dsc_both,per period,-10%,0.02,0
+outside,stationary,39,80,0.95,dsc_both,per period,ramp to -10%,0.02,0.03
+outside,stationary,39,80,0.95,dsc_space,cumulative,+10%,0.06,0.12
+outside,stationary,39,80,0.95,dsc_space,cumulative,-10%,0.12,0.06
+outside,stationary,39,80,0.95,dsc_space,cumulative,ramp to -10%,0.08,0.05
+outside,stationary,39,80,0.95,dsc_space,per period,+10%,0.07,0.14
+outside,stationary,39,80,0.95,dsc_space,per period,-10%,0.04,0.01
+outside,stationary,39,80,0.95,dsc_space,per period,ramp to -10%,0.04,0.04
+outside,stationary,39,80,0.95,dsc_time,cumulative,+10%,0.1,0.13
+outside,stationary,39,80,0.95,dsc_time,cumulative,-10%,0.14,0.15
+outside,stationary,39,80,0.95,dsc_time,cumulative,ramp to -10%,0.09,0.1
+outside,stationary,39,80,0.95,dsc_time,per period,+10%,0.11,0.19
+outside,stationary,39,80,0.95,dsc_time,per period,-10%,0.07,0.06
+outside,stationary,39,80,0.95,dsc_time,per period,ramp to -10%,0.07,0.1
+outside,stationary,39,80,0.95,ridge_both,cumulative,+10%,0.05,0.03
+outside,stationary,39,80,0.95,ridge_both,cumulative,-10%,0.01,0
+outside,stationary,39,80,0.95,ridge_both,cumulative,ramp to -10%,0,0
+outside,stationary,39,80,0.95,ridge_both,per period,+10%,0.03,0.05
+outside,stationary,39,80,0.95,ridge_both,per period,-10%,0,0
+outside,stationary,39,80,0.95,ridge_both,per period,ramp to -10%,0,0
+outside,stationary,39,80,0.95,ridge_space,cumulative,+10%,0.05,0.04
+outside,stationary,39,80,0.95,ridge_space,cumulative,-10%,0.02,0
+outside,stationary,39,80,0.95,ridge_space,cumulative,ramp to -10%,0,0
+outside,stationary,39,80,0.95,ridge_space,per period,+10%,0.03,0.06
+outside,stationary,39,80,0.95,ridge_space,per period,-10%,0,0
+outside,stationary,39,80,0.95,ridge_space,per period,ramp to -10%,0,0
+outside,stationary,39,80,0.95,ridge_time,cumulative,+10%,0.32,0.3
+outside,stationary,39,80,0.95,ridge_time,cumulative,-10%,0.21,0.22
+outside,stationary,39,80,0.95,ridge_time,cumulative,ramp to -10%,0.06,0.07
+outside,stationary,39,80,0.95,ridge_time,per period,+10%,0.17,0.25
+outside,stationary,39,80,0.95,ridge_time,per period,-10%,0.1,0.11
+outside,stationary,39,80,0.95,ridge_time,per period,ramp to -10%,0.1,0.07

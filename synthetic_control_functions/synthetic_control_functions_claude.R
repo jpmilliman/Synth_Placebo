@@ -1637,8 +1637,9 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #   c("year", "qtr")), outcome_col, treated_unit, treatment_period (named vector:
 #   first treated period), test_period (same format; default: last post period),
 #   conf_level (0.95), span (loess span of the simultaneous profile, 0.75), scale,
-#   rmspe_floor, adjust_covariates / adjust_model / ife_r, augment, estimator,
-#   diagnostics / warn / ife_seed - described below and in the reference.
+#   rmspe_floor, adjust_covariates / adjust_model / ife_r, augment (with ridge_c /
+#   ridge_grid), estimator, diagnostics / warn / ife_seed - described below and in
+#   the reference.
 #
 # Covariate adjustment (optional): adjust_covariates = column name(s) of time-
 #   varying covariates. Step 1 estimates their effect gamma on UNTREATED cells
@@ -1669,6 +1670,27 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #   factors the estimator reduces exactly to the demeaned synthetic control.
 #   Each placebo refits the outcome model with the treated unit dropped and its
 #   own post period excluded.
+#   augment = "ridge" gives the RIDGE-AUGMENTED demeaned synthetic control (in the
+#   spirit of Ben-Michael, Feller and Rothstein's augmented SCM). Each post-period
+#   counterfactual is the demeaned SC plus (x_T - sum_j w_j x_j)' beta_t, where x_j is
+#   unit j's demeaned pre-period path and beta_t a ridge regression, across donors,
+#   of their period-t outcome on their pre-period paths: it extrapolates the pre-period
+#   imbalance the weights leave (a treated unit at or beyond the edge of the donors'
+#   range) and is about zero when the weights already match. The penalty is ridge_c x
+#   the donors' mean squared path norm; ridge_c = 0.1 by default (chosen in
+#   Experimental_inference/ridge_default_validation.R: as valid as cross-validation in
+#   simulation, lower error on real panels, and stable). ridge_c = "cv" (or NULL) chooses it
+#   from ridge_grid by cross-validation inside the pre-period instead (each donor predicts its
+#   last min(n_post, T0/4) pre-periods from the earlier ones; needs 8+ pre-periods). With
+#   adjust_covariates (either adjust_model) the outcomes are adjusted first and the
+#   ridge model is fitted to the adjusted outcomes. Pre-treatment gaps (and the RMSPE
+#   scale) are the demeaned SC's; each placebo refits its own correction with the same
+#   penalty. $ridge reports the penalty, the cross-validation errors and the
+#   correction. Validated in simulations/ridge_*_validation.R: valid with 9-39 donors
+#   and 10-80 pre-periods; restores coverage for treated units at or beyond the edge
+#   of the donors' range with trending factors (89-95% at 90%, vs 49-84% without);
+#   lower RMSE than the plain estimator almost everywhere; with IFE covariate
+#   adjustment the best combination tested for a confounded treated unit.
 #
 # Guard (rmspe_floor, RMSPE scale only): each unit's pre-treatment RMSPE is floored at
 #   rmspe_floor x the median pre-treatment RMSPE over the treated unit and all placebos
@@ -1688,7 +1710,7 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #   applied. In simulation, fect with placebo calibration on the RMSPE scale was valid
 #   and much more powerful than DSC when the treated unit lay at or beyond the edge of
 #   the donors' range with stationary factors; it was not valid with trending factors.
-#   Use scale = "rmspe" with it. Cannot be combined with augment = "ife". With
+#   Use scale = "rmspe" with it. Cannot be combined with augment = "ife" or "ridge". With
 #   estimator = "fect", $weights and $intercept are NULL (there are no donor weights).
 #
 # Diagnostics (diagnostics = TRUE, default): checks whether the treated unit lies
@@ -1704,14 +1726,28 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #                      (lambda_T - sum_j w_j lambda_j) x f_t, as % of the level
 #     persistence      first-order autocorrelation of each estimated factor
 #                      (trending if above 0.95)
+#     residual_autocorrelation
+#                      persistence of the untreated gaps: pooled AR(1) of the placebos'
+#                      post-treatment gaps (out-of-sample for the untreated donors),
+#                      each standardized by its pre-treatment RMSPE; 90% bootstrap
+#                      interval over placebos; level (low < 0.3 <= moderate < 0.7 <=
+#                      high < 0.9 <= very high), half-life, periods for a shock to fall
+#                      to 25% (a backdating guide), effective number of independent
+#                      pre-periods T0 (1 - rho) / (1 + rho), the in-sample pre-treatment
+#                      value (understates persistence; the difference shows how much the
+#                      weights absorb), seasonal lag (finest time column with 2-12
+#                      values; reported as lag-s autocorrelation minus rho^s, the seasonal
+#                      persistence beyond lag 1) and a guide sentence. backdate_periods is NA
+#                      when rho >= 0.9. Information only (no flag).
 #   fect's cross-validation is random; ife_seed (default 12112025) fixes it locally (the
 #   session's random-number state is restored), so results are reproducible.
 #   A warning is issued (warn = TRUE) when the treated unit is flagged as extreme;
 #   it is strongest when the factors are trending. Loading-based checks need fect.
 #   $diagnostics$recommendation gives the arguments to re-run with when the
-#   diagnostics point to a better-suited method: with estimator = "dsc", a treated
-#   unit flagged as extreme with factors NOT trending -> re-run with estimator =
-#   "fect", scale = "rmspe". NULL when no change is recommended.
+#   diagnostics point to a better-suited method: a treated unit flagged as extreme
+#   with trending factors -> re-run with augment = "ridge"; with factors NOT trending
+#   (and estimator = "dsc", augment not "ridge") -> estimator = "fect", scale =
+#   "rmspe". NULL when no change is recommended.
 #   Validated on 1,800 simulated panels (diagnostics_validation.R): the extreme flag
 #   caught 100% of 'outside' and 81% of 'edge' treated units, with 4-5% false alarms
 #   for treated units inside the donors' hull; runs with the combined warning (flag
@@ -1720,7 +1756,7 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 # Value: a list with effects (one row per period: observed, synthetic, effect, effect
 #   and prediction intervals _pw / _sim, p_pointwise, and the cumulative versions cum_*),
 #   test (pointwise, simultaneous and RMSPE-ratio tests), weights, intercept, pre_rmspe,
-#   rmspe_guard, adjustment (with adjust_covariates), placebo (gaps and synthetic
+#   rmspe_guard, adjustment (with adjust_covariates), ridge (with augment = "ridge"), placebo (gaps and synthetic
 #   values), diagnostics, failed_donors and settings. See the reference for every column.
 #   effects also holds std_effect (the gap on the calibration scale) and threshold_ratio_pw /
 #   _sim (|std_effect| / the pointwise or simultaneous threshold; above 1 = outside the
@@ -1730,13 +1766,16 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
                         test_period = NULL, conf_level = 0.95, span = 0.75,
                         scale = c("rmspe", "relative", "raw"),
                         adjust_covariates = NULL, adjust_model = c("ife", "twfe"), ife_r = 0:5,
-                        augment = c("none", "ife"), diagnostics = TRUE, warn = TRUE, ife_seed = 12112025,
-                        estimator = c("dsc", "fect"), rmspe_floor = 0.25) {
+                        augment = c("none", "ife", "ridge"), diagnostics = TRUE, warn = TRUE, ife_seed = 12112025,
+                        estimator = c("dsc", "fect"), rmspe_floor = 0.25,
+                        ridge_c = 0.1, ridge_grid = 10^seq(-3, 2, by = 0.5)) {
 
   if (!requireNamespace("CVXR", quietly = TRUE)) stop("dsc_placebo() needs the CVXR package.")
   scale <- match.arg(scale); adjust_model <- match.arg(adjust_model); augment <- match.arg(augment)
   estimator <- match.arg(estimator)
-  if (estimator == "fect" && augment == "ife") stop("augment = \"ife\" applies to estimator = \"dsc\" only.")
+  if (estimator == "fect" && augment != "none") stop("augment = \"", augment, "\" applies to estimator = \"dsc\" only.")
+  if (identical(ridge_c, "cv")) ridge_c <- NULL                  # "cv" (or NULL): choose the penalty by cross-validation
+  if (!is.null(ridge_c) && (!is.numeric(ridge_c) || length(ridge_c) != 1 || !is.finite(ridge_c) || ridge_c <= 0)) stop("ridge_c must be one positive number, or \"cv\" to choose it by cross-validation.")
   if (estimator == "fect" && !requireNamespace("fect", quietly = TRUE)) stop("estimator = \"fect\" needs the fect package.")
   if (augment == "ife" && !requireNamespace("fect", quietly = TRUE)) stop("augment = \"ife\" needs the fect package.")
   if (length(adjust_covariates) && adjust_model == "ife" && !requireNamespace("fect", quietly = TRUE)) stop("adjust_model = \"ife\" needs the fect package.")
@@ -1841,9 +1880,9 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
   }
 
   # ---- Demeaned SC fit (rescaled before solving) -------------------------------------------
-  fit_dsc <- function(X, yv) {
-    sc <- mean(abs(yv[!post]))
-    Xp <- X[!post, , drop = FALSE] / sc; yp <- yv[!post] / sc
+  fit_dsc <- function(X, yv, fit = !post) {                   # fit: the periods the weights are fitted on
+    sc <- mean(abs(yv[fit]))
+    Xp <- X[fit, , drop = FALSE] / sc; yp <- yv[fit] / sc
     w <- CVXR::Variable(ncol(Xp)); b0 <- CVXR::Variable(1)
     prob <- CVXR::Problem(CVXR::Minimize(CVXR::sum_squares(yp - b0 - Xp %*% w)), list(w >= 0, sum(w) == 1))
     CVXR::psolve(prob)
@@ -1858,12 +1897,58 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
     list(b0 = b, w = wv, synth = b + as.numeric(X %*% wv))
   }
 
+  # ---- Ridge augmentation (augment = "ridge") ------------------------------------------------
+  # Counterfactual = demeaned SC + (x_T - sum_j w_j x_j)' beta_t in each post period: x_j is unit j's
+  # demeaned pre-period path and beta_t a ridge regression, across the donors, of their (demeaned,
+  # centred) period-t outcome on their pre-period paths. The penalty is ridge_c x the donors' mean
+  # squared (centred) path norm. The correction extrapolates the pre-period imbalance the weights
+  # leave; it is ~0 when the weights already match the treated unit. Pre-treatment gaps (and so the
+  # RMSPE scale) are the demeaned SC's. Works on the covariate-adjusted outcomes when adjust_covariates
+  # is given. Each placebo refits its own correction with the same penalty.
+  ridge_correction <- function(yv, X, w, c_val, fit = !post, out = post) {
+    mu <- colMeans(X[fit, , drop = FALSE])
+    M <- t(sweep(X[fit, , drop = FALSE], 2, mu)); Mc <- sweep(M, 2, colMeans(M))                 # donors x fit periods
+    Yo <- t(sweep(X[out, , drop = FALSE], 2, mu)); Yoc <- sweep(Yo, 2, colMeans(Yo))            # donors x out periods
+    dv <- (yv[fit] - mean(yv[fit])) - as.numeric(crossprod(M, w))                                 # imbalance the weights leave
+    lam <- c_val * mean(rowSums(Mc^2))
+    A <- t(Mc) %*% solve(tcrossprod(Mc) + diag(lam, nrow(Mc)))
+    corr <- numeric(length(yv)); corr[out] <- as.numeric(crossprod(dv, A %*% Yoc)); corr
+  }
+  ridge_info <- NULL; c_ridge <- NULL
+  if (augment == "ridge") {
+    YaR <- adjust_mat(c(treated_unit, donors), adj_main$gamma)
+    pre_idx <- which(!post); T0 <- length(pre_idx)
+    if (is.null(ridge_c)) {
+      # Cross-validation inside the pre-period: each donor (fitted on the other donors) predicts its
+      # last k pre-periods from the earlier ones; the grid value with the lowest mean squared error wins
+      k <- min(n_post, floor(T0 / 4))
+      if (T0 < 8) stop("augment = \"ridge\" with ridge_c = \"cv\" needs at least 8 pre-treatment periods; use a numeric ridge_c (default 0.1).")
+      F_rows <- seq_len(nrow(periods)) %in% head(pre_idx, -k); V_rows <- seq_len(nrow(periods)) %in% tail(pre_idx, k)
+      cv_err <- sapply(donors, function(j) tryCatch({
+        oth <- setdiff(donors, j); fj <- fit_dsc(YaR[, oth, drop = FALSE], YaR[, j], fit = F_rows)
+        g <- (YaR[, j] - fj$synth)[V_rows]
+        vapply(ridge_grid, function(cc) mean((g - ridge_correction(YaR[, j], YaR[, oth, drop = FALSE], fj$w, cc, F_rows, V_rows)[V_rows])^2), numeric(1))
+      }, error = function(e) rep(NA_real_, length(ridge_grid))))
+      cv_mean <- rowMeans(matrix(cv_err, nrow = length(ridge_grid)), na.rm = TRUE)
+      c_ridge <- ridge_grid[which.min(cv_mean)]
+      cv_table <- data.frame(c = ridge_grid, cv_mse = cv_mean)
+    } else { c_ridge <- ridge_c; k <- NA_integer_; cv_table <- NULL }
+    at_edge <- is.null(ridge_c) && c_ridge %in% range(ridge_grid)
+    ridge_info <- list(c = c_ridge, chosen_by = if (is.null(ridge_c)) "cross-validation" else if (ridge_c == 0.1) "default (0.1)" else "ridge_c", holdout_periods = k,
+                       cv = cv_table, at_grid_edge = at_edge,
+                       note = if (at_edge) paste0("The cross-validated penalty is at the ", if (c_ridge == max(ridge_grid)) "top" else "bottom",
+                         " of ridge_grid (", if (c_ridge == max(ridge_grid)) "the correction is close to switched off" else "the least shrinkage on offer",
+                         "); this was more common with about 10 pre-periods and 9 donors in simulation. Compare with augment = \"none\".") else NULL)
+  }
+
   # ---- Treated unit and placebos ------------------------------------------------------------
   YaT <- if (augment == "ife") Y[, c(treated_unit, donors), drop = FALSE] - aug_main$M[, c(treated_unit, donors), drop = FALSE] else
     adjust_mat(c(treated_unit, donors), adj_main$gamma)
   ft <- fit_dsc(YaT[, donors, drop = FALSE], YaT[, treated_unit])
+  corr_T <- if (augment == "ridge") ridge_correction(YaT[, treated_unit], YaT[, donors, drop = FALSE], ft$w, c_ridge) else 0
   gT_all <- if (estimator == "fect") Y[, treated_unit] - aug_main$M[, treated_unit] else
-    YaT[, treated_unit] - ft$synth                                                              # gap (adjusted = original scale)
+    YaT[, treated_unit] - ft$synth - corr_T                                                     # gap (adjusted = original scale)
+  if (augment == "ridge") ridge_info$correction <- corr_T
   pl <- lapply(donors, function(p) tryCatch({
     if (estimator == "fect")                                                                 # IFEct, donor p as pseudo-treated
       return(list(gap = Y[, p] - model_ife(drop_units = treated_unit, drop_post_unit = p, r = r_use, cv = FALSE)$M[, p]))
@@ -1871,7 +1956,8 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
     Yp <- if (augment == "ife") Y[, cols_p, drop = FALSE] - model_ife(drop_units = treated_unit, drop_post_unit = p, r = r_use, cv = FALSE)$M[, cols_p, drop = FALSE] else
       adjust_mat(cols_p, gamma_for_placebo(p))
     fp <- fit_dsc(Yp[, setdiff(donors, p), drop = FALSE], Yp[, p])
-    list(gap = Yp[, p] - fp$synth)
+    corr_p <- if (augment == "ridge") ridge_correction(Yp[, p], Yp[, setdiff(donors, p), drop = FALSE], fp$w, c_ridge) else 0
+    list(gap = Yp[, p] - fp$synth - corr_p)
   }, error = function(e) conditionMessage(e)))
   failed <- vapply(pl, is.character, logical(1))
   failed_donors <- if (any(failed)) data.frame(donor = donors[failed], error = unlist(pl[failed])) else
@@ -1920,6 +2006,44 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
     fit_share_worse <- mean(fit_P > fit_T)
     diag <- list(fit_rank = list(treated_rel_rmspe = fit_T, placebo_rel_rmspe_median = median(fit_P),
                                  share_placebos_worse = fit_share_worse, flag = fit_share_worse < 0.10))
+    # Residual autocorrelation: how persistent the untreated gaps are. Estimated from the placebos'
+    # POST-treatment gaps (the donors are untreated and those periods lie outside their fit, so these
+    # are genuine out-of-sample errors), each standardized by its pre-treatment RMSPE and pooled as an
+    # AR(1) through the origin. In-sample pre-treatment residuals understate persistence badly (the
+    # weights absorb smooth noise: in simulation a true 0.7 read as about 0.2 with 20 pre-periods),
+    # so they are reported only to show how much persistence the fit absorbs. Information only.
+    pooled_ar <- function(G, k = 1) {
+      if (nrow(G) <= k + 1) return(NA_real_)
+      a <- G[-seq_len(k), , drop = FALSE]; b <- G[seq_len(nrow(G) - k), , drop = FALSE]
+      if (sum(b^2) == 0) NA_real_ else sum(a * b) / sum(b^2)
+    }
+    acf_in <- function(g) { g <- g - mean(g); if (sum(g^2) == 0) NA_real_ else sum(g[-1] * g[-length(g)]) / sum(g^2) }
+    T0 <- sum(!post)
+    Zac <- sweep(GP[post, , drop = FALSE], 2, pmax(rmspe_P, 0.25 * stats::median(rmspe_P)), "/")
+    rho_hat <- pooled_ar(Zac)
+    rho_int <- if (is.na(rho_hat)) c(NA_real_, NA_real_) else
+      stats::quantile(with_seed(replicate(200, pooled_ar(Zac[, sample(ncol(Zac), replace = TRUE), drop = FALSE]))), c(0.05, 0.95), na.rm = TRUE)
+    rho_in <- stats::median(c(acf_in(gT_all[!post]), apply(GP[!post, , drop = FALSE], 2, acf_in)), na.rm = TRUE)
+    s_len <- if (length(time_cols) >= 2) length(unique(periods[[time_cols[length(time_cols)]]])) else NA_integer_
+    rho_seas <- if (!is.na(s_len) && s_len %in% 2:12 && n_post >= s_len + 3) pooled_ar(Zac, s_len) else NA_real_
+    rc <- if (is.na(rho_hat)) NA_real_ else min(max(rho_hat, 0), 0.99)
+    half_life <- if (is.na(rc)) NA_real_ else if (rho_hat >= 1) Inf else if (rc == 0) 0 else log(0.5) / log(rc)   # Inf: gaps do not revert
+    backdate <- if (is.na(rc) || rc >= 0.9) NA_real_ else if (rc == 0) 1 else max(1, ceiling(log(0.25) / log(rc)))   # not useful when shocks barely fade
+    seas_excess <- if (is.na(rho_seas) || is.na(rc)) NA_real_ else rho_seas - rc^s_len   # seasonal persistence beyond what lag 1 implies
+    eff_pre <- if (is.na(rc)) NA_real_ else T0 * (1 - rc) / (1 + rc)
+    level <- if (is.na(rho_hat)) NA_character_ else as.character(cut(rho_hat, c(-Inf, 0.3, 0.7, 0.9, Inf), c("low", "moderate", "high", "very high"), right = FALSE))
+    guide <- if (is.na(rho_hat)) "not estimated: needs at least 3 post-treatment periods" else paste0(switch(level,
+      "low" = sprintf("Low persistence (rho = %.2f): untreated gaps behave close to independent noise. The pre-treatment fit is informative (about %.0f effective pre-periods), a shock just before treatment fades within about a period, and a backdating window of 1-2 periods is enough.", rho_hat, eff_pre),
+      "moderate" = sprintf("Moderate persistence (rho = %.2f, half-life %.1f periods): shocks fade over a few periods. The pre-treatment fit is worth about %.0f independent periods; a shock just before treatment would carry into the first post-treatment periods, so backdate by about %d periods to check for anticipation or a pre-treatment shock.", rho_hat, half_life, eff_pre, as.integer(backdate)),
+      "high" = sprintf("High persistence (rho = %.2f, half-life %.1f periods): smooth, sustained drifts in the gap occur by chance, so read the gap plot with caution. The pre-treatment fit is worth about %.1f independent periods; a pre-treatment shock carries well into the post period, and backdating needs about %d periods (check that enough pre-period remains to fit on).", rho_hat, half_life, eff_pre, as.integer(backdate)),
+      "very high" = sprintf("Very high persistence (rho = %.2f%s): the untreated gaps behave like a random walk, common for outcomes in levels (GDP, sales, rates that trend). The placebo calibration and the growing drift profile of the simultaneous band account for this when the treated unit is like the donors, but a close pre-treatment fit is weak evidence (about %.1f independent periods), gaps fan out with the horizon, and backdating cannot settle whether a pre-treatment shock carries over; see also the factor persistence check.", rho_hat, if (rho_hat >= 1) "; at or above 1, the placebos' gaps drift away rather than revert" else "", eff_pre)),
+      if (level != "very high") " The placebo calibration accounts for persistence the treated unit shares with the donors.",
+      if (!is.na(rho_in) && rho_hat - rho_in > 0.3) sprintf(" The pre-treatment residuals look much less persistent (%.2f): the weights absorb part of the noise, so the pre-treatment fit overstates how closely the synthetic control will track the treated unit.", rho_in),
+      if (!is.na(seas_excess) && seas_excess > 0.2) sprintf(" Seasonal persistence: the lag-%d autocorrelation (%.2f) exceeds what lag-1 persistence implies by %.2f, so a shock in one season tends to recur a year later; backdate in whole years and consider deseasonalizing.", as.integer(s_len), rho_seas, seas_excess))
+    diag$residual_autocorrelation <- list(rho = rho_hat, rho_interval_90 = unname(rho_int), level = level, half_life = half_life,
+                                          backdate_periods = backdate, effective_pre_periods = eff_pre, rho_in_sample = rho_in,
+                                          seasonal_lag = s_len, rho_seasonal = rho_seas, rho_seasonal_excess = seas_excess, n_post_periods = n_post,
+                                          n_placebos = ncol(Zac), guide = guide)
     comps <- if (!is.null(aug_main)) aug_main else if (requireNamespace("fect", quietly = TRUE))
       tryCatch({ r_d <- model_ife(drop_post_unit = treated_unit)$r; model_ife(drop_post_unit = treated_unit, r = r_d, cv = FALSE) },
                error = function(e) NULL) else NULL
@@ -1953,8 +2077,13 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
     diag$assessment <- if (!extreme) {
       if (estimator == "fect") "no sign that the treated unit lies beyond the donors; the simpler estimator = \"dsc\" with scale = \"rmspe\" was as valid and at least as powerful in this situation in simulation" else
         "no sign that the treated unit lies beyond the donors"
+    } else if (trending && augment == "ridge") {
+      "treated unit appears beyond the donors' range and the factors are trending: augment = \"ridge\" is in use, which restored coverage in this situation in simulation (89-95% at 90%) where the plain demeaned synthetic control, augment = \"ife\" and fect under-covered; some bias can remain, so read the estimate with caution"
     } else if (trending) {
-      "treated unit appears beyond the donors' range and the factors are trending: placebo-calibrated intervals (DSC, augmented DSC and fect alike) under-covered in this situation in simulation; treat results as unreliable"
+      diag$recommendation <- list(estimator = "dsc", augment = "ridge")
+      "treated unit appears beyond the donors' range and the factors are trending: re-run with augment = \"ridge\" (ridge-augmented demeaned synthetic control with placebo calibration), which restored coverage in this situation in simulation (89-95% at 90%); the plain demeaned synthetic control, augment = \"ife\" and fect under-covered here"
+    } else if (augment == "ridge") {
+      "treated unit appears beyond the donors' range (factors not trending): augment = \"ridge\" was valid (conservative) in this situation in simulation; estimator = \"fect\" with scale = \"rmspe\" was also valid and more powerful than the plain demeaned synthetic control"
     } else if (estimator == "dsc") {
       diag$recommendation <- list(estimator = "fect", scale = "rmspe")
       "treated unit appears beyond the donors' range (factors not trending): re-run with estimator = \"fect\" and scale = \"rmspe\" (fect with placebo calibration), which was valid and much more powerful than DSC in this situation in simulation"
@@ -2022,6 +2151,7 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
               gamma_twfe = tw_main$gamma, se_twfe = tw_main$se, n_obs = adj_main$n_obs,
               unadjusted = c(effect = gu[t_test], cumulative = sum(gu[seq_len(t_test)])))
        },
+       ridge = ridge_info,
        placebo = list(gaps = as.data.frame(GP), synthetic = as.data.frame(SP)),
        diagnostics = diag,
        failed_donors = failed_donors,
@@ -2029,7 +2159,7 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
                        time_cols = time_cols, outcome = outcome_col, conf_level = conf_level, span = span,
                        scale = scale, rmspe_floor = if (scale == "rmspe") rmspe_floor else NA, adjust_covariates = adjust_covariates,
                        adjust_model = if (length(adjust_covariates)) adjust_model else NA, augment = augment, estimator = estimator,
-                       n_donors = N, rank_used = m))
+                       ridge_c = if (augment == "ridge") c_ridge else NA, n_donors = N, rank_used = m))
 }
 
 

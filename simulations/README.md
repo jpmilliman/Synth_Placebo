@@ -4,7 +4,7 @@
 
 The simulations behind the main design choices in `dsc_placebo()`, with their summary results. Each script writes its results to the `results_*` folder of the same name. The per-task files a run produces are not kept here (see `.gitignore`), so the folders hold only the summaries: `results.rds`, and for most scripts a `summary.csv` and an interactive DT table (`.html`).
 
-Run scripts from the **project root**, e.g. `source("simulations/factor_model_simulation.R")`. They use `synthetic_control_functions/synthetic_control_functions_claude.R`, run in parallel with `future` and `furrr::future_pmap()` (10 workers by default), and resume from saved tasks if interrupted.
+Run scripts from the **project root**, e.g. `source("simulations/factor_model_simulation.R")`. They use `synthetic_control_functions/synthetic_control_functions_claude.R`, run in parallel with `future` and `furrr::future_pmap()` (10 workers by default), and resume from saved tasks if interrupted. The ridge scripts are the exception: they use the faster prototype in `ridge_validation_helpers.R` (14 workers by default, set `n_workers` to change), don't resume, and their run times are for 14 workers; `ridge_function_check.R` confirms the prototype matches `dsc_placebo()`.
 
 | Script | Question | Data | Run time (10 workers) | Results |
 |---|---|---|---|---|
@@ -18,6 +18,11 @@ Run scripts from the **project root**, e.g. `source("simulations/factor_model_si
 | `oregon_fentanyl_validation.R` | Does the covariate adjustment remove a confounding shock that arrives with the treatment? | Oregon overdose panel (Zoorob et al. 2024), each state as fake treated with an Oregon-like fentanyl shock | ~4 min | `results_oregon_fentanyl/` |
 | `rmspe_guard_validation.R` | Does the guard on the RMSPE scale (`rmspe_floor`) keep the intervals valid and usable with short pre-periods? | Kansas, California and Texas prison panels with short pre-periods; simulated factor model | ~9 min | `results_rmspe_guard/` |
 | `firpo_possebom_comparison.R` | How do `dsc_placebo()`'s intervals relate to Firpo and Possebom's (2018) confidence sets? | West Germany (`scpi::scpi_germany`) | ~2 min | `results_firpo_possebom/` |
+| `ridge_edge_validation.R` | Does ridge augmentation (or in-time placebo calibration) restore coverage for a treated unit at or beyond the edge of the donors' range? | Simulated factor model (19-39 donors, 40-80 pre-periods) | ~2 min | `results_ridge_edge/` |
+| `ridge_small_sample_validation.R` | Does ridge augmentation stay valid with small pools and short pre-periods, on real panels, and does it match `augsynth`? | Simulated factor model (9-19 donors, 10-20 pre-periods); Kansas, California and West Germany | ~4 min | `results_ridge_small_sample/` |
+| `ridge_covariate_validation.R` | Ridge augmentation after covariate adjustment, with a confounded covariate | Simulated factor model with the confounded covariate | ~36 min | `results_ridge_covariate/` |
+| `ridge_function_check.R` | Does `dsc_placebo(augment = "ridge")` reproduce the prototype the three simulations above validated? | Kansas, California, West Germany; 48 simulated panels | ~3 min | `results_ridge_function_check/` |
+| `ridge_validation_helpers.R` | Helper functions for the four ridge scripts (the prototype of `augment = "ridge"`) | | | |
 | `diagnostics_toy_cases.R` | Helper functions and toy panels for the diagnostics write-up | Simulated | seconds | figures in `docs/diagnostics/` |
 | `demeaned_sc_symmetric_calboot_test.R` | Dependency of `pre_period_length_simulation.R` (test version of `dsc_symcal_boot()`) | | | |
 
@@ -40,6 +45,8 @@ The method was built in stages, and each stage changed one part of it. The table
 | **fect offered only as an option, with placebo calibration** (`estimator = "fect"`) | fect's own parametric inference; augsynth's conformal inference | `augmented_comparison_simulation.R`: placebo-calibrated fect valid with stationary factors; fect's parametric and augsynth's conformal inference over-rejected | 30, 32 |
 | **Diagnostics and a warning that needs an extreme unit AND trending factors** (persistence threshold 0.95) | No diagnostics; an extreme-unit flag on its own | `diagnostics_validation.R`: the combined warning separated failing runs (74% coverage when warned vs 96% when not) | 31 |
 | **Recommendation to switch to fect only for stationary factors** | Always DSC; always fect | `diagnostics_toy_cases.R` (checked) and `augmented_comparison_simulation.R` (coverage) | 32 |
+| **Ridge augmentation as an option** (`augment = "ridge"`), recommended by the diagnostics for an extreme treated unit with trending factors | No remedy (results flagged as unreliable); `augment = "ife"`; in-time placebo calibration | `ridge_edge_validation.R`: coverage 91% at 90% for edge and outside units with random-walk factors, against 49-62% without; in-time calibration fell short. `ridge_small_sample_validation.R`: valid with 9-19 donors and 10-20 pre-periods, and on fake treated units in three real panels | 38 |
+| **Ridge augmentation combinable with covariate adjustment** (adjust first, then ridge) | Either one alone | `ridge_covariate_validation.R`: with a confounded covariate, IFE adjustment + ridge covered 89-99% in every scenario; adjustment alone under-covered extreme units and ridge alone didn't remove the confounding | 38 |
 
 Some earlier choices come from simulations that are **not kept in this folder** (they remain in the git-ignored `Placebo simulations/` folder and are summarized in `../experimental_methods_tracker.md`):
 
@@ -249,6 +256,41 @@ Power was estimated only for methods whose intervals shift exactly with an added
 **Supports.** The guard, with `rmspe_floor = 0.25` as the default.
 
 **Caveats.** The lowest coverage (92%) was for exchangeable units with random-walk factors and T0 = 10 (100 replicates; standard error about 2 points). With very short pre-periods the intervals stay wide (Texas 157%). One fake treated unit could not be fitted at all (Vermont in the Texas panel, whose pre-treatment outcome is zero throughout).
+
+### 11. Ridge augmentation (`ridge_edge_validation.R`, `ridge_small_sample_validation.R`, `ridge_covariate_validation.R`, `ridge_function_check.R`)
+
+**Question.** Simulations 5 and 6 found one case where no placebo calibration rescued the demeaned synthetic control: a treated unit at or beyond the edge of the donors' range with trending factors. The estimate itself is biased there, because non-negative weights summing to one can't reproduce the treated unit's path. Does a ridge-augmented estimator fix it, and does it hold up elsewhere?
+
+**The estimator** (`augment = "ridge"`). In each post-treatment period, the counterfactual is the demeaned synthetic control plus (x_T − Σ w_j x_j)′β_t. Here x_j is unit j's demeaned pre-treatment path, and β_t a ridge regression, across the donors, of their period-t outcome on those paths. The correction extrapolates the pre-treatment imbalance the weights leave, and is about zero when they match. The penalty is chosen by cross-validation inside the pre-period: each donor predicts its last pre-treatment periods from the earlier ones. Inference is the usual in-space placebo calibration, each placebo refitting its own correction. With `adjust_covariates`, the outcomes are adjusted first.
+
+**Designs** (all on the factor-model generator of simulation 5, 100 replicates per cell, 12 post periods):
+- `ridge_edge_validation.R`: treated unit exchangeable, at the edge or outside; stationary or random-walk factors; 19 or 39 donors; 40 or 80 pre-periods. Also tests in-time placebo calibration (the treated unit's own backdated windows) and the wider of the two calibrations. 2,400 replicates.
+- `ridge_small_sample_validation.R`: five kinds of treated unit (adding selected and noisy); 9, 14 or 19 donors; 10 or 20 pre-periods (6,000 replicates). Also every untreated unit of Kansas, California and West Germany as a fake treated unit, the three real treated units, and agreement with `augsynth`.
+- `ridge_covariate_validation.R`: the confounded covariate of simulation 5 (it switches on for the treated unit at treatment, adding about 8%, and for donors at dates that depend on their loadings); no, TWFE or IFE adjustment, each with or without ridge; 14 or 19 donors; 20 or 40 pre-periods (3,200 replicates).
+
+**Results** (coverage at 90%):
+
+| Design | Without ridge | With ridge |
+|---|---|---|
+| Edge, random walk, 19-39 donors, 40-80 pre-periods (cumulative) | 62% | 91% |
+| Outside, random walk, 19-39 donors, 40-80 pre-periods (cumulative) | 49% | 91% |
+| Outside, random walk, 9-19 donors, 20 pre-periods (final period) | 76% | 90% |
+| Exchangeable, no covariate (all of the above designs) | 89-93% | 88-94% |
+| Fake treated units: Kansas / California / West Germany | 90 / 92 / 88% | 90 / 92 / 88% |
+| Confounded covariate, IFE adjustment, outside, random walk (final / cumulative) | 73 / 73% | 89 / 93% |
+
+- **Bias and accuracy.** Bias fell by three-quarters or more for edge and outside units (outside, random walk: +38% to +9%), and RMSE by half or more in every scenario. Intervals were narrower. Power for exchangeable units was the same as without ridge.
+- **Small samples.** Ridge stayed valid with 9 donors and 10 pre-periods (89-99% at 90% averaged over pool sizes). With about 10 pre-periods the cross-validated penalty was less stable, and for a noisy treated unit with random-walk factors the RMSE was higher than without ridge (20% vs 16%).
+- **Stationary factors.** Ridge was conservative for edge and outside units (99-100%).
+- **In-time calibration** on its own under-covered (81-83%); taking the wider of the in-space and in-time thresholds reached 84-87% for the plain estimator but doubled the widths. It was not adopted.
+- **Covariates.** IFE adjustment followed by ridge was the best combination in every scenario (89-99% final period, 86-99% cumulative). Without adjustment, cumulative coverage fell to 69-82%; ridge alone did not remove the confounding. TWFE's estimate of the covariate effect was badly biased (RMSE 79-317% of the true value), because the covariate's timing depends on the factors.
+- **Real cases.** Estimates barely change: Kansas −2,006 vs −1,891 in the final quarter, California −17.3 vs −17.4, West Germany −3.51 vs −3.49.
+- **augsynth.** With the same penalty, `augsynth(progfunc = "Ridge", fixedeff = TRUE)` reproduces the estimates to within 0.00003; with its own penalty choice they differ (Kansas −2,852).
+- **The function.** `ridge_function_check.R` compares `dsc_placebo(augment = "ridge")` with the prototype on the three real panels and 48 simulated panels (including both covariate adjustments). They chose the same penalty in every panel, and the effects, pointwise intervals, simultaneous bands and cumulative intervals agreed to within 0.0008% of the outcome (median 10⁻⁸%), the difference being the weight solver's tolerance. The covariate effect estimates were identical. So the three simulations above apply to `dsc_placebo()` itself.
+
+**Supports.** `augment = "ridge"` as an option, combinable with `adjust_covariates`, and the diagnostics' recommendation of it for an extreme treated unit with trending factors. The default stays `augment = "none"`: for treated units like the donors the two are equally valid, and ridge adds little.
+
+**Caveats.** The simulations use the prototype in `ridge_validation_helpers.R` (quadprog weights rather than CVXR), not `dsc_placebo()` itself; the function check covers that. Some bias remains for a treated unit well outside the donors' range with random-walk factors. Exogenous covariate timing and `augment = "ife"` with covariates were not tested.
 
 ## Notes on reproducibility
 

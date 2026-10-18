@@ -31,7 +31,8 @@ This document explains:
 1. why that assumption can fail, in terms of the **factor loadings** that drive units' outcomes;
 2. why the failure is serious mainly when the common **factors are trending**, and much less so when they are **stationary**;
 3. how the diagnostics built into `dsc_placebo()` detect these situations; and
-4. what happens in each case, through **six toy examples** (stationary and trending factors, each with an exchangeable, edge, and outside treated unit) plus one illustration of outright failure.
+4. what happens in each case, through **six toy examples** (stationary and trending factors, each with an exchangeable, edge, and outside treated unit) plus one illustration of outright failure; and
+5. how the **ridge-augmented** estimator (`augment = "ridge"`) repairs the dangerous case.
 
 The diagnostics and the methods are in `synthetic_control_functions/synthetic_control_functions_claude.R`; the toy-case helpers are in `simulations/diagnostics_toy_cases.R`.
 
@@ -109,7 +110,7 @@ The **assessment** combines them:
 
 - **no flag:** "no sign that the treated unit lies beyond the donors";
 - **flag, factors not trending:** the treated unit appears extreme, but the error should show in the pre-treatment fit; fect with placebo calibration (RMSPE scale) was the better-performing method in this situation;
-- **flag and trending:** "treat results as unreliable".
+- **flag and trending:** re-run with `augment = "ridge"`, the ridge-augmented estimator, which restored coverage in this situation in simulation (see [The remedy](#the-remedy-ridge-augmentation)). When `augment = "ridge"` is already in use, the assessment says so instead.
 
 Two design choices matter. First, the hull flag compares the treated unit with **how extreme donors themselves typically are**, because even an exchangeable treated unit lies slightly outside the donors' hull fairly often by chance (about 19% of the time with 40 donors and two factors). Second, the warning requires **both** an extreme-unit flag and trending factors, because extremeness alone did not predict failure in simulation.
 
@@ -259,9 +260,9 @@ diagnostics_table(cs)
 |---|---|---|---|---|---|
 | 0% | 0% | 66.5% | 0.98 (trending) | +36.5% | yes (very wide) |
 
-**What the diagnostics say.** Both extreme-unit flags fire, and the factors are trending. Assessment: *the treated unit appears beyond the donors' range and the factors are trending … treat results as unreliable*. A warning is issued.
+**What the diagnostics say.** Both extreme-unit flags fire, and the factors are trending. Assessment: *the treated unit appears beyond the donors' range and the factors are trending: re-run with augment = "ridge" …*. A warning is issued.
 
-**What happened.** The mismatch error grows after treatment, and the estimate is off by +36.5%. In this particular panel the interval is wide enough to contain zero, but only because the poor pre-treatment fit inflated it a great deal; the interval is too wide to say anything useful. Across all such panels in simulation, the interval contained the truth only 78% of the time. The warning is right to call the result unreliable even when, as here, the interval happens to cover.
+**What happened.** The mismatch error grows after treatment, and the estimate is off by +36.5%. In this particular panel the interval is wide enough to contain zero, but only because the poor pre-treatment fit inflated it a great deal; the interval is too wide to say anything useful. Across all such panels in simulation, the interval contained the truth only 78% of the time. The warning is right to flag the result even when, as here, the interval happens to cover. With `augment = "ridge"`, the error falls to +10.8% and the interval narrows by 40% (see [The remedy](#the-remedy-ridge-augmentation)).
 
 ## Case 6: trending factors, outside treated unit
 
@@ -285,9 +286,9 @@ diagnostics_table(cs)
 |---|---|---|---|---|---|
 | 0% | 0% | 190.7% | 1.35 (trending) | +59.5% | yes (very wide) |
 
-**What the diagnostics say.** Every check points the same way: no placebo fits worse, no donor lies further out, the implied drift is very large, and the factors are trending. Assessment: *treat results as unreliable*.
+**What the diagnostics say.** Every check points the same way: no placebo fits worse, no donor lies further out, the implied drift is very large, and the factors are trending. Assessment: *re-run with augment = "ridge"*.
 
-**What happened.** The synthetic control cannot follow the treated unit, and the cumulative error reaches +59.5%. As in Case 5, the interval happens to contain zero only because it is enormous; across such panels in simulation it covered the truth 68% of the time, and no method tested was valid in this setting.
+**What happened.** The synthetic control cannot follow the treated unit, and the cumulative error reaches +59.5%. As in Case 5, the interval happens to contain zero only because it is enormous; across such panels in simulation it covered the truth 68% of the time. Of the methods tested, only the ridge-augmented estimator was valid in this setting; here it cuts the error to +24.3%.
 
 # A failure illustration
 
@@ -313,7 +314,7 @@ diagnostics_table(cs)
 |---|---|---|---|---|---|
 | 0% | 0% | 270.8% | 1.06 (trending) | +74.2% | **no** |
 
-The treated unit's true loadings are (2.12, 3.70), one unit beyond the donors' maximum (1.12, 2.70) on both factors. The synthetic control puts all of its weight on a single donor, and the treated unit's outcome pulls away from every donor even before treatment, then diverges further. With no true effect, the method estimates +74% cumulatively, with an interval that excludes zero. Every diagnostic fires, and the assessment says to treat the result as unreliable.
+The treated unit's true loadings are (2.12, 3.70), one unit beyond the donors' maximum (1.12, 2.70) on both factors. The synthetic control puts all of its weight on a single donor, and the treated unit's outcome pulls away from every donor even before treatment, then diverges further. With no true effect, the method estimates +74% cumulatively, with an interval that excludes zero. Every diagnostic fires, and the assessment recommends re-running with `augment = "ridge"`.
 
 # Summary of the cases
 
@@ -323,9 +324,43 @@ The treated unit's true loadings are (2.12, 3.70), one unit beyond the donors' m
 | 2 | stationary | edge | yes | no | extreme; consider fect with placebo calibration | −8.6% | yes |
 | 3 | stationary | outside | yes | no | extreme; consider fect with placebo calibration | −20.6% | yes |
 | 4 | trending | exchangeable | no | yes | no concern | −0.1% | yes |
-| 5 | trending | edge | yes | yes | **unreliable** | +36.5% | yes (very wide) |
-| 6 | trending | outside | yes | yes | **unreliable** | +59.5% | yes (very wide) |
-| Failure | trending | outside (extreme draw) | yes | yes | **unreliable** | +74.2% | **no** |
+| 5 | trending | edge | yes | yes | **extreme and trending: re-run with `augment = "ridge"`** | +36.5% | yes (very wide) |
+| 6 | trending | outside | yes | yes | **extreme and trending: re-run with `augment = "ridge"`** | +59.5% | yes (very wide) |
+| Failure | trending | outside (extreme draw) | yes | yes | **extreme and trending: re-run with `augment = "ridge"`** | +74.2% | **no** |
+
+# The remedy: ridge augmentation
+
+The failures above come from the **estimator**, not the inference: the weights can't reproduce the treated unit's loadings, and the leftover mismatch grows with trending factors. `augment = "ridge"` corrects the counterfactual for it. In each post-treatment period it adds a ridge regression, fitted across the donors, of their outcome in that period on their pre-treatment paths, applied to the part of the treated unit's pre-treatment path that the weights leave unmatched. In effect, the donors show how a pre-treatment difference carries forward, and the correction extrapolates the treated unit's difference accordingly. Inference is unchanged: every placebo refits its own correction, and the treated unit is ranked among them as before.
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show code for the ridge-augmented fits"
+cs <- run_toy_case("outside", "random_walk", rep_seed = 424242, augment = "ridge")   # likewise for the other cases
+plot_full_path(cs$fit, title = "Observed vs synthetic, ridge-augmented", unit_label = "treated unit", y_label = "Outcome")
+plot_post_effect(cs$fit, "cumulative", title = "Cumulative effect, ridge-augmented (true effect 0)", y_label = "Cumulative effect")
+```
+
+The same seven panels, with and without the correction (cumulative effect at the last period; the true effect is 0; half-width of the 95% pointwise interval as % of the cumulative counterfactual):
+
+| Case | Factors | Treated unit | Error, plain | Error, ridge | Half-width, plain | Half-width, ridge | Covers 0, plain / ridge |
+|---|---|---|---|---|---|---|---|
+| 1 | stationary | exchangeable | −0.5% | −0.5% | 4.3% | 3.8% | yes / yes |
+| 2 | stationary | edge | −8.6% | +0.1% | 29.6% | 27.0% | yes / yes |
+| 3 | stationary | outside | −20.6% | −4.1% | 48.3% | 47.8% | yes / yes |
+| 4 | trending | exchangeable | −0.1% | +0.2% | 5.0% | 4.3% | yes / yes |
+| 5 | trending | edge | +36.5% | +10.8% | 75.7% | 44.5% | yes / yes |
+| 6 | trending | outside | +59.5% | +24.3% | 163% | 77.8% | yes / yes |
+| Failure | trending | outside (extreme draw) | +74.2% | +20.7% | 239% | 89.8% | **no** / yes |
+
+For the treated units like the donors (Cases 1 and 4) the correction changes almost nothing. For the extreme ones it removes most of the error, and with trending factors the intervals become much narrower, because the placebos' corrected gaps drift less. In the failure illustration, the false "effect" of +74% with an interval excluding zero becomes +21% with an interval that contains it:
+
+![Failure illustration, ridge-augmented: observed vs synthetic. Before treatment the synthetic series is the plain demeaned synthetic control; the correction applies from the first treated period, hence the step.](figures/failure_ridge_path.png)
+
+![Failure illustration, ridge-augmented: cumulative effect (true effect 0).](figures/failure_ridge_cumulative.png)
+
+The step in the synthetic series at treatment is expected: the correction applies only after treatment, so the pre-treatment fit (and the RMSPE that scales the intervals) is the plain one.
+
+**In simulation** (100 panels per cell, 90% intervals, cumulative effect), ridge augmentation with the placebo calibration covered the truth 91% of the time for edge and for outside treated units with trending factors (19-39 donors, 40-80 pre-periods), against 62% and 49% without it. It was also valid with 9-19 donors and 10-20 pre-periods, for treated units like the donors (88-94%), and after covariate adjustment. Bias fell by three-quarters, but did not vanish: about +9% for outside units with trending factors. Details are in `simulations/README.md` (simulation 11).
 
 # What the simulations show
 
@@ -358,7 +393,7 @@ The persistence threshold matters: at 0.9, 26-65% of stationary panels were wron
 - **One design.** The thresholds were calibrated on one factor-model design (two factors, 40 donors). Other designs may need different thresholds.
 - **The persistence check is imperfect.** Estimated factors come out more persistent than the true ones, so stationary factors are sometimes called trending, especially with long pre-periods. That makes the warning over-cautious rather than missing problems.
 - **Single panels vary.** In a single application, an interval can cover the truth even when the warning fires (Cases 5 and 6), or miss it (the failure illustration). The warning describes the risk, not the outcome of one analysis.
-- **No remedy yet for the trending case.** With an extreme treated unit and trending factors, none of the methods tested (demeaned synthetic control, its augmented version, fect, augmented synthetic control) gave valid intervals.
+- **The remedy is partial.** With an extreme treated unit and trending factors, the plain demeaned synthetic control, its IFE-augmented version, fect and augsynth's conformal intervals all under-covered. The ridge-augmented estimator restored coverage, but some bias remains for a treated unit well outside the donors' range (about +9% on average in simulation, +21-24% in the toy cases).
 - **Reproducibility.** The loading-based checks use `fect`, whose cross-validation is random; `dsc_placebo()` fixes it with `ife_seed` (default 12112025), so the same data give the same diagnostics.
 
 # Practical guidance
@@ -366,9 +401,9 @@ The persistence threshold matters: at 0.9, 26-65% of stationary panels were wron
 1. **Always look at `$diagnostics`**, not just the estimate and intervals.
 2. **If nothing is flagged,** the treated unit looks reproducible by the donors, and the usual intervals can be read as intended.
 3. **If the treated unit is flagged but the factors are not trending,** the intervals from DSC with the RMSPE scale remain valid but wide; fect with placebo calibration (RMSPE scale) was both valid and much more powerful in this situation in simulation.
-4. **If the treated unit is flagged and the factors are trending,** treat the results as unreliable. Report that the donors cannot reproduce the treated unit's exposure to common trends, rather than presenting the estimate and interval as evidence.
+4. **If the treated unit is flagged and the factors are trending,** re-run with `augment = "ridge"` and report that result, together with the plain estimate and the diagnostics. Say that the donors cannot reproduce the treated unit's exposure to common trends, so the estimate relies on the ridge correction's extrapolation. Treat a remaining gap of the size of the toy cases' errors (10-25%) with caution.
 5. **Look at the figures:** a treated unit whose pre-treatment path pulls away from every donor is a warning sign in itself.
 
 # Reproducing this document
 
-The panels are generated by `toy_panel()` with the seeds shown in each case's code; the figures in `diagnostics_figures/` were produced by the same calls. The validation results come from `simulations/diagnostics_validation.R` and `simulations/augmented_comparison_simulation.R`.
+The panels are generated by `toy_panel()` with the seeds shown in each case's code; the figures in `diagnostics_figures/` were produced by the same calls. The validation results come from `simulations/diagnostics_validation.R` and `simulations/augmented_comparison_simulation.R`; the ridge results in [The remedy](#the-remedy-ridge-augmentation) from `run_toy_case(..., augment = "ridge")` with the same seeds, and from the simulations `simulations/ridge_edge_validation.R` and `simulations/ridge_small_sample_validation.R`.

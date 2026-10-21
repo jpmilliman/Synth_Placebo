@@ -1598,6 +1598,38 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 ## 6. dsc_placebo()
 ## ===========================================================================
 
+# lapply with an optional PSOCK cluster (n_cores > 1) and an optional progress bar (sequential only).
+# FUN's environment is sent to the workers; packages called with :: load there on first use.
+dsc_par_lapply <- function(X, FUN, n_cores = 1, progress = FALSE) {
+  n <- length(X); if (!n) return(list())
+  if (n_cores > 1 && n > 1) {
+    cl <- parallel::makeCluster(min(n_cores, n)); on.exit(parallel::stopCluster(cl), add = TRUE)
+    t0 <- Sys.time(); out <- parallel::parLapplyLB(cl, X, FUN)
+    if (progress) message("  done in ", round(as.numeric(difftime(Sys.time(), t0, units = "mins")), 1), " minutes")
+    return(out)
+  }
+  if (progress) { pb <- utils::txtProgressBar(min = 0, max = n, style = 3); on.exit(close(pb), add = TRUE) }
+  out <- vector("list", n)
+  for (i in seq_len(n)) { out[[i]] <- FUN(X[[i]]); if (progress) utils::setTxtProgressBar(pb, i) }
+  out
+}
+
+# Covariate balance of synthetic controls (used by dsc_placebo(); the same function is in dsc_placebo_lto.R).
+# Z: units x covariates (pre-treatment means; rownames = units); w_T: the treated unit's weights, named by
+# donor; W_P: list, one per placebo (named by placebo), of its weights named by its donors. Each gap is
+# standardized by the donors' SD; share_placebos_worse is the share of placebos with a larger absolute gap.
+covariate_balance <- function(Z, treated, w_T, W_P) {
+  syn <- function(w) vapply(colnames(Z), function(v) { z <- Z[names(w), v]; ok <- !is.na(z)
+    if (!any(ok)) NA_real_ else sum(w[ok] * z[ok]) / sum(w[ok]) }, numeric(1))
+  sdv <- apply(Z[names(w_T), , drop = FALSE], 2, stats::sd, na.rm = TRUE); sdv[!is.finite(sdv) | sdv == 0] <- NA
+  sT <- syn(w_T); dT <- (Z[treated, ] - sT) / sdv
+  dP <- matrix(vapply(names(W_P), function(p) (Z[p, ] - syn(W_P[[p]])) / sdv, numeric(ncol(Z))), nrow = ncol(Z))
+  share <- vapply(seq_len(ncol(Z)), function(k) if (is.na(dT[k])) NA_real_ else mean(abs(dP[k, ]) > abs(dT[k]), na.rm = TRUE), numeric(1))
+  data.frame(covariate = colnames(Z), treated = as.numeric(Z[treated, ]), synthetic = as.numeric(sT), std_diff = as.numeric(dT),
+             placebo_median_abs_std_diff = apply(abs(dP), 1, stats::median, na.rm = TRUE), share_placebos_worse = share,
+             flag = share < 0.10, row.names = NULL)
+}
+
 ##############################################################################
 # dsc_placebo(): demeaned synthetic control with placebo-calibrated inference
 #   (no bootstrap). Full argument and output reference:
@@ -1638,8 +1670,8 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #   first treated period), test_period (same format; default: last post period),
 #   conf_level (0.95), span (loess span of the simultaneous profile, 0.75), scale,
 #   rmspe_floor, adjust_covariates / adjust_model / ife_r, augment (with ridge_c /
-#   ridge_grid), estimator, diagnostics / warn / ife_seed - described below and in
-#   the reference.
+#   ridge_grid), estimator, diagnostics / warn / ife_seed, balance_covariates, n_cores / verbose -
+#   described below and in the reference.
 #
 # Covariate adjustment (optional): adjust_covariates = column name(s) of time-
 #   varying covariates. Step 1 estimates their effect gamma on UNTREATED cells
@@ -1678,7 +1710,7 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #   imbalance the weights leave (a treated unit at or beyond the edge of the donors'
 #   range) and is about zero when the weights already match. The penalty is ridge_c x
 #   the donors' mean squared path norm; ridge_c = 0.1 by default (chosen in
-#   Experimental_inference/ridge_default_validation.R: as valid as cross-validation in
+#   Experimental_inference/LTO/simulations/ridge_default_validation.R: as valid as cross-validation in
 #   simulation, lower error on real panels, and stable). ridge_c = "cv" (or NULL) chooses it
 #   from ridge_grid by cross-validation inside the pre-period instead (each donor predicts its
 #   last min(n_post, T0/4) pre-periods from the earlier ones; needs 8+ pre-periods). With
@@ -1713,6 +1745,21 @@ plot_dsc_symcal <- function(res, y_label = res$settings$outcome) {
 #   Use scale = "rmspe" with it. Cannot be combined with augment = "ife" or "ridge". With
 #   estimator = "fect", $weights and $intercept are NULL (there are no donor weights).
 #
+# Run time and parallel fitting (n_cores, verbose): with adjust_model = "ife", augment = "ife" or
+#   estimator = "fect", every placebo needs its own fect model, which dominates the run time (Kansas, 48
+#   donors, three covariates: 10.9 minutes, 97% in fect; about 11 s per fit and 35 s for the cross-
+#   validation). n_cores > 1 fits the placebo models on that many cores (base R parallel; workers are
+#   started and stopped inside the call, costing a few seconds); results are identical to n_cores = 1
+#   because every fect fit sets its own seed. n_cores is ignored when there are no fect models (the
+#   fits then take seconds). verbose (default interactive()) shows the slow stages and a progress bar.
+# Covariate balance (balance_covariates; default: the adjust_covariates): a check, not an adjustment.
+#   Each covariate is summarized by its pre-treatment mean per unit. The weights fitted on the outcome
+#   path are applied to the donors' values, and the treated unit's gap from its synthetic control is
+#   standardized by the donors' SD; each placebo's gap is computed with its own weights, and the treated
+#   unit is flagged when fewer than 10% of placebos have a larger gap. Name any numeric column (time-
+#   invariant characteristics too); they are not adjusted for. A flagged imbalance biases the estimate
+#   only if the covariate's effect on the outcome changes over time. Reported in $balance (estimator =
+#   "dsc"; the weights are the synthetic control's, before any ridge correction).
 # Diagnostics (diagnostics = TRUE, default): checks whether the treated unit lies
 #   beyond what the donors can reproduce, the case where placebo-calibrated
 #   intervals were found to under-cover in simulation. $diagnostics reports:
@@ -1768,7 +1815,8 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
                         adjust_covariates = NULL, adjust_model = c("ife", "twfe"), ife_r = 0:5,
                         augment = c("none", "ife", "ridge"), diagnostics = TRUE, warn = TRUE, ife_seed = 12112025,
                         estimator = c("dsc", "fect"), rmspe_floor = 0.25,
-                        ridge_c = 0.1, ridge_grid = 10^seq(-3, 2, by = 0.5)) {
+                        ridge_c = 0.1, ridge_grid = 10^seq(-3, 2, by = 0.5), balance_covariates = adjust_covariates,
+                        n_cores = 1, verbose = interactive()) {
 
   if (!requireNamespace("CVXR", quietly = TRUE)) stop("dsc_placebo() needs the CVXR package.")
   scale <- match.arg(scale); adjust_model <- match.arg(adjust_model); augment <- match.arg(augment)
@@ -1776,6 +1824,8 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
   if (estimator == "fect" && augment != "none") stop("augment = \"", augment, "\" applies to estimator = \"dsc\" only.")
   if (identical(ridge_c, "cv")) ridge_c <- NULL                  # "cv" (or NULL): choose the penalty by cross-validation
   if (!is.null(ridge_c) && (!is.numeric(ridge_c) || length(ridge_c) != 1 || !is.finite(ridge_c) || ridge_c <= 0)) stop("ridge_c must be one positive number, or \"cv\" to choose it by cross-validation.")
+  if (!is.numeric(n_cores) || length(n_cores) != 1 || n_cores < 1) stop("n_cores must be a single number >= 1.")
+  say <- function(...) if (isTRUE(verbose)) message("dsc_placebo: ", ...)
   if (estimator == "fect" && !requireNamespace("fect", quietly = TRUE)) stop("estimator = \"fect\" needs the fect package.")
   if (augment == "ife" && !requireNamespace("fect", quietly = TRUE)) stop("augment = \"ife\" needs the fect package.")
   if (length(adjust_covariates) && adjust_model == "ife" && !requireNamespace("fect", quietly = TRUE)) stop("adjust_model = \"ife\" needs the fect package.")
@@ -1784,6 +1834,10 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
   # ---- Data -------------------------------------------------------------------------
   data <- as.data.frame(data)
   stopifnot(all(c(unit_col, time_cols, outcome_col, adjust_covariates) %in% names(data)), all(names(treatment_period) %in% time_cols))
+  if (length(balance_covariates)) {
+    if (!all(balance_covariates %in% names(data))) stop("balance_covariates not found in data: ", paste(setdiff(balance_covariates, names(data)), collapse = ", "))
+    if (!all(vapply(data[balance_covariates], is.numeric, logical(1)))) stop("balance_covariates must be numeric columns.")
+  }
   periods <- unique(data[, time_cols, drop = FALSE])
   periods <- periods[do.call(order, unname(as.list(periods))), , drop = FALSE]; rownames(periods) <- NULL
   find_period <- function(pv, what) {
@@ -1797,13 +1851,16 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
   if (t_test < 1) stop("test_period must be a post-treatment period.")
   key <- do.call(paste, unname(as.list(data[, time_cols, drop = FALSE])))
   d <- data.frame(unit = as.character(data[[unit_col]]), .t = match(key, do.call(paste, unname(as.list(periods)))), y = data[[outcome_col]])
-  for (v in adjust_covariates) d[[v]] <- data[[v]]
+  for (v in union(adjust_covariates, balance_covariates)) d[[v]] <- data[[v]]
   if (anyNA(d[, c("y", adjust_covariates)]) || any(table(d$unit) != nrow(periods))) stop("The panel must be balanced with no missing outcomes or covariates.")
   if (!treated_unit %in% d$unit) stop("treated_unit not found in ", unit_col, ".")
   units <- sort(unique(d$unit)); donors <- setdiff(units, treated_unit)
   wide <- function(v) sapply(units, function(u) { du <- d[d$unit == u, ]; du[[v]][order(du$.t)] })
   Y <- wide("y")
   Aobs <- setNames(lapply(adjust_covariates, wide), adjust_covariates)
+  Zbal <- if (length(balance_covariates)) {           # pre-treatment mean of each balance covariate, units x covariates
+    Z <- do.call(cbind, lapply(balance_covariates, function(v) colMeans(wide(v)[!post, , drop = FALSE], na.rm = TRUE)))
+    dimnames(Z) <- list(units, balance_covariates); Z } else NULL
 
   # ---- Step 1 (optional): covariate effect gamma on untreated cells --------------------------
   # Long data for the units kept; D = 1 marks the excluded cells (drop_post_unit's post period)
@@ -1864,13 +1921,14 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
   }
   adj_main <- NULL; r_use <- NA_integer_; tw_main <- NULL; aug_main <- NULL
   if (augment == "ife" || estimator == "fect") {
+    say("choosing the number of factors by cross-validation (fect; the slowest single step)")
     r_use <- model_ife(drop_post_unit = treated_unit)$r                  # cross-validation chooses the number of factors
     aug_main <- model_ife(drop_post_unit = treated_unit, r = r_use, cv = FALSE)   # refit with it, exactly as for the placebos
     adj_main <- list(gamma = aug_main$gamma, n_obs = aug_main$n_obs)
     if (length(adjust_covariates)) tw_main <- gamma_twfe(drop_post_unit = treated_unit)
   } else if (length(adjust_covariates)) {
     tw_main <- gamma_twfe(drop_post_unit = treated_unit)
-    if (adjust_model == "ife") { r_use <- gamma_ife(drop_post_unit = treated_unit)$r
+    if (adjust_model == "ife") { say("choosing the number of factors by cross-validation (fect; the slowest single step)"); r_use <- gamma_ife(drop_post_unit = treated_unit)$r
                                   adj_main <- gamma_ife(drop_post_unit = treated_unit, r = r_use, cv = FALSE) } else adj_main <- tw_main
   }
   gamma_for_placebo <- function(p) {
@@ -1949,7 +2007,9 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
   gT_all <- if (estimator == "fect") Y[, treated_unit] - aug_main$M[, treated_unit] else
     YaT[, treated_unit] - ft$synth - corr_T                                                     # gap (adjusted = original scale)
   if (augment == "ridge") ridge_info$correction <- corr_T
-  pl <- lapply(donors, function(p) tryCatch({
+  slow_fits <- (length(adjust_covariates) && adjust_model == "ife") || augment == "ife" || estimator == "fect"   # a fect model per placebo
+  if (slow_fits) say("fitting ", length(donors), " placebo models (one fect fit each", if (n_cores > 1) paste0(", on ", min(n_cores, length(donors)), " cores") else "", ")")
+  pl <- dsc_par_lapply(donors, function(p) tryCatch({
     if (estimator == "fect")                                                                 # IFEct, donor p as pseudo-treated
       return(list(gap = Y[, p] - model_ife(drop_units = treated_unit, drop_post_unit = p, r = r_use, cv = FALSE)$M[, p]))
     cols_p <- c(p, setdiff(donors, p))
@@ -1957,8 +2017,8 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
       adjust_mat(cols_p, gamma_for_placebo(p))
     fp <- fit_dsc(Yp[, setdiff(donors, p), drop = FALSE], Yp[, p])
     corr_p <- if (augment == "ridge") ridge_correction(Yp[, p], Yp[, setdiff(donors, p), drop = FALSE], fp$w, c_ridge) else 0
-    list(gap = Yp[, p] - fp$synth - corr_p)
-  }, error = function(e) conditionMessage(e)))
+    list(gap = Yp[, p] - fp$synth - corr_p, w = stats::setNames(as.numeric(fp$w), setdiff(donors, p)))
+  }, error = function(e) conditionMessage(e)), n_cores = if (slow_fits) n_cores else 1, progress = slow_fits && isTRUE(verbose))
   failed <- vapply(pl, is.character, logical(1))
   failed_donors <- if (any(failed)) data.frame(donor = donors[failed], error = unlist(pl[failed])) else
     data.frame(donor = character(0), error = character(0))
@@ -1969,6 +2029,8 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
 
   GP <- sapply(pl, `[[`, "gap"); colnames(GP) <- dn; SP <- Y[, dn, drop = FALSE] - GP                            # gaps and counterfactuals, all periods x donors
   synth_T <- Y[, treated_unit] - gT_all                                                         # counterfactual on the original scale
+  balance <- if (!is.null(Zbal) && estimator == "dsc")
+    covariate_balance(Zbal, treated_unit, stats::setNames(as.numeric(ft$w), donors), stats::setNames(lapply(pl, `[[`, "w"), dn)) else NULL
   sT <- synth_T[post]; gT <- gT_all[post]
   rmspe_T <- sqrt(mean(gT_all[!post]^2)); rmspe_P <- sqrt(colMeans(GP[!post, , drop = FALSE]^2))
   # Guard (RMSPE scale): floor every unit's pre-treatment RMSPE at rmspe_floor x the median over all
@@ -2045,7 +2107,9 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
                                           seasonal_lag = s_len, rho_seasonal = rho_seas, rho_seasonal_excess = seas_excess, n_post_periods = n_post,
                                           n_placebos = ncol(Zac), guide = guide)
     comps <- if (!is.null(aug_main)) aug_main else if (requireNamespace("fect", quietly = TRUE))
-      tryCatch({ r_d <- model_ife(drop_post_unit = treated_unit)$r; model_ife(drop_post_unit = treated_unit, r = r_d, cv = FALSE) },
+      tryCatch({ say("diagnostics (fect)")
+        r_d <- if (!is.na(r_use)) r_use else model_ife(drop_post_unit = treated_unit)$r   # reuse the number of factors already chosen
+        model_ife(drop_post_unit = treated_unit, r = r_d, cv = FALSE) },
                error = function(e) NULL) else NULL
     if (!is.null(comps) && !is.null(comps$lambda) && comps$r >= 1) {
       L <- comps$lambda; Fm <- comps$factor
@@ -2091,6 +2155,9 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
       diag$recommendation <- list(scale = "rmspe")
       "treated unit appears beyond the donors' range (factors not trending): fect suits this situation, but re-run with scale = \"rmspe\"; the relative and raw scales under-covered here in simulation"
     } else "treated unit appears beyond the donors' range (factors not trending): fect with placebo calibration on the RMSPE scale is the recommended method for this situation"
+    if (!is.null(balance) && any(balance$flag %in% TRUE))
+      diag$assessment <- paste0(diag$assessment, "; covariate imbalance: ", paste(balance$covariate[balance$flag %in% TRUE], collapse = ", "),
+                                " (the treated unit is further from its synthetic control on this covariate than 90% or more of the placebos are from theirs; this biases the estimate if the covariate's effect on the outcome changes over time; see $balance)")
     if (warn && extreme) warning("dsc_placebo diagnostics: ", diag$assessment, ". See $diagnostics.", call. = FALSE)
   }
 
@@ -2154,11 +2221,12 @@ dsc_placebo <- function(data, unit_col, time_cols, outcome_col, treated_unit, tr
        ridge = ridge_info,
        placebo = list(gaps = as.data.frame(GP), synthetic = as.data.frame(SP)),
        diagnostics = diag,
+       balance = balance,
        failed_donors = failed_donors,
        settings = list(treated_unit = treated_unit, treatment_period = treatment_period, test_period = test_label,
                        time_cols = time_cols, outcome = outcome_col, conf_level = conf_level, span = span,
                        scale = scale, rmspe_floor = if (scale == "rmspe") rmspe_floor else NA, adjust_covariates = adjust_covariates,
-                       adjust_model = if (length(adjust_covariates)) adjust_model else NA, augment = augment, estimator = estimator,
+                       balance_covariates = balance_covariates, adjust_model = if (length(adjust_covariates)) adjust_model else NA, augment = augment, estimator = estimator,
                        ridge_c = if (augment == "ridge") c_ridge else NA, n_donors = N, rank_used = m))
 }
 

@@ -115,8 +115,12 @@ plot_prediction(ge_fit, "West Germany: observed vs synthetic (prediction interva
 | `augment` | `"none"` | `"ridge"` for a treated unit at or beyond the edge of the donors' range: a ridge correction for the pre-treatment imbalance the weights leave, with the same placebo calibration; works with or without `adjust_covariates`. The penalty `ridge_c` is 0.1 by default; `ridge_c = "cv"` cross-validates it |
 | `estimator` | `"dsc"` | `"fect"` for an interactive fixed-effects counterfactual with the same placebo calibration |
 | `diagnostics` | `TRUE` | check whether the donors can reproduce the treated unit |
+| `balance_covariates` | the `adjust_covariates` | check, without adjusting, whether the synthetic control matches the treated unit on pre-treatment characteristics (any numeric columns); results in `$balance` |
+| `n_cores` | `1` | fit the per-placebo covariate models in parallel (see run time below) |
 
 Every argument and every element of the output is described in the [function reference](docs/reference/function_reference.md).
+
+**Run time.** Without covariate adjustment, `dsc_placebo()` takes seconds. Covariate adjustment with interactive fixed effects (`adjust_model = "ife"`, the default), `augment = "ife"` and `estimator = "fect"` fit a separate `fect` model for every placebo, so they take minutes. On Kansas (48 donors, 105 quarters) with three covariates, `dsc_placebo()` took 10.9 minutes, 97% of it in `fect`: about 11 seconds per placebo model, plus 35 seconds to choose the number of factors. With `n_cores = 4` the placebo models are fitted in parallel and the same run took 3.6 minutes, with identical results (each fit sets its own seed). In interactive sessions the function reports the slow stages and shows a progress bar; `verbose = FALSE` turns this off.
 
 ## What it adds
 
@@ -132,6 +136,12 @@ Every argument and every element of the output is described in the [function ref
 4. **Covariate adjustment for confounders that arrive with the treatment.** A time-varying covariate's effect is estimated on untreated cells only (interactive or two-way fixed effects) and removed before the synthetic control and the placebo calibration; validated on the Oregon fentanyl panel.
 5. **Safeguards and benchmarks.** A guard that keeps the RMSPE scale usable when short pre-periods let placebos fit exactly; a threshold ratio that gives a calibrated alternative to sensitivity bounds based on pre-treatment fit; and the option of putting `fect`'s counterfactual through the same calibration.
 6. **A documented development record.** Every design choice is tied to the simulation that motivated it, including approaches that failed (bootstrap-only intervals, LASSO weights); see [`simulations/README.md`](simulations/README.md).
+
+**What the p-values and intervals mean.** Three points matter when reading the results (Alvarez, Ferman and Wüthrich 2026 review them):
+
+- **The tests are tests of a sharp null.** A placebo or LTO p-value tests that the treatment had *no effect at all* on the treated unit in that period (or, when inverted for an interval, a constant effect of a given size). It is not a test that the average effect is zero while effects vary. A rejection means the treated unit's gap is unusual compared with the untreated units' gaps; it doesn't by itself say how large the effect is on average, and a treatment that changes the variability of the outcome without changing its level could also be rejected.
+- **The intervals can be read as prediction intervals for the realized effect.** An interval from inverting the test contains the effect sizes the data can't rule out for this treated unit in this period. Alvarez and Ferman (2025) show that such intervals remain valid as prediction intervals for the realized effect even when effects vary and are related to the untreated outcomes. They are not confidence intervals for an average effect across hypothetical treated units.
+- **Validity is on average over which unit could have been treated.** Placebo tests are exact when the treated unit is like a randomly drawn unit. For a treated unit that is unusual on something that matters (much smaller, noisier, or far outside the donors' range), a test that is valid on average can still mislead for that unit. That is what the diagnostics, the RMSPE scale (each unit's gap is measured against its own pre-treatment fit) and the balance check are for.
 
 **What it does not do.** It handles a single treated unit, not staggered adoption; a 95% interval needs at least 19 donors; its validity rests, as for any placebo method, on the treated unit's errors behaving like the donors'; and it is an R script that has not been peer reviewed.
 

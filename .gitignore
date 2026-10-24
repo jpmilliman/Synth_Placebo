@@ -20,3 +20,5 @@ Job_resources
 # experimental prototypes moved out of Experimental_inference (kept private, as before)
 archive/experimental_inference/
 README.html
+# internal package development to-do list
+package_todo.md

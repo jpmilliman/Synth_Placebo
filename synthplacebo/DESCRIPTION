@@ -1,0 +1,37 @@
+Package: synthplacebo
+Title: Placebo-Calibrated Inference for the Demeaned Synthetic Control
+Version: 0.1.0
+Authors@R: c(
+ person("Jeffrey", "Milliman", email = "jeffmilliman2@gmail.com", role = c("aut", "cre")),
+ person("Claude", role = "ctb", comment = "AI model by Anthropic; wrote the code at the direction of Jeffrey Milliman"))
+Description: Synthetic control for a single treated unit with placebo-calibrated inference. The demeaned
+ synthetic control (an intercept plus non-negative donor weights that sum to one) is fitted to the treated
+ unit's pre-treatment outcomes, and pointwise intervals, simultaneous bands and prediction intervals are
+ calibrated against placebo fits of the donors. Includes time-varying covariate adjustment, ridge
+ augmentation, diagnostics for treated units beyond the donors' range, the leave-two-out placebo test of
+ Lei and Sudijono (2025) <arXiv:2401.07152> for small donor pools, power analysis, and a screen for
+ covariates that break from their synthetic controls after treatment.
+License: MIT + file LICENSE
+URL: https://github.com/jpmilliman/Synth_Placebo
+BugReports: https://github.com/jpmilliman/Synth_Placebo/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends: R (>= 4.1.0)
+Imports: CVXR,
+ dplyr,
+ forcats,
+ ggplot2,
+ parallel,
+ quadprog,
+ rlang,
+ stats,
+ tidyr,
+ utils
+Suggests: augsynth,
+ fect,
+ pkgload,
+ scales,
+ scpi,
+ testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3

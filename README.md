@@ -1,12 +1,14 @@
-# dsc_placebo: Synthetic Control with Placebo-Calibrated Inference and Diagnostics
+# synthplacebo: Synthetic Control with Placebo-Calibrated Inference and Diagnostics
 
 ![West Germany: estimated effect of reunification on GDP per capita, 1991-2003, with the 90% simultaneous band and the pointwise interval for 2003](docs/readme_figures/germany_thumbnail.png)
 
 > **Disclaimer:** The R functions, documents and simulations in this repository were written by **Claude**, an AI model made by Anthropic, at the direction of the repository owner, as an example of using Claude to develop and validate statistical methods. They have been tested extensively by simulation but have not been independently peer reviewed. Please check the results for your own data and use case before relying on them.
+>
+> **Status:** `synthplacebo` is at version 0.1.0 and under development. `dsc_placebo()` is the main, most thoroughly validated method. `dsc_placebo_lto()`, `synth_power()` and `covariate_trajectory_check()` are **experimental**. The leave-two-out test follows a working paper (Lei and Sudijono 2025); its adaptation to the demeaned synthetic control, the simultaneous band, the sensitivity analysis and the ridge option were written for this package and have been checked only by the simulations summarized in the [validation summary](docs/validation/validation_summary.md).
 
 ## Overview
 
-`dsc_placebo()` estimates the effect of an intervention on a **single treated unit** (a state that adopts a policy, say) and puts honest uncertainty around it. In one call it:
+`synthplacebo` is an R package for estimating the effect of an intervention on a **single treated unit**. Its main function, `dsc_placebo()`, estimates the effect (for a state that adopts a policy, say) and puts honest uncertainty around it. In one call it:
 
 1. **Builds the counterfactual** with a **demeaned synthetic control**: an intercept plus non-negative donor weights that sum to one, fitted on the pre-treatment period. The intercept absorbs level differences; the weights must reproduce the treated unit's movements over time.
 2. **Calibrates the inference against placebos**: every untreated unit is analysed as if it had been treated, and the treated unit's gap is ranked among theirs. This gives
@@ -18,23 +20,24 @@
 
 ## Installation
 
-The functions are a single R script, not a package. Clone or download the repository, install the packages it uses, and source the script from the project root:
+Install the package from GitHub (it lives in the `synthplacebo/` folder of this repository):
 
 ```r
-install.packages(c("CVXR", "fect", "ggplot2", "dplyr", "tidyr", "forcats"))   # core and plotting
-install.packages("scpi")                                                     # data for the example below
-
-source("synthetic_control_functions/synthetic_control_functions_claude.R")
+# install.packages("remotes")
+remotes::install_github("jpmilliman/Synth_Placebo", subdir = "synthplacebo")
+library(synthplacebo)
 ```
 
-`CVXR` fits the synthetic control; `fect` is needed for the diagnostics, covariate adjustment with interactive fixed effects, `augment = "ife"` and the fect estimator (`augment = "ridge"` doesn't need it); the plotting functions use `ggplot2`, `dplyr`, `tidyr` and `forcats`. The other examples use `augsynth::kansas` (`remotes::install_github("ebenmichael/augsynth")`), `tidysynth::smoking`, and the Oregon panel in `data/oregon_fentanyl/`; the simulations also use `tidyverse`, `future` and `furrr`. Developed and tested with R 4.5.3, CVXR 1.9.2, fect 2.4.5 and ggplot2 4.0.3.
+The package imports `CVXR`, `quadprog`, `ggplot2`, `dplyr`, `tidyr` and `forcats`. `fect` is optional: it is needed for the diagnostics, covariate adjustment with interactive fixed effects, `augment = "ife"` and the fect estimator (`augment = "ridge"` doesn't need it). The examples use data from `scpi` (`scpi_germany`), `augsynth` (`kansas`; `remotes::install_github("ebenmichael/augsynth")`), `tidysynth` (`smoking`) and the Oregon panel in `data/oregon_fentanyl/`; the simulations also use `tidyverse`, `future` and `furrr`. Developed and tested with R 4.5.3, CVXR 1.9.2, fect 2.4.5 and ggplot2 4.0.3. The package passes `R CMD check` with no errors, warnings or notes.
+
+The original single-script version of `dsc_placebo()` is still in `synthetic_control_functions/synthetic_control_functions_claude.R`, which the scripts in `simulations/` and the documents in `docs/` source. It gives the same results as the package.
 
 ## Example: German reunification
 
 A short example of what `dsc_placebo()` returns and what the plotting functions draw, using the German reunification case of Abadie, Diamond and Hainmueller (2015): did reunification in October 1990 lower West Germany's GDP per capita? The donors are 16 other OECD countries, and the data come with the `scpi` package.
 
 ```r
-source("synthetic_control_functions/synthetic_control_functions_claude.R")
+library(synthplacebo)
 
 data("scpi_germany", package = "scpi")
 germany <- as.data.frame(scpi_germany)[, c("country", "year", "gdp")]   # GDP per capita, thousand 2002 USD (PPP), 1960-2003
@@ -101,6 +104,8 @@ plot_prediction(ge_fit, "West Germany: observed vs synthetic (prediction interva
 
 ![West Germany: observed vs synthetic West Germany, with 90% prediction intervals](docs/readme_figures/germany_prediction.png)
 
+Each result also has `print()`, `summary()` and `plot()` methods: `ge_fit` prints the tests, weights and diagnostics; `summary(ge_fit)` gives the effects by period; and `plot(ge_fit, type = "effect")` draws any of the four figures above (`type = "full_path"`, `"effect"`, `"cumulative"` or `"prediction"`).
+
 `added_effect()` is used for constructed examples in which a known effect is added to the data: it returns the added effect by period, for `plot_post_effect(..., added = )` to draw (see the placebo write-up).
 
 ## Main options
@@ -122,6 +127,58 @@ Every argument and every element of the output is described in the [function ref
 
 **Run time.** Without covariate adjustment, `dsc_placebo()` takes seconds. Covariate adjustment with interactive fixed effects (`adjust_model = "ife"`, the default), `augment = "ife"` and `estimator = "fect"` fit a separate `fect` model for every placebo, so they take minutes. On Kansas (48 donors, 105 quarters) with three covariates, `dsc_placebo()` took 10.9 minutes, 97% of it in `fect`: about 11 seconds per placebo model, plus 35 seconds to choose the number of factors. With `n_cores = 4` the placebo models are fitted in parallel and the same run took 3.6 minutes, with identical results (each fit sets its own seed). In interactive sessions the function reports the slow stages and shows a progress bar; `verbose = FALSE` turns this off.
 
+## Experimental functions: small donor pools, power and covariate screens
+
+The package has three further functions. They are **experimental**: validated by simulation in this repository (see the [validation summary](docs/validation/validation_summary.md)), but newer and less tested than `dsc_placebo()`.
+
+**`dsc_placebo_lto()`: tests with small donor pools.** With 16 donors, `dsc_placebo()`'s smallest possible p-value is 1/17 = 0.059, so it cannot test at 5%. The leave-two-out (LTO) test of Lei and Sudijono (2025) compares the treated unit with every pair of donors, which allows a 5% test and finite 95% intervals:
+
+```r
+lto_fit <- dsc_placebo_lto(germany, unit_col = "country", time_cols = "year", outcome_col = "gdp",
+                           treated_unit = "West Germany", treatment_period = c(year = 1991), conf_level = 0.95)
+lto_fit
+```
+
+```
+         test                measure estimate  lower upper p_lto_naive
+    pointwise                 effect    -3.49  -6.85 -1.13     0.01670
+    pointwise      cumulative effect   -22.50 -39.90 -6.15     0.00833
+ simultaneous            effect path       NA     NA    NA     0.02500
+ simultaneous cumulative effect path       NA     NA    NA     0.01670
+```
+
+The same estimate as `dsc_placebo()` (an effect of -3.49 in 2003), now with a finite 95% interval. The output also gives a sensitivity analysis: how unequal the chances of being treated would have to be before each result stops being significant (`gamma_sensitivity`).
+
+**`synth_power()`: how large an effect could the test detect?** Each donor is treated in turn, known effects of several shapes are added, and the share of rejections gives the power of the placebo and LTO tests and the minimum detectable effect (MDE):
+
+```r
+pw <- synth_power(germany, unit_col = "country", time_cols = "year", outcome_col = "gdp",
+                  treatment_period = c(year = 1991), treated_unit = "West Germany", shapes = c("constant", "ramp"))
+pw         # in this panel the cumulative test needs a constant effect of about 27-34% of GDP for 80% power
+plot(pw)
+```
+
+`plot(pw)` shows power against the size of the added effect, for each test (columns) and effect shape (rows), with the placebo and LTO tests side by side. The dashed line is the 80% target and the dotted line the 10% level, so the minimum detectable effect is where a curve crosses the dashed line:
+
+![West Germany panel: power of the placebo and LTO tests against the size of a constant or ramped effect, by test](docs/readme_figures/germany_power.png)
+
+**`covariate_trajectory_check()`: did a covariate break away after treatment?** Each covariate is treated as an outcome and tested like the outcome. A covariate that breaks away may be a mediator (don't adjust for it) or a coincident confounder (adjust for it); the check flags it, and the analyst decides which. It is a screen, not a decision rule, and the plots should always be inspected:
+
+```r
+kansas <- as.data.frame(augsynth::kansas)
+check <- covariate_trajectory_check(kansas, unit_col = "state", time_cols = c("year", "qtr"),
+                                    covariates = c("estabscapita", "emplvlcapita", "avg_wkly_wage"),
+                                    treated_unit = "Kansas", treatment_period = c(year = 2012, qtr = 2))
+check
+plot(check)
+```
+
+None of the three Kansas covariates is flagged (p = 0.12-0.92). `plot(check)` shows why it is worth looking anyway: establishments per capita drop sharply at the 2012 tax cuts (top right), but several donors' standardized gaps move as much after treatment (bottom right, in grey), so the drop is not unusual relative to them. Whether to adjust for it is a judgement about the case, not something the test can settle:
+
+![Kansas: each covariate and its synthetic control (top), and the standardized gaps against the donors' (bottom)](docs/readme_figures/kansas_covariate_check.png)
+
+All three take seconds on these panels (about 10, 15 and 1 seconds); `synth_power()` with covariate adjustment and all five effect shapes can take minutes.
+
 ## What it adds
 
 `dsc_placebo()` combines established parts of the synthetic control literature into one procedure, and adds a few pieces that, as far as we know, the standard packages do not offer together.
@@ -140,10 +197,10 @@ Every argument and every element of the output is described in the [function ref
 **What the p-values and intervals mean.** Three points matter when reading the results (Alvarez, Ferman and Wüthrich 2026 review them):
 
 - **The tests are tests of a sharp null.** A placebo or LTO p-value tests that the treatment had *no effect at all* on the treated unit in that period (or, when inverted for an interval, a constant effect of a given size). It is not a test that the average effect is zero while effects vary. A rejection means the treated unit's gap is unusual compared with the untreated units' gaps; it doesn't by itself say how large the effect is on average, and a treatment that changes the variability of the outcome without changing its level could also be rejected.
-- **The intervals can be read as prediction intervals for the realized effect.** An interval from inverting the test contains the effect sizes the data can't rule out for this treated unit in this period. Alvarez and Ferman (2025) show that such intervals remain valid as prediction intervals for the realized effect even when effects vary and are related to the untreated outcomes. They are not confidence intervals for an average effect across hypothetical treated units.
+- **The intervals can be read as prediction intervals for the realized effect.** An interval from inverting the test contains the effect sizes the data can't rule out for this treated unit in this period. Alvarez and Ferman (2025) show that tests of sharp nulls, inference on realized effects and prediction intervals are closely connected, and that methods built under a constant effect can remain valid for the realized effect when effects vary (are stochastic), under conditions they set out. They are not confidence intervals for an average effect across hypothetical treated units.
 - **Validity is on average over which unit could have been treated.** Placebo tests are exact when the treated unit is like a randomly drawn unit. For a treated unit that is unusual on something that matters (much smaller, noisier, or far outside the donors' range), a test that is valid on average can still mislead for that unit. That is what the diagnostics, the RMSPE scale (each unit's gap is measured against its own pre-treatment fit) and the balance check are for.
 
-**What it does not do.** It handles a single treated unit, not staggered adoption; a 95% interval needs at least 19 donors; its validity rests, as for any placebo method, on the treated unit's errors behaving like the donors'; and it is an R script that has not been peer reviewed.
+**What it does not do.** It handles a single treated unit, not staggered adoption; a 95% interval needs at least 19 donors; its validity rests, as for any placebo method, on the treated unit's errors behaving like the donors'; and the package has not been peer reviewed.
 
 ## Documents
 
@@ -154,6 +211,7 @@ Every argument and every element of the output is described in the [function ref
 | [Case study: Oregon's decriminalization and fentanyl](docs/oregon_fentanyl/oregon_fentanyl_case_study.md) | A confounder that arrives with the treatment: the unadjusted synthetic control finds a large, significant increase in overdose deaths; adjusting for the fentanyl share with `adjust_covariates` removes it, and a validation on the same panel shows the adjusted method stays valid |
 | [When placebo inference fails, and how to detect it](docs/diagnostics/diagnostics_toy_cases.md) | Factor loadings, trending factors, and how the diagnostics work, through toy cases where the method works and where it fails |
 | [Placebo-calibrated intervals and simultaneous bands](docs/placebo/placebo_calibrated_bands.md) | How the pointwise intervals and simultaneous bands are built (worked through on the default RMSPE scale), how they were validated, and how the scales compare |
+| [Validation summary for the experimental functions](docs/validation/validation_summary.md) | Size, power and interval coverage of `dsc_placebo_lto()`, minimum detectable effects from `synth_power()` across six benchmark panels, and the covariate screen on Kansas |
 | [Development: the calibrated bootstrap](docs/bootstrap/fixed_weight_calibrated_bootstrap.md) | The earlier approach: a fixed-weight maximum entropy bootstrap calibrated against donors |
 
 The function reference is plain Markdown. The other links point to the GitHub-flavoured Markdown versions of the Quarto documents, produced when each `.qmd` in `docs/` is rendered (`quarto render`); the `.qmd` source is next to each, and rendering it also produces a self-contained HTML version.
@@ -174,22 +232,32 @@ Every method tried, including those that failed, is recorded in [`experimental_m
 
 ```
 ├── README.md
+├── synthplacebo/                              # the R package: R/, man/ (help pages), tests/ (testthat)
 ├── synthetic_control_functions/
-│   └── synthetic_control_functions_claude.R   # all functions (below)
+│   └── synthetic_control_functions_claude.R   # the original single-script version (used by simulations/ and docs/)
 ├── docs/                                      # the documents, each with its figures (readme_figures/: this page's)
 │   └── reference/function_reference.md         # arguments and output of every function
+│   └── validation/validation_summary.md        # how the experimental functions were checked
 ├── data/                                      # data for the Oregon case study (with its source)
 ├── simulations/                               # the simulations behind the main findings, with summary results
 ├── experimental_methods_tracker.md            # every method tried, with results
 └── archive/                                   # the previous README (synth_lasso_boot) and the earlier relative-scale write-up
 ```
 
-**Functions** in `synthetic_control_functions_claude.R`:
+**Functions.** In the package (`library(synthplacebo)`; see `?synthplacebo` for the help pages):
 
 | Function | Purpose |
 |---|---|
 | `dsc_placebo()` | **the main method**: demeaned synthetic control (optionally ridge-augmented, or fect), placebo-calibrated inference, covariate adjustment, diagnostics |
-| `plot_full_path()`, `plot_post_effect()`, `plot_prediction()`, `added_effect()` | figures for `dsc_placebo()` and `dsc_symcal_boot()` output |
+| `plot_full_path()`, `plot_post_effect()`, `plot_prediction()`, `added_effect()` | figures for `dsc_placebo()` output (also `plot(fit, type = ...)`) |
+| `dsc_placebo_lto()` | *experimental*: leave-two-out placebo test for small donor pools, with a simultaneous band and a sensitivity analysis |
+| `synth_power()`, `plot_synth_power()` | *experimental*: power and minimum detectable effects of the placebo and LTO tests |
+| `covariate_trajectory_check()`, `plot_covariate_trajectories()` | *experimental*: screen for covariates that break away from their synthetic control after treatment |
+
+In `synthetic_control_functions_claude.R` (the script also contains `dsc_placebo()` and its plots):
+
+| Function | Purpose |
+|---|---|
 | `dsc_symcal_boot()`, `plot_dsc_symcal()` | the earlier bootstrap-calibrated version |
 | `synth_lasso_boot()`, `synth_lasso_placebo()`, `meboot_multi()` | the original LASSO synthetic control with bootstrap or placebo inference (see `archive/`) |
 
@@ -207,8 +275,10 @@ Data from other sources keep their own terms:
 
 ## References
 
-- Abadie, A., Diamond, A., and Hainmueller, J. (2010). Synthetic control methods for comparative case studies. *Journal of the American Statistical Association*, 105(490), 493-505.
+- Abadie, A., Diamond, A., and Hainmueller, J. (2010). Synthetic control methods for comparative case studies: Estimating the effect of California's tobacco control program. *Journal of the American Statistical Association*, 105(490), 493-505.
 - Abadie, A., Diamond, A., and Hainmueller, J. (2015). Comparative politics and the synthetic control method. *American Journal of Political Science*, 59(2), 495-510.
+- Alvarez, L., and Ferman, B. (2025). On the relationship between prediction intervals, tests of sharp nulls and inference on realized treatment effects in settings with few treated units. Working paper, arXiv:2506.14998.
+- Alvarez, L., Ferman, B., and Wüthrich, K. (2026). Inference with few treated units. Working paper, arXiv:2504.19841.
 - Ben-Michael, E., Feller, A., and Rothstein, J. (2021). The augmented synthetic control method. *Journal of the American Statistical Association*, 116(536), 1789-1803.
 - Cattaneo, M. D., Feng, Y., and Titiunik, R. (2021). Prediction intervals for synthetic control methods. *Journal of the American Statistical Association*, 116(536), 1865-1880.
 - Cunningham, S. (2021). *Causal Inference: The Mixtape*. New Haven: Yale University Press.
@@ -216,7 +286,7 @@ Data from other sources keep their own terms:
 - Ferman, B., and Pinto, C. (2017). Placebo tests for synthetic controls. MPRA Paper 78079, Munich Personal RePEc Archive.
 - Ferman, B., and Pinto, C. (2021). Synthetic controls with imperfect pretreatment fit. *Quantitative Economics*, 12(4), 1197-1221.
 - Firpo, S., and Possebom, V. (2018). Synthetic control method: Inference, sensitivity analysis and confidence sets. *Journal of Causal Inference*, 6(2).
-- Lei, L., and Sudijono, T. (2025). Inference for synthetic controls via refined placebo tests. arXiv:2401.07152.
+- Lei, L., and Sudijono, T. (2025). Inference for synthetic controls via refined placebo tests. Working paper, arXiv:2401.07152.
 - Liu, L., Wang, Y., and Xu, Y. (2024). A practical guide to counterfactual estimators for causal inference with time-series cross-sectional data. *American Journal of Political Science*, 68(1), 160-176.
 - Vinod, H. D., and López-de-Lacalle, J. (2009). Maximum entropy bootstrap for time series: The meboot R package. *Journal of Statistical Software*, 29(5), 1-19.
 - Xu, Y. (2017). Generalized synthetic control method: Causal inference with interactive fixed effects models. *Political Analysis*, 25(1), 57-76.

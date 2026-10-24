@@ -12,6 +12,7 @@ Each renders to a GitHub-flavoured Markdown file (`.md`), which is what GitHub d
 | `oregon_fentanyl/` | `oregon_fentanyl_case_study.qmd` | Oregon's drug decriminalization and the arrival of fentanyl: covariate adjustment for a confounder that arrives with the treatment, validated on the same panel (reads `data/oregon_fentanyl/`) |
 | `diagnostics/` | `diagnostics_toy_cases.qmd` | When placebo inference fails (extreme treated units, trending factors), and the diagnostics in `dsc_placebo()` |
 | `placebo/` | `placebo_calibrated_bands.qmd` | The placebo-calibrated method (pointwise intervals and simultaneous bands), explained on the default RMSPE scale, with validation and the alternative relative and raw scales |
+| `validation/` | `validation_summary.md` | How the experimental functions (`dsc_placebo_lto()`, `synth_power()`, `covariate_trajectory_check()`) were checked by simulation (plain Markdown; no rendering needed) |
 | `bootstrap/` | `fixed_weight_calibrated_bootstrap.qmd` | The earlier approach: fixed-weight maximum entropy bootstrap with donor calibration (kept as part of the method's development; the placebo method is preferred) |
 
 To render both formats, run `quarto render docs/<folder>/<file>.qmd` from the project root (add `--to gfm` for the Markdown only). RStudio's Render button produces only the HTML version.

@@ -1,0 +1,13 @@
+test_that("print(), summary() and plot() work for every result class", {
+  d <- sim_panel(n_units = 10, covariate = TRUE)
+  fit <- dsc_placebo(d, "unit", "year", "y", "u1", treat_year(), conf_level = 0.80, diagnostics = FALSE, verbose = FALSE)
+  expect_output(print(fit), "Demeaned synthetic control"); expect_output(print(summary(fit)), "Post-treatment effects")
+  for (tp in c("full_path", "effect", "cumulative", "prediction")) expect_s3_class(plot(fit, type = tp), "ggplot")
+  lto <- dsc_placebo_lto(d, "unit", "year", "y", "u1", treat_year(), conf_level = 0.90, diagnostics = FALSE, warn = FALSE, verbose = FALSE)
+  expect_output(print(lto), "Leave-two-out"); expect_output(print(summary(lto)), "Post-treatment effects")
+  for (tp in c("effect", "cumulative", "full_path")) expect_s3_class(plot(lto, type = tp), "ggplot")
+  pw <- synth_power(d, "unit", "year", "y", treat_year(), effects = c(-0.2, 0.2), shapes = "constant", verbose = FALSE)
+  expect_output(print(pw), "Minimum detectable effect"); expect_s3_class(summary(pw), "data.frame"); expect_s3_class(plot(pw), "ggplot")
+  ck <- covariate_trajectory_check(d, "unit", "year", "x", "u1", treat_year())
+  expect_output(print(ck), "Covariate trajectory check"); expect_s3_class(plot(ck), "ggplot")
+})

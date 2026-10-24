@@ -20,7 +20,7 @@ This is a textbook case of a **time-varying confounder that arrives with the tre
 >
 > ### Files this document needs
 >
-> The code reads the data from `data/oregon_fentanyl/data_final.csv` and sources `synthetic_control_functions/synthetic_control_functions_claude.R`, both relative to the **project root**, so run it from there. The figures are read from `figures/` next to this file, and the validation results from `simulations/results_oregon_fentanyl/` (produced by `simulations/oregon_fentanyl_validation.R`). The code chunks are not evaluated when the document is rendered (`eval: false`); the numbers come from `oregon_results.rds` in this folder.
+> The code uses the `synthplacebo` package (`library(synthplacebo)`) and reads the data from `data/oregon_fentanyl/data_final.csv`, relative to the **project root**, so run it from there. The figures are read from `figures/` next to this file, and the validation results from `simulations/results_oregon_fentanyl/` (produced by `simulations/oregon_fentanyl_validation.R`). The code chunks are not evaluated when the document is rendered (`eval: false`); the numbers come from `oregon_results.rds` in this folder.
 
 # The data
 
@@ -33,7 +33,7 @@ The two panels tell the story. Fentanyl spread through the eastern states from a
 # The problem: an unadjusted synthetic control
 
 ``` r
-source("synthetic_control_functions/synthetic_control_functions_claude.R")
+library(synthplacebo)   # remotes::install_github("jpmilliman/Synth_Placebo", subdir = "synthplacebo")
 library(tidyverse)
 
 oregon <- read_csv("data/oregon_fentanyl/data_final.csv") |>

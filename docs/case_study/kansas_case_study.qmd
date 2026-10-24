@@ -31,13 +31,13 @@ In 2012, Kansas cut its income taxes sharply. This case study uses that episode,
 
 How the method was developed and validated is described in the companion documents: [placebo-calibrated intervals](../placebo/placebo_calibrated_bands.qmd), [diagnostics](../diagnostics/diagnostics_toy_cases.qmd), and the earlier [bootstrap approach](../bootstrap/fixed_weight_calibrated_bootstrap.qmd).
 
-**Files this document depends on:** its figures are in `figures/` (next to this document); the code chunks (shown, not run) load `synthetic_control_functions/synthetic_control_functions_claude.R`, relative to the project root.
+**Files this document depends on:** its figures are in `figures/` (next to this document); the code chunks (shown, not run) use the `synthplacebo` package (`library(synthplacebo)`); the original script `synthetic_control_functions/synthetic_control_functions_claude.R` gives the same results.
 
 # Setting up
 
 ```{r}
 library(tidyverse)
-source("synthetic_control_functions/synthetic_control_functions_claude.R")
+library(synthplacebo)   # remotes::install_github("jpmilliman/Synth_Placebo", subdir = "synthplacebo")
 
 kansas <- augsynth::kansas |> select(state, year, qtr, gdpcapita)
 
